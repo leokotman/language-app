@@ -71,3 +71,15 @@ You can leave Google for later and only use email for now.
 2. Open the app in the browser. There should be **no** console warning about missing `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY` if `.env` is set correctly.
 
 Once this is done, we can add authentication (sign up, login, protected routes).
+
+---
+
+## 6. Create the profiles table (for signup)
+
+So the app can store user profiles when someone signs up:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open the migration file **`docs/supabase-migrations/001_profiles.sql`** in this repo and copy its contents.
+3. Paste into the SQL Editor and click **Run**.
+
+After this, new signups will get a row in `profiles` automatically (the app calls `upsertProfile` after signup).
