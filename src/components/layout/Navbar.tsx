@@ -1,8 +1,10 @@
 import { AppBar, Toolbar, Typography, Button, Box, IconButton } from '@mui/material'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
-import { Link as RouterLink, useLocation } from 'react-router-dom'
+import LogoutIcon from '@mui/icons-material/Logout'
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '@/theme/ThemeModeContext'
+import { useAuth } from '@/hooks/useAuth'
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -14,7 +16,14 @@ const navItems = [
 
 export function Navbar() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { mode, toggleMode } = useThemeMode()
+  const { isAuthenticated, user, signOut } = useAuth()
+
+  const handleSignOut = () => {
+    signOut()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <AppBar position="static">
@@ -25,7 +34,7 @@ export function Navbar() {
         <IconButton color="inherit" onClick={toggleMode} aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
           {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
         </IconButton>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           {navItems.map(({ label, path }) => (
             <Button
               key={path}
@@ -38,6 +47,25 @@ export function Navbar() {
               {label}
             </Button>
           ))}
+          {isAuthenticated ? (
+            <>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                {user?.email}
+              </Typography>
+              <IconButton color="inherit" onClick={handleSignOut} aria-label="Sign out" size="small">
+                <LogoutIcon />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Button color="inherit" component={RouterLink} to="/login" size="small">
+                Log in
+              </Button>
+              <Button color="inherit" component={RouterLink} to="/signup" variant="outlined" size="small">
+                Sign up
+              </Button>
+            </>
+          )}
         </Box>
       </Toolbar>
     </AppBar>
