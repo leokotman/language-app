@@ -5,7 +5,7 @@ test.describe('Home', () => {
     await page.goto('/')
     await expect(page.getByRole('banner').getByText('Language App')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible()
-    await expect(page.getByText('word 1')).toBeVisible()
+    await expect(page.getByRole('main').getByText('word 1').first()).toBeVisible()
   })
 
   test('navigates to My Library', async ({ page }) => {
