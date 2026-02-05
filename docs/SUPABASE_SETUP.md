@@ -83,3 +83,35 @@ So the app can store user profiles when someone signs up:
 3. Paste into the SQL Editor and click **Run**.
 
 After this, new signups will get a row in `profiles` automatically (the app calls `upsertProfile` after signup).
+
+---
+
+## 7. Customize the signup confirmation email
+
+To change the “Confirm your signup” email so it clearly comes from your app:
+
+1. In the Supabase dashboard, go to **Authentication** → **Email Templates**.
+2. Open the **Confirm signup** template.
+3. Set **Subject** to:
+   ```
+   Confirm your signup at Language App
+   ```
+4. Replace the **Message (HTML)** body with something like:
+
+```html
+<h2>Confirm your signup at Language App</h2>
+
+<p>Hi,</p>
+
+<p>You signed up for <strong>Language App</strong> — the app where you build your vocabulary, practice with spaced repetition, and track your progress.</p>
+
+<p>Click the link below to confirm your email and start learning:</p>
+
+<p><a href="{{ .ConfirmationURL }}">Confirm your email</a></p>
+
+<p>If you didn’t create an account with Language App, you can ignore this email.</p>
+
+<p>— The Language App team</p>
+```
+
+5. Click **Save**. New signups will receive this subject and content. You can change the wording anytime in the same place.
