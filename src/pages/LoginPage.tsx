@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/authStore'
 import { getAuthErrorMessage } from '@/lib/errors'
 
 export function LoginPage() {
@@ -18,10 +19,14 @@ export function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
       if (err) {
         setError(getAuthErrorMessage(err))
         return
+      }
+      // Update store immediately so ProtectedRoute sees the session when we navigate
+      if (data?.session) {
+        useAuthStore.getState().setAuth(data.session.user, data.session)
       }
       navigate(from, { replace: true })
     } catch {
