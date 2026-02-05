@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import { getAuthErrorMessage } from '@/lib/errors'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,7 +23,7 @@ export function LoginPage() {
         setError(getAuthErrorMessage(err))
         return
       }
-      navigate('/', { replace: true })
+      navigate(from, { replace: true })
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
+import { ProtectedRoute } from '@/components/features/auth/ProtectedRoute'
 import { HomePage } from '@/pages/HomePage'
 import { LibraryPage } from '@/pages/LibraryPage'
 import { StudyPage } from '@/pages/StudyPage'
@@ -15,7 +16,7 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/" element={<Layout />}>
+      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<HomePage />} />
         <Route path="library" element={<LibraryPage />} />
         <Route path="study" element={<StudyPage />} />

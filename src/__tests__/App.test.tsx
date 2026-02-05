@@ -1,9 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { ReactElement } from 'react'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { ThemeModeProvider } from '@/theme/ThemeModeContext'
 import { AppRoutes } from '@/App'
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    isAuthenticated: true,
+    loading: false,
+    user: { email: 'test@example.com' },
+    session: {},
+    signOut: vi.fn(),
+  }),
+}))
 
 function renderWithProviders(ui: ReactElement, options?: { initialEntries?: string[] }) {
   return render(
