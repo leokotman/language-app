@@ -8,6 +8,7 @@ import {
   addToUserLibrary,
   updateUserVocabulary,
   removeFromUserLibrary,
+  addWordToLibrary,
 } from '@/api/vocabulary'
 import type {
   VocabularyInsert,
@@ -133,6 +134,23 @@ export function useRemoveFromUserLibrary(userId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => removeFromUserLibrary(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-vocabulary', userId] })
+      queryClient.invalidateQueries({ queryKey: ['vocabulary'] })
+    },
+  })
+}
+
+/** Add a new word (create vocabulary + add to user library) in one step. */
+export function useAddWordToLibrary(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (params: {
+      word: string
+      translation: string
+      language_from: string
+      language_to: string
+    }) => addWordToLibrary(userId, params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-vocabulary', userId] })
       queryClient.invalidateQueries({ queryKey: ['vocabulary'] })

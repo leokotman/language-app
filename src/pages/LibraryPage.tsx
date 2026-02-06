@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import {
   Typography,
@@ -15,11 +15,14 @@ import {
   CircularProgress,
   Alert,
   Link,
+  Button,
+  Paper,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import AddIcon from '@mui/icons-material/Add'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserLanguages } from '@/hooks/useUserLanguages'
-import { useUserVocabularyList } from '@/hooks/useVocabulary'
+import { useUserVocabularyList, useAddWordToLibrary } from '@/hooks/useVocabulary'
 import { SUPPORTED_LANGUAGE_PAIRS } from '@/types'
 
 type LibraryItem = {
@@ -41,17 +44,46 @@ export function LibraryPage() {
   const userId = user?.id
   const [search, setSearch] = useState('')
   const [languageFilter, setLanguageFilter] = useState<string>('')
+  const [addWord, setAddWord] = useState('')
+  const [addTranslation, setAddTranslation] = useState('')
+  const [addLanguagePair, setAddLanguagePair] = useState('')
 
   const { data: userLangs, isLoading: langsLoading } = useUserLanguages(userId)
   const { data: libraryItems = [], isLoading: listLoading, error } = useUserVocabularyList(userId)
+  const addMutation = useAddWordToLibrary(userId ?? '')
 
   const languageOptions = useMemo(() => {
     if (!userLangs?.length) return []
     return userLangs.map((ul) => ({
-      value: `${ul.learning_code}-${ul.native_code}`,
+      value: `${ul.native_code}-${ul.learning_code}`,
       label: languagePairLabel(ul.native_code, ul.learning_code),
     }))
   }, [userLangs])
+
+  useEffect(() => {
+    if (languageOptions.length > 0 && !addLanguagePair) {
+      setAddLanguagePair(languageOptions[0].value)
+    }
+  }, [languageOptions, addLanguagePair])
+
+  const handleAddWord = () => {
+    if (!userId || !addLanguagePair || !addWord.trim() || !addTranslation.trim()) return
+    const [language_from, language_to] = addLanguagePair.split('-')
+    addMutation.mutate(
+      {
+        word: addWord.trim(),
+        translation: addTranslation.trim(),
+        language_from,
+        language_to,
+      },
+      {
+        onSuccess: () => {
+          setAddWord('')
+          setAddTranslation('')
+        },
+      }
+    )
+  }
 
   const filteredItems = useMemo(() => {
     let items = libraryItems as LibraryItem[]
@@ -97,6 +129,60 @@ export function LibraryPage() {
 
       {userLangs?.length > 0 && (
         <>
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+              Add word
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
+              <TextField
+                size="small"
+                label="Word"
+                placeholder="e.g. hello"
+                value={addWord}
+                onChange={(e) => setAddWord(e.target.value)}
+                sx={{ minWidth: 160 }}
+              />
+              <TextField
+                size="small"
+                label="Translation"
+                placeholder="e.g. привет"
+                value={addTranslation}
+                onChange={(e) => setAddTranslation(e.target.value)}
+                sx={{ minWidth: 160 }}
+              />
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel id="add-lang-pair">Language pair</InputLabel>
+                <Select
+                  labelId="add-lang-pair"
+                  value={addLanguagePair}
+                  label="Language pair"
+                  onChange={(e) => setAddLanguagePair(e.target.value)}
+                >
+                  {languageOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddWord}
+                disabled={
+                  addMutation.isPending || !addWord.trim() || !addTranslation.trim()
+                }
+              >
+                {addMutation.isPending ? 'Adding…' : 'Add'}
+              </Button>
+            </Box>
+            {addMutation.isError && (
+              <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                Could not add word. Try again.
+              </Typography>
+            )}
+          </Paper>
+
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
             <TextField
               size="small"
