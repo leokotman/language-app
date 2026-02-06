@@ -134,22 +134,29 @@ Use this for context when continuing work on the language app.
 
 ## 8. Suggestions for next steps
 
-### Recommended order
-1. **Week 5 (roadmap):** Seed data (EN–RU, EN–SR), app library browse, add from app to personal, import/export CSV.
-2. **Week 6:** E2E for vocabulary flows, loading/error/empty states, fix PWA build if needed.
-3. **Phase 3:** FSRS + study session, then exercise types.
+### Priority for next stage (implement first)
 
-### Roadmap / product suggestion: dictionaries and verification
-- **Gap:** There is no way for users to **verify** that the words or phrases they enter are correct (spelling, meaning). The app accepts any input.
-- **Suggestion:** Consider adding a **“dictionary / verification”** strand to the roadmap (e.g. after or alongside Week 5):
-  - **Option A — Offline word lists:** Ship curated word lists per language pair (e.g. EN–RU, EN–SR) and, when adding a word, suggest matches or “did you mean?” from that list (no API).
-  - **Option B — External dictionary API:** Integrate a free dictionary/translation API (e.g. free tier of a translation API or an open dictionary) to validate or suggest translations when the user adds a word (requires API key and rate limits).
-  - **Option C — Community / manual:** Rely on “add and review later” and future features (e.g. study feedback, corrections) without real-time verification for now; document the limitation.
-- Updating the roadmap: add a short bullet under Phase 2 or as a “Phase 2.5” such as: “**Verification / dictionaries:** Explore word-list or API-based verification so users can check spelling/meaning when adding words.”
+**1) Input sanitization (security) — do before proceeding further**
+- **Goal:** Sanitize all user inputs across the whole app to prevent common attacks (XSS, DDoS, injection, etc. per OWASP).
+- **Scope:** Every user-controlled input: auth forms (login/signup/forgot password), Library add/edit word, Settings, search fields, any future forms. Apply on client and, where applicable, validate/sanitize on server (e.g. Supabase RLS / Edge Functions if used).
+- **Approach:** Define a small sanitization layer (e.g. trim, max length, escape/sanitize HTML if rendered, rate-limit or debounce where relevant). Consider a dedicated package (e.g. DOMPurify for HTML, or a minimal allowlist) and document rules in one place so all new inputs use it.
+
+**2) Dictionary feature (new tab + route, high priority)**
+- **Goal:** A dedicated **Dictionary** tab/route where users can search and look up words, then add any result to their custom vocabulary. Supports all app languages (EN, RU, SR) with **Russian as the main dictionary** (search by Russian, get translations to English and Serbian).
+- **Data sources:**
+  - **Online:** Dictionary API for lookups when the user has network.
+  - **Offline (PWA):** Install a package or strategy to cache/ship dictionary data for offline use (e.g. IndexedDB + preloaded lists, or a lightweight offline dictionary bundle) so search works without the web.
+- **UI/UX:** Separate route (e.g. `/dictionary`), own tab in the navbar. Search input; results list with “Add to my library” per entry. **Virtual lists** required — dictionaries can be very large (e.g. up to ~100k words). Use a virtualized list (e.g. `react-virtualized`, `@tanstack/react-virtual`, or similar) so only visible rows are rendered.
+- **Functionality:** Search (by Russian as primary; support EN/SR search as needed). Show translations to English and Serbian (and add from this list to user vocabulary for any supported pair). Add-to-library should reuse existing “add word to library” flow (language_from / language_to + vocabulary row).
+
+### Then (after sanitization + dictionary)
+3. **Week 5 (roadmap):** Seed data (EN–RU, EN–SR), app library browse, add from app to personal, import/export CSV.
+4. **Week 6:** E2E for vocabulary flows, loading/error/empty states, fix PWA build if needed.
+5. **Phase 3:** FSRS + study session, then exercise types.
 
 ### Other small improvements (unchanged)
 - Default language pair; trim/validation on add/edit; “I’ve run the migration” refresh button.
 
 ---
 
-*Last updated: session summary and virtual pair add-word support; suggestions for next steps and roadmap (dictionaries/verification) added.*
+*Last updated: next steps reordered — input sanitization (OWASP) and dictionary (API + offline, virtual lists, Russian main) as priority for next stage.*
