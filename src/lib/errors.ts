@@ -95,3 +95,22 @@ export function getAuthErrorMessage(error: unknown): string {
   }
   return 'An error occurred. Please try again.'
 }
+
+/**
+ * True when the error indicates a Supabase/PostgREST table is missing (e.g. 404, relation does not exist).
+ * Run the core data migration in Supabase SQL Editor when this happens.
+ */
+export function isSupabaseTableMissingError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const msg = (error as { message?: string }).message ?? ''
+  const code = (error as { code?: string }).code ?? ''
+  if (typeof msg !== 'string') return false
+  const msgLower = msg.toLowerCase()
+  if (msgLower.includes('does not exist') || msgLower.includes('relation')) return true
+  if (code === '42P01' || code === 'PGRST301') return true
+  return false
+}
+
+/** Shown when isSupabaseTableMissingError is true. */
+export const SUPABASE_MIGRATION_SETUP_MESSAGE =
+  'The database tables for this feature are missing. In your Supabase project: open **SQL Editor**, paste and run the contents of **docs/supabase-migrations/002_core_data_layer.sql** from this repo (see docs/SUPABASE_SETUP.md step 8).'

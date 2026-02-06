@@ -134,3 +134,5 @@ This creates:
 - **user_vocabulary** – user’s personal library with FSRS fields for spaced repetition
 
 After this, the Settings page can save language pairs and the app can use vocabulary CRUD.
+
+**Troubleshooting:** If you see "Failed to load language pairs" or 404 errors for `user_languages` / `user_vocabulary` in the network tab, the app is telling you to run this migration (step 8). Run **002_core_data_layer.sql** in the SQL Editor, then refresh the app.
