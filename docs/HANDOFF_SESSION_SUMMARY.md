@@ -51,6 +51,7 @@ Use this for context when continuing work on the language app.
 17. Dictionary: MyMemory en-ru lookup service (`src/lib/dictionary.ts`).
 18. Dictionary: results UI with Add to library (debounced search, direction, offline message).
 19. Dictionary: pick best match to avoid echo (ru→en names/same word); use MyMemory `matches` array, prefer translation that differs from source.
+20. Dictionary: list all translations (dedupe by normalized translation, sort by quality, cap MAX_TRANSLATIONS 50); e.g. "key" → клавиша, ключ, …
 
 ---
 
@@ -74,7 +75,7 @@ Use this for context when continuing work on the language app.
 - **Input sanitization**: `src/lib/sanitize.ts` — trim, max length, strip control chars; applied to auth forms, Library add/edit/search. See `docs/INPUT_SANITIZATION.md`.
 - **Offline mode**: Navbar toggle (persisted in localStorage); when on, no dictionary/pronunciation API calls. Store: `src/stores/offlineModeStore.ts`.
 - **Error handling**: `logError(context, error)` in `src/lib/errors.ts`; all catch blocks log with context (offlineModeStore, theme, auth pages, useAuth).
-- **Dictionary**: Route `/dictionary`, nav tab. MyMemory en↔ru lookup (`src/lib/dictionary.ts`); uses `matches` array to pick best translation (avoids echo e.g. ru "любовь" → "Любовь"; prefers real translation "love"). Debounced search, direction selector, results list, Add to library. Offline/Offline mode: no API call, message shown. Plan: `docs/DICTIONARY_PLAN.md` (offline/cache separate step).
+- **Dictionary**: Route `/dictionary`, nav tab. MyMemory en↔ru lookup (`src/lib/dictionary.ts`); returns all valid translations (filter echo, dedupe, sort by quality, cap 50). E.g. "key" → клавиша, ключ, …; "любовь" → love (no echo). Debounced search, direction selector, results list, Add to library per row. Offline/Offline mode: no API call, message shown. Plan: `docs/DICTIONARY_PLAN.md` (offline/cache separate step).
 - **DB**: Run `001_profiles.sql` then `002_core_data_layer.sql` in Supabase. See `docs/SUPABASE_SETUP.md`.
 
 ---
@@ -147,8 +148,9 @@ Use this for context when continuing work on the language app.
 - **Dictionary: MyMemory en-ru lookup service:** `lookup(query, from, to, { offlineMode })` in `src/lib/dictionary.ts`; en↔ru only; no cache.
 - **Dictionary: results UI with Add to library:** Debounced search, direction (en→ru / ru→en), results list, Add to library per result; offline message when Offline mode or no connection.
 - **Dictionary: pick best match:** MyMemory sometimes returns echo/same word (e.g. ru "любовь" → "Любовь"). We use `matches` array, filter out translations that equal the source (normalized), pick highest-quality real translation.
+- **Dictionary: list all translations:** Return all valid matches (dedupe by normalized translation, sort by quality, cap MAX_TRANSLATIONS 50). E.g. "key" en→ru shows клавиша, ключ, etc.; each row has Add to library.
 
-**Current state (after this session):** Auth, Settings, Library (as before); input sanitization; offline mode toggle; consistent error logging; Dictionary with MyMemory en–ru lookup (best-match logic), Add to library. Next: optional en–sr; later: offline + cache + bundles.
+**Current state (after this session):** Auth, Settings, Library (as before); input sanitization; offline mode toggle; consistent error logging; Dictionary with MyMemory en–ru lookup (all translations listed, echo filtered, cap 50), Add to library per row. Next: optional en–sr; later: offline + cache + bundles.
 
 **Session complete.** Handoff updated; continue from “Suggestions for next steps” in the next session.
 
@@ -176,4 +178,4 @@ Use this for context when continuing work on the language app.
 
 ---
 
-*Last updated: end of session. Commit 19: Dictionary best-match fix. Next session: optional en–sr; later offline/cache; or Week 5 / Phase 3 per §8.*
+*Last updated: Commit 20: Dictionary list all translations. Next session: optional en–sr; later offline/cache; or Week 5 / Phase 3 per §8.*
