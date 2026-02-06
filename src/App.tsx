@@ -6,6 +6,7 @@ import { LibraryPage } from '@/pages/LibraryPage'
 import { StudyPage } from '@/pages/StudyPage'
 import { ProgressPage } from '@/pages/ProgressPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { DictionaryPage } from '@/pages/DictionaryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
@@ -19,6 +20,7 @@ export function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<HomePage />} />
         <Route path="library" element={<LibraryPage />} />
+        <Route path="dictionary" element={<DictionaryPage />} />
         <Route path="study" element={<StudyPage />} />
         <Route path="progress" element={<ProgressPage />} />
         <Route path="settings" element={<SettingsPage />} />
