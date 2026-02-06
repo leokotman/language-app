@@ -12,17 +12,31 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
   CircularProgress,
   Alert,
   Link,
   Button,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserLanguages } from '@/hooks/useUserLanguages'
-import { useUserVocabularyList, useAddWordToLibrary } from '@/hooks/useVocabulary'
+import {
+  useUserVocabularyList,
+  useAddWordToLibrary,
+  useUpdateVocabulary,
+  useDeleteVocabulary,
+} from '@/hooks/useVocabulary'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { SUPPORTED_LANGUAGE_PAIRS } from '@/types'
 
 type LibraryItem = {
@@ -47,10 +61,18 @@ export function LibraryPage() {
   const [addWord, setAddWord] = useState('')
   const [addTranslation, setAddTranslation] = useState('')
   const [addLanguagePair, setAddLanguagePair] = useState('')
+  const [editingItem, setEditingItem] = useState<{
+    vocabulary_id: string
+    word: string
+    translation: string
+  } | null>(null)
+  const [deleteVocabularyId, setDeleteVocabularyId] = useState<string | null>(null)
 
   const { data: userLangs, isLoading: langsLoading } = useUserLanguages(userId)
   const { data: libraryItems = [], isLoading: listLoading, error } = useUserVocabularyList(userId)
   const addMutation = useAddWordToLibrary(userId ?? '')
+  const updateMutation = useUpdateVocabulary(userId ?? '')
+  const deleteMutation = useDeleteVocabulary(userId ?? '')
 
   const languageOptions = useMemo(() => {
     if (!userLangs?.length) return []
@@ -83,6 +105,23 @@ export function LibraryPage() {
         },
       }
     )
+  }
+
+  const handleSaveEdit = () => {
+    if (!editingItem || !editingItem.word.trim() || !editingItem.translation.trim()) return
+    updateMutation.mutate(
+      {
+        id: editingItem.vocabulary_id,
+        updates: { word: editingItem.word.trim(), translation: editingItem.translation.trim() },
+      },
+      { onSuccess: () => setEditingItem(null) }
+    )
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteVocabularyId) {
+      deleteMutation.mutate(deleteVocabularyId, { onSuccess: () => setDeleteVocabularyId(null) })
+    }
   }
 
   const filteredItems = useMemo(() => {
@@ -246,11 +285,84 @@ export function LibraryPage() {
                       primary={v ? `${v.word} — ${v.translation}` : '—'}
                       secondary={label}
                     />
+                    <ListItemSecondaryAction>
+                      <IconButton
+                        edge="end"
+                        aria-label="Edit"
+                        onClick={() =>
+                          v && setEditingItem({
+                            vocabulary_id: item.vocabulary_id,
+                            word: v.word,
+                            translation: v.translation,
+                          })
+                        }
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        edge="end"
+                        aria-label="Delete"
+                        onClick={() => setDeleteVocabularyId(item.vocabulary_id)}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </ListItemSecondaryAction>
                   </ListItem>
                 )
               })}
             </List>
           )}
+
+          <Dialog open={!!editingItem} onClose={() => setEditingItem(null)}>
+            <DialogTitle>Edit word</DialogTitle>
+            <DialogContent>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1, minWidth: 320 }}>
+                <TextField
+                  autoFocus
+                  label="Word"
+                  value={editingItem?.word ?? ''}
+                  onChange={(e) =>
+                    setEditingItem((prev) => (prev ? { ...prev, word: e.target.value } : null))
+                  }
+                />
+                <TextField
+                  label="Translation"
+                  value={editingItem?.translation ?? ''}
+                  onChange={(e) =>
+                    setEditingItem((prev) =>
+                      prev ? { ...prev, translation: e.target.value } : null
+                    )
+                  }
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setEditingItem(null)}>Cancel</Button>
+              <Button
+                variant="contained"
+                onClick={handleSaveEdit}
+                disabled={
+                  !editingItem?.word.trim() ||
+                  !editingItem?.translation.trim() ||
+                  updateMutation.isPending
+                }
+              >
+                {updateMutation.isPending ? 'Saving…' : 'Save'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <ConfirmDialog
+            open={!!deleteVocabularyId}
+            title="Remove word"
+            message="Remove this word from your library? This cannot be undone."
+            confirmLabel="Remove"
+            cancelLabel="Cancel"
+            confirmColor="error"
+            loading={deleteMutation.isPending}
+            onConfirm={handleConfirmDelete}
+            onCancel={() => setDeleteVocabularyId(null)}
+          />
         </>
       )}
     </>
