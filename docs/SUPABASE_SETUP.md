@@ -128,7 +128,7 @@ For language selection and vocabulary (Phase 1, Week 3):
 
 This creates:
 
-- **languages** – reference table (en, ru, sr, hr)
+- **languages** – reference table (en, ru, sr — Serbian in Latin script)
 - **user_languages** – each user’s chosen language pairs (e.g. English → Russian)
 - **vocabulary** – app library and user-created words (word/translation per language pair)
 - **user_vocabulary** – user’s personal library with FSRS fields for spaced repetition
