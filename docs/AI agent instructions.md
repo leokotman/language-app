@@ -25,5 +25,5 @@ Project setup details:
 6. Always think about performance and scalability.
 7. Where possible, suggest mobile-friendly components and UI.
 8. Use a11y best practices where possible and needed (texts, user interactions, layout changes).
-9. After each commit, update the handoff summary so it reflects the completed steps.
+9. **Handoff updates:** After each commit (or after a batch of commits in one session), update `docs/HANDOFF_SESSION_SUMMARY.md`: (a) append the new commit(s) to the "Commits" / session list, (b) update "Current state" so it accurately describes what exists in the repo, (c) update "Session summary (latest)" with what was just done, (d) adjust "Suggestions for next steps" if priorities or status changed. This keeps the next session or agent from missing recent work.
 10. In case of any doubt about the solution — ask before proceeding.

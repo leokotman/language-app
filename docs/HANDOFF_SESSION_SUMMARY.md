@@ -43,6 +43,12 @@ Use this for context when continuing work on the language app.
 11. **6.5 Bidirectional pairs:** `BIDIRECTIONAL_PAIRS` and `getBidirectionalKey` in types; Settings shows one row per pair (e.g. "Russian ↔ English"), add inserts both directions via `addBidirectionalPair`, remove deletes both via `removeUserLanguagesByIds`. Library: filter by bidirectional pair; add form has Pair + Direction dropdowns.
 12. **6.6 Virtual pair:** `VIRTUAL_PAIR_RU_SR`; when user has both EN–RU and EN–SR, Settings lists "Russian ↔ Serbian (via English)" (informational); Library filter option shows words from all four directions (EN–RU, RU–EN, EN–SR, SR–EN) with "(via English)" note.
 
+### Commits (latest session — sanitization, offline, errors, dictionary)
+13. Input sanitization (OWASP): trim, max length, strip control chars; apply to auth and Library; char-code loop; docs and tests.
+14. Offline mode toggle and dictionary plan: offlineModeStore, Navbar switch, DICTIONARY_PLAN.md.
+15. Meaningful error handling: logError, catch blocks everywhere, useAuth signOut try/finally.
+16. Dictionary route + shell: `/dictionary`, nav tab, DictionaryPage with search placeholder.
+
 ---
 
 ## 2. Issues we hit
@@ -62,6 +68,10 @@ Use this for context when continuing work on the language app.
 - **Auth**: Login, signup, forgot password, protected routes, profiles (migration 001).
 - **Settings**: Language pairs (user_languages) — add/remove; requires migration 002.
 - **Library**: Personal vocabulary — list, search, filter, add word, edit word, delete word (with confirm). Requires migration 002.
+- **Input sanitization**: `src/lib/sanitize.ts` — trim, max length, strip control chars; applied to auth forms, Library add/edit/search. See `docs/INPUT_SANITIZATION.md`.
+- **Offline mode**: Navbar toggle (persisted in localStorage); when on, no dictionary/pronunciation API calls. Store: `src/stores/offlineModeStore.ts`.
+- **Error handling**: `logError(context, error)` in `src/lib/errors.ts`; all catch blocks log with context (offlineModeStore, theme, auth pages, useAuth).
+- **Dictionary**: Route `/dictionary`, nav tab, shell page with search input (placeholder; online lookup and Add to library not yet wired). Plan: `docs/DICTIONARY_PLAN.md` (one language pair first, offline/cache separate step).
 - **DB**: Run `001_profiles.sql` then `002_core_data_layer.sql` in Supabase. See `docs/SUPABASE_SETUP.md`.
 
 ---
@@ -122,13 +132,17 @@ Use this for context when continuing work on the language app.
 
 ## 7. Session summary (latest — today’s work)
 
-**Done and fixed in this session:**
-- **Bidirectional pairs (6.5):** One row per language combination in Settings and Library (e.g. “Russian ↔ English”). Add pair = insert both directions; remove pair = remove both. Library: filter by pair; add form = Pair + Direction.
-- **Virtual pair (6.6):** “Russian ↔ Serbian (via English)” appears when user has both EN–RU and EN–SR. Settings shows it as info; Library has filter and **add-word support** (user can add Russian→Serbian and Serbian→Russian words; stored as ru–sr/sr–ru).
-- **Commit style:** AI instructions updated — one logical change per commit, no “X and Y” in commit messages. Changes committed in single-purpose commits (types, API, hooks, Settings bidirectional, Settings virtual, Library bidirectional, Library virtual, handoff, AI instructions).
-- **Virtual pair add-word fix:** Virtual pair added to add-form pair options; direction labels “Russian → Serbian (via English)” / “Serbian → Russian (via English)”; list shows proper labels for ru–sr/sr–ru vocabulary.
+**Earlier (previous sessions):** Bidirectional pairs (6.5), virtual pair (6.6), commit style and AI instructions.
 
-**Current state (after this session):** Auth, Settings (bidirectional + virtual display), Library (bidirectional filter/add, virtual pair filter + add word, list labels). DB unchanged (migrations 001 + 002). PWA build still fails (known workbox issue); `tsc -b` and tests pass.
+**Done in this session (committed):**
+- **Input sanitization:** `src/lib/sanitize.ts` (trim, max length, strip control chars); applied to Login, Signup, Forgot password, Library add/edit/search. Regex replaced with char-code loop to satisfy ESLint. Docs: `INPUT_SANITIZATION.md`; tests: `sanitize.test.ts`.
+- **Offline mode toggle + dictionary plan:** `offlineModeStore` (zustand + localStorage), Navbar switch with tooltip. `docs/DICTIONARY_PLAN.md`: phases (one language pair online first; offline/cache/bundles as separate step); allowed providers only (LibreTranslate, MyMemory, Free Dictionary, Wiktionary).
+- **Meaningful error handling:** `logError(context, error)` in `lib/errors.ts`; all catch blocks use it (offlineModeStore, theme get/set, Login/Signup/ForgotPassword, useAuth getSession and signOut). Unit tests for `logError`.
+
+**Done in this session (committed):**
+- **Dictionary route + shell:** Route `/dictionary`, “Dictionary” in navbar, `DictionaryPage` with search field (sanitized) and placeholder text. No API or results yet.
+
+**Current state (after this session):** Auth, Settings, Library (as before); input sanitization; offline mode toggle; consistent error logging; Dictionary page (shell only). Next: one API for en–ru, then results UI + Add to library; later: offline + cache + bundles.
 
 ---
 
@@ -139,13 +153,10 @@ Use this for context when continuing work on the language app.
 **1) Input sanitization (security) — DONE**
 - **Implemented:** `src/lib/sanitize.ts` — trim, max length (email 255, password 128, word/translation 500, search 200), strip control chars. Applied to: Login, Signup, Forgot password (email/password); Library add word, edit word, search. See `docs/INPUT_SANITIZATION.md`. Unit tests: `src/__tests__/lib/sanitize.test.ts`.
 
-**2) Dictionary feature (new tab + route, high priority)**
-- **Goal:** A dedicated **Dictionary** tab/route where users can search and look up words, then add any result to their custom vocabulary. Supports all app languages (EN, RU, SR) with **Russian as the main dictionary** (search by Russian, get translations to English and Serbian).
-- **Data sources:**
-  - **Online:** Dictionary API for lookups when the user has network.
-  - **Offline (PWA):** Install a package or strategy to cache/ship dictionary data for offline use (e.g. IndexedDB + preloaded lists, or a lightweight offline dictionary bundle) so search works without the web.
-- **UI/UX:** Separate route (e.g. `/dictionary`), own tab in the navbar. Search input; results list with “Add to my library” per entry. **Virtual lists** required — dictionaries can be very large (e.g. up to ~100k words). Use a virtualized list (e.g. `react-virtualized`, `@tanstack/react-virtual`, or similar) so only visible rows are rendered.
-- **Functionality:** Search (by Russian as primary; support EN/SR search as needed). Show translations to English and Serbian (and add from this list to user vocabulary for any supported pair). Add-to-library should reuse existing “add word to library” flow (language_from / language_to + vocabulary row).
+**2) Dictionary feature — in progress**
+- **Done:** Route `/dictionary`, nav tab, shell page with search input (no API yet). See `docs/DICTIONARY_PLAN.md`.
+- **Next:** One API for en–ru only (e.g. MyMemory or LibreTranslate), online only. Then: Dictionary UI — debounced search, show results, “Add to my library” per result (reuse existing add-word flow). When offline or Offline mode on: no API calls (cache/bundles in a later step).
+- **Later (separate step):** IndexedDB cache, optional bundled data, virtual list for large result sets. More language pairs (e.g. en–sr) one at a time.
 
 ### Then (after sanitization + dictionary)
 3. **Week 5 (roadmap):** Seed data (EN–RU, EN–SR), app library browse, add from app to personal, import/export CSV.
@@ -157,4 +168,4 @@ Use this for context when continuing work on the language app.
 
 ---
 
-*Last updated: next steps reordered — input sanitization (OWASP) and dictionary (API + offline, virtual lists, Russian main) as priority for next stage.*
+*Last updated: after Dictionary route + shell commit. Next: en–ru API + results + Add to library.*
