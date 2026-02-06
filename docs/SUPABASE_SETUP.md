@@ -101,7 +101,7 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 ```html
 <h2>Confirm your signup at Language App</h2>
 
-<p>Hi,</p>
+<p>Hi, {{ .Email }},</p>
 
 <p>You signed up for <strong>Language App</strong> — the app where you build your vocabulary, practice with spaced repetition, and track your progress.</p>
 
@@ -115,3 +115,22 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 ```
 
 5. Click **Save**. New signups will receive this subject and content. You can change the wording anytime in the same place.
+
+---
+
+## 8. Create the core data tables (vocabulary, languages, user library)
+
+For language selection and vocabulary (Phase 1, Week 3):
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/002_core_data_layer.sql`** in this repo and copy its contents.
+3. Paste into the SQL Editor and click **Run**.
+
+This creates:
+
+- **languages** – reference table (en, ru, sr, hr)
+- **user_languages** – each user’s chosen language pairs (e.g. English → Russian)
+- **vocabulary** – app library and user-created words (word/translation per language pair)
+- **user_vocabulary** – user’s personal library with FSRS fields for spaced repetition
+
+After this, the Settings page can save language pairs and the app can use vocabulary CRUD.

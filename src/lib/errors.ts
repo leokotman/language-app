@@ -1,26 +1,57 @@
-export enum ErrorCode {
-  AUTH_INVALID_CREDENTIALS = 'AUTH_INVALID_CREDENTIALS',
-  AUTH_SESSION_EXPIRED = 'AUTH_SESSION_EXPIRED',
-  AUTH_EMAIL_NOT_CONFIRMED = 'AUTH_EMAIL_NOT_CONFIRMED',
-  AUTH_EMAIL_TAKEN = 'AUTH_EMAIL_TAKEN',
-  AUTH_WEAK_PASSWORD = 'AUTH_WEAK_PASSWORD',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+/** Erasable-friendly: use const object instead of enum */
+export const ErrorCode = {
+  AUTH_INVALID_CREDENTIALS: 'AUTH_INVALID_CREDENTIALS',
+  AUTH_SESSION_EXPIRED: 'AUTH_SESSION_EXPIRED',
+  AUTH_EMAIL_NOT_CONFIRMED: 'AUTH_EMAIL_NOT_CONFIRMED',
+  AUTH_EMAIL_TAKEN: 'AUTH_EMAIL_TAKEN',
+  AUTH_WEAK_PASSWORD: 'AUTH_WEAK_PASSWORD',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+} as const
+
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode]
+
+export interface AppErrorShape {
+  code: ErrorCode
+  message: string
+  name: string
+  recoverable: boolean
+  userAction?: string
 }
 
-export class AppError extends Error {
-  constructor(
-    public code: ErrorCode,
-    message: string,
-    public recoverable: boolean = true,
-    public userAction?: string
-  ) {
-    super(message)
-    this.name = 'AppError'
+export function createAppError(
+  code: ErrorCode,
+  message: string,
+  recoverable: boolean = true,
+  userAction?: string
+): AppErrorShape {
+  return {
+    code,
+    message,
+    name: 'AppError',
+    recoverable,
+    userAction,
   }
 }
 
-export const errorMessages: Partial<Record<ErrorCode, { title: string; message: string; action?: string }>> = {
+/** For compatibility where code expects Error-like (e.g. throw). */
+export function createAppErrorAsError(
+  code: ErrorCode,
+  message: string,
+  recoverable: boolean = true,
+  userAction?: string
+): Error & AppErrorShape {
+  const err = new Error(message) as Error & AppErrorShape
+  err.name = 'AppError'
+  err.code = code
+  err.recoverable = recoverable
+  err.userAction = userAction
+  return err
+}
+
+export const errorMessages: Partial<
+  Record<ErrorCode, { title: string; message: string; action?: string }>
+> = {
   [ErrorCode.AUTH_INVALID_CREDENTIALS]: {
     title: 'Invalid credentials',
     message: 'Email or password is incorrect.',
@@ -54,7 +85,12 @@ export const errorMessages: Partial<Record<ErrorCode, { title: string; message: 
 }
 
 export function getAuthErrorMessage(error: unknown): string {
-  if (error && typeof error === 'object' && 'message' in error && typeof (error as { message: string }).message === 'string') {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof (error as { message: string }).message === 'string'
+  ) {
     return (error as { message: string }).message
   }
   return 'An error occurred. Please try again.'
