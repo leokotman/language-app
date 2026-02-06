@@ -26,7 +26,7 @@ export function Navbar() {
   }
 
   return (
-    <AppBar position="static">
+    <AppBar position="sticky">
       <Toolbar>
         <Typography variant="h6" component="span" sx={{ flexGrow: 1 }}>
           Language App
