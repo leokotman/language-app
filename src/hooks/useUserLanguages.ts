@@ -3,6 +3,8 @@ import {
   getUserLanguages,
   addUserLanguage,
   removeUserLanguage,
+  removeUserLanguagesByIds,
+  addBidirectionalPair,
   updateUserLanguage,
 } from '@/api/userLanguages'
 import type { UserLanguageInsert, UserLanguageRowUpdate } from '@/types/database'
@@ -38,6 +40,29 @@ export function useRemoveUserLanguage(userId: string) {
     mutationFn: (id: string) => removeUserLanguage(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...USER_LANGUAGES_QUERY_KEY, userId] })
+    },
+  })
+}
+
+export function useRemoveUserLanguagesByIds(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: string[]) => removeUserLanguagesByIds(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...USER_LANGUAGES_QUERY_KEY, userId] })
+    },
+  })
+}
+
+export function useAddBidirectionalPair() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, key }: { userId: string; key: string }) =>
+      addBidirectionalPair(userId, key),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [...USER_LANGUAGES_QUERY_KEY, variables.userId],
+      })
     },
   })
 }
