@@ -105,29 +105,36 @@ export function LibraryPage() {
     return list
   }, [bidirectionalKeysFromUser, hasVirtualPair])
 
-  const addFormPairOptions = useMemo(
-    () =>
-      bidirectionalKeysFromUser
-        .filter((k) => k !== VIRTUAL_PAIR_RU_SR.key)
-        .map((key) => BIDIRECTIONAL_PAIRS.find((p) => p.key === key))
-        .filter(Boolean)
-        .map((p) => ({ value: p!.key, label: p!.label })),
-    [bidirectionalKeysFromUser]
-  )
+  const addFormPairOptions = useMemo((): { value: string; label: string }[] => {
+    const list: { value: string; label: string }[] = bidirectionalKeysFromUser
+      .map((key) => BIDIRECTIONAL_PAIRS.find((p) => p.key === key))
+      .filter(Boolean)
+      .map((p) => ({ value: p!.key, label: p!.label }))
+    if (hasVirtualPair) {
+      list.push({ value: VIRTUAL_PAIR_RU_SR.key, label: VIRTUAL_PAIR_RU_SR.label })
+    }
+    return list
+  }, [bidirectionalKeysFromUser, hasVirtualPair])
 
   const directionOptionsForPair = useMemo(() => {
     if (!addPairKey) return []
     const [lang1, lang2] = addPairKey.split('-')
     if (!lang1 || !lang2) return []
+    if (addPairKey === VIRTUAL_PAIR_RU_SR.key) {
+      return [
+        {
+          value: 'ru-sr',
+          label: VIRTUAL_PAIR_RU_SR.directionLabels['ru-sr'],
+        },
+        {
+          value: 'sr-ru',
+          label: VIRTUAL_PAIR_RU_SR.directionLabels['sr-ru'],
+        },
+      ]
+    }
     return [
-      {
-        value: `${lang1}-${lang2}`,
-        label: languagePairLabel(lang1, lang2),
-      },
-      {
-        value: `${lang2}-${lang1}`,
-        label: languagePairLabel(lang2, lang1),
-      },
+      { value: `${lang1}-${lang2}`, label: languagePairLabel(lang1, lang2) },
+      { value: `${lang2}-${lang1}`, label: languagePairLabel(lang2, lang1) },
     ]
   }, [addPairKey])
 
@@ -386,10 +393,17 @@ export function LibraryPage() {
               {filteredItems.map((item) => {
                 const v = item.vocabulary
                 const label = v
-                  ? languagePairLabel(v.language_from, v.language_to)
+                  ? (getBidirectionalKey(v.language_from, v.language_to) ===
+                    VIRTUAL_PAIR_RU_SR.key
+                      ? VIRTUAL_PAIR_RU_SR.directionLabels[
+                          `${v.language_from}-${v.language_to}` as keyof typeof VIRTUAL_PAIR_RU_SR.directionLabels
+                        ]
+                      : languagePairLabel(v.language_from, v.language_to))
                   : 'Unknown'
                 const secondary =
-                  languageFilter === VIRTUAL_PAIR_RU_SR.key && v
+                  languageFilter === VIRTUAL_PAIR_RU_SR.key &&
+                  v &&
+                  getBidirectionalKey(v.language_from, v.language_to) !== VIRTUAL_PAIR_RU_SR.key
                     ? `${label} (via English)`
                     : label
                 return (
