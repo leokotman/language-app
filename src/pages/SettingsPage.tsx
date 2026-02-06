@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Typography,
   Box,
@@ -18,44 +18,63 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useAuthStore } from '@/stores/authStore'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { useUserLanguages, useAddUserLanguage, useRemoveUserLanguage } from '@/hooks/useUserLanguages'
+import {
+  useUserLanguages,
+  useAddBidirectionalPair,
+  useRemoveUserLanguagesByIds,
+} from '@/hooks/useUserLanguages'
 import { isSupabaseTableMissingError } from '@/lib/errors'
-import { SUPPORTED_LANGUAGE_PAIRS } from '@/types'
+import { BIDIRECTIONAL_PAIRS, getBidirectionalKey } from '@/types'
 
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user)
   const userId = user?.id
   const { data: userLangs, isLoading, error } = useUserLanguages(userId)
-  const addMutation = useAddUserLanguage()
-  const removeMutation = useRemoveUserLanguage(userId ?? '')
+  const addMutation = useAddBidirectionalPair()
+  const removeMutation = useRemoveUserLanguagesByIds(userId ?? '')
 
-  const [selectedPairIndex, setSelectedPairIndex] = useState<number>(0)
-  const [removePairId, setRemovePairId] = useState<string | null>(null)
+  const [selectedPairKey, setSelectedPairKey] = useState<string>(BIDIRECTIONAL_PAIRS[0]?.key ?? '')
+  const [removePairKey, setRemovePairKey] = useState<string | null>(null)
 
-  const alreadyAdded = new Set(
-    (userLangs ?? []).map((ul) => `${ul.learning_code}-${ul.native_code}`)
-  )
-  const availablePairs = SUPPORTED_LANGUAGE_PAIRS.filter(
-    (p) => !alreadyAdded.has(`${p.learning}-${p.native}`)
+  const bidirectionalPairsWithIds = useMemo(() => {
+    const list = (userLangs ?? []).reduce<{ key: string; label: string; ids: string[] }[]>(
+      (acc, ul) => {
+        const key = getBidirectionalKey(ul.native_code, ul.learning_code)
+        const existing = acc.find((p) => p.key === key)
+        const label =
+          BIDIRECTIONAL_PAIRS.find((p) => p.key === key)?.label ?? `${key} ↔`
+        if (existing) {
+          existing.ids.push(ul.id)
+        } else {
+          acc.push({ key, label, ids: [ul.id] })
+        }
+        return acc
+      },
+      []
+    )
+    return list
+  }, [userLangs])
+
+  const availableBidirectionalPairs = BIDIRECTIONAL_PAIRS.filter(
+    (p) => !bidirectionalPairsWithIds.some((b) => b.key === p.key)
   )
 
   const handleAdd = () => {
-    if (!userId || availablePairs.length === 0) return
-    const pair = availablePairs[selectedPairIndex >= availablePairs.length ? 0 : selectedPairIndex]
-    addMutation.mutate({
-      user_id: userId,
-      learning_code: pair.learning,
-      native_code: pair.native,
-    })
+    if (!userId || !selectedPairKey) return
+    addMutation.mutate({ userId, key: selectedPairKey })
   }
 
-  const handleRemoveClick = (id: string) => {
-    setRemovePairId(id)
+  const handleRemoveClick = (key: string) => {
+    setRemovePairKey(key)
   }
 
   const handleConfirmRemovePair = () => {
-    if (removePairId) {
-      removeMutation.mutate(removePairId, { onSuccess: () => setRemovePairId(null) })
+    if (!removePairKey) return
+    const pair = bidirectionalPairsWithIds.find((p) => p.key === removePairKey)
+    if (pair?.ids.length) {
+      removeMutation.mutate(pair.ids, { onSuccess: () => setRemovePairKey(null) })
+    } else {
+      setRemovePairKey(null)
     }
   }
 
@@ -70,8 +89,8 @@ export function SettingsPage() {
         Language pairs
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Choose which languages you want to learn (e.g. English → Russian). You can add multiple
-        pairs.
+        Choose which language pairs you want to learn (e.g. Russian ↔ English). You can add
+        multiple pairs. When adding a word, you still choose the direction (e.g. Russian → English).
       </Typography>
 
       {error && (
@@ -101,47 +120,41 @@ export function SettingsPage() {
       ) : (
         <>
           <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1, mb: 2 }}>
-            {(userLangs ?? []).length === 0 ? (
+            {bidirectionalPairsWithIds.length === 0 ? (
               <ListItem>
                 <ListItemText primary="No language pairs yet. Add one below." />
               </ListItem>
             ) : (
-              (userLangs ?? []).map((ul) => {
-                const label =
-                  SUPPORTED_LANGUAGE_PAIRS.find(
-                    (p) => p.learning === ul.learning_code && p.native === ul.native_code
-                  )?.label ?? `${ul.native_code} → ${ul.learning_code}`
-                return (
-                  <ListItem key={ul.id}>
-                    <ListItemText primary={label} />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        aria-label="Remove language pair"
-                        onClick={() => handleRemoveClick(ul.id)}
-                        disabled={removeMutation.isPending}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                )
-              })
+              bidirectionalPairsWithIds.map((pair) => (
+                <ListItem key={pair.key}>
+                  <ListItemText primary={pair.label} />
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      edge="end"
+                      aria-label={`Remove ${pair.label}`}
+                      onClick={() => handleRemoveClick(pair.key)}
+                      disabled={removeMutation.isPending}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))
             )}
           </List>
 
-          {availablePairs.length > 0 && (
+          {availableBidirectionalPairs.length > 0 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
-              <FormControl size="small" sx={{ minWidth: 220 }}>
+              <FormControl size="small" sx={{ minWidth: 260 }}>
                 <InputLabel id="language-pair-label">Add language pair</InputLabel>
                 <Select
                   labelId="language-pair-label"
-                  value={selectedPairIndex}
+                  value={selectedPairKey}
                   label="Add language pair"
-                  onChange={(e) => setSelectedPairIndex(Number(e.target.value))}
+                  onChange={(e) => setSelectedPairKey(e.target.value)}
                 >
-                  {availablePairs.map((p, i) => (
-                    <MenuItem key={`${p.learning}-${p.native}`} value={i}>
+                  {availableBidirectionalPairs.map((p) => (
+                    <MenuItem key={p.key} value={p.key}>
                       {p.label}
                     </MenuItem>
                   ))}
@@ -163,7 +176,7 @@ export function SettingsPage() {
           )}
 
           <ConfirmDialog
-            open={!!removePairId}
+            open={!!removePairKey}
             title="Remove language pair"
             message="Remove this language pair? Your words for this pair will stay in My Library."
             confirmLabel="Remove"
@@ -171,7 +184,7 @@ export function SettingsPage() {
             confirmColor="error"
             loading={removeMutation.isPending}
             onConfirm={handleConfirmRemovePair}
-            onCancel={() => setRemovePairId(null)}
+            onCancel={() => setRemovePairKey(null)}
           />
         </>
       )}
