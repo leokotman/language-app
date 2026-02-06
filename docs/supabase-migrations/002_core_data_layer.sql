@@ -1,6 +1,6 @@
 -- Core data layer: languages, user_languages, vocabulary, user_vocabulary.
 -- Run in Supabase Dashboard → SQL Editor after 001_profiles.sql.
--- Supports language pairs: EN↔RU, EN↔SR, EN↔HR.
+-- Supports language pairs: EN↔RU, EN↔SR (Serbian in Latin script).
 
 -- Reference: supported languages
 create table if not exists public.languages (
@@ -11,8 +11,7 @@ create table if not exists public.languages (
 insert into public.languages (code, name) values
   ('en', 'English'),
   ('ru', 'Russian'),
-  ('sr', 'Serbian'),
-  ('hr', 'Croatian')
+  ('sr', 'Serbian (Latin)')
 on conflict (code) do nothing;
 
 -- User's chosen language pairs (e.g. learning Russian with native English)
