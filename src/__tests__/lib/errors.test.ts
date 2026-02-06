@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getAuthErrorMessage } from '@/lib/errors'
+import { getAuthErrorMessage, isSupabaseTableMissingError } from '@/lib/errors'
 
 describe('getAuthErrorMessage', () => {
   it('returns message from error object', () => {
@@ -13,5 +13,24 @@ describe('getAuthErrorMessage', () => {
 
   it('returns fallback when message is not a string', () => {
     expect(getAuthErrorMessage({ message: 123 })).toBe('An error occurred. Please try again.')
+  })
+})
+
+describe('isSupabaseTableMissingError', () => {
+  it('returns true for "does not exist" message', () => {
+    expect(isSupabaseTableMissingError({ message: 'relation "user_languages" does not exist' })).toBe(true)
+  })
+
+  it('returns true for PostgreSQL 42P01 code', () => {
+    expect(isSupabaseTableMissingError({ message: 'x', code: '42P01' })).toBe(true)
+  })
+
+  it('returns false for generic error', () => {
+    expect(isSupabaseTableMissingError({ message: 'Network failure' })).toBe(false)
+  })
+
+  it('returns false for null/undefined', () => {
+    expect(isSupabaseTableMissingError(null)).toBe(false)
+    expect(isSupabaseTableMissingError(undefined)).toBe(false)
   })
 })

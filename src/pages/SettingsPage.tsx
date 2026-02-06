@@ -18,6 +18,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserLanguages, useAddUserLanguage, useRemoveUserLanguage } from '@/hooks/useUserLanguages'
+import { isSupabaseTableMissingError } from '@/lib/errors'
 import { SUPPORTED_LANGUAGE_PAIRS } from '@/types'
 
 export function SettingsPage() {
@@ -67,11 +68,24 @@ export function SettingsPage() {
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Failed to load language pairs. Check your connection and try again.
+          {isSupabaseTableMissingError(error) ? (
+            <>
+              Database tables for language pairs are missing. In your Supabase project: open{' '}
+              <strong>SQL Editor</strong>, paste and run the contents of{' '}
+              <strong>docs/supabase-migrations/002_core_data_layer.sql</strong> from this repo (see{' '}
+              <strong>docs/SUPABASE_SETUP.md</strong> step 8).
+            </>
+          ) : (
+            'Failed to load language pairs. Check your connection and try again.'
+          )}
         </Alert>
       )}
 
-      {isLoading ? (
+      {error && isSupabaseTableMissingError(error) ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          After running the migration, refresh this page.
+        </Typography>
+      ) : isLoading ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <CircularProgress size={20} />
           <Typography variant="body2">Loading…</Typography>

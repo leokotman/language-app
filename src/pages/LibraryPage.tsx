@@ -37,6 +37,7 @@ import {
   useDeleteVocabulary,
 } from '@/hooks/useVocabulary'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { isSupabaseTableMissingError } from '@/lib/errors'
 import { SUPPORTED_LANGUAGE_PAIRS } from '@/types'
 
 type LibraryItem = {
@@ -68,8 +69,11 @@ export function LibraryPage() {
   } | null>(null)
   const [deleteVocabularyId, setDeleteVocabularyId] = useState<string | null>(null)
 
-  const { data: userLangs, isLoading: langsLoading } = useUserLanguages(userId)
+  const { data: userLangs, isLoading: langsLoading, error: userLangsError } = useUserLanguages(userId)
   const { data: libraryItems = [], isLoading: listLoading, error } = useUserVocabularyList(userId)
+
+  const isMigrationMissing =
+    isSupabaseTableMissingError(userLangsError) || isSupabaseTableMissingError(error)
   const addMutation = useAddWordToLibrary(userId ?? '')
   const updateMutation = useUpdateVocabulary(userId ?? '')
   const deleteMutation = useDeleteVocabulary(userId ?? '')
@@ -156,7 +160,15 @@ export function LibraryPage() {
         Your personal vocabulary. Add words and practice with spaced repetition.
       </Typography>
 
-      {!userLangs?.length && !langsLoading && (
+      {isMigrationMissing && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Database tables are missing. In your Supabase project: open <strong>SQL Editor</strong>,
+          paste and run <strong>docs/supabase-migrations/002_core_data_layer.sql</strong> (see{' '}
+          <strong>docs/SUPABASE_SETUP.md</strong> step 8), then refresh.
+        </Alert>
+      )}
+
+      {!isMigrationMissing && !userLangs?.length && !langsLoading && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Add at least one language pair in{' '}
           <Link component={RouterLink} to="/settings">
@@ -166,7 +178,7 @@ export function LibraryPage() {
         </Alert>
       )}
 
-      {userLangs?.length > 0 && (
+      {!isMigrationMissing && userLangs?.length > 0 && (
         <>
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
