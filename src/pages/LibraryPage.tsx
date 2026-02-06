@@ -148,11 +148,11 @@ export function LibraryPage() {
       })
     }
     if (languageFilter) {
-      const [learning, native] = languageFilter.split('-')
+      const [language_from, language_to] = languageFilter.split('-')
       items = items.filter((item) => {
         const v = item.vocabulary
         if (!v) return false
-        return v.language_from === native && v.language_to === learning
+        return v.language_from === language_from && v.language_to === language_to
       })
     }
     return items
