@@ -17,7 +17,7 @@ Project setup details:
 
 ## Code & work style
 
-1. **Commits: one meaningful change per commit (Option B).** Prefer several small, focused commits over one large commit. Each commit should do one thing (e.g. “Add dynamic placeholders for add-word form” or “Fix library filter by language pair”), even if that touches multiple files. This keeps history readable and makes reverts and code review easier.
+1. **Commits: one logical change per commit; one change per commit message.** Prefer several small, focused commits over one large commit. Each commit does exactly one thing (e.g. “Add dynamic placeholders for add-word form” or “Fix library filter by language pair”). The commit message must describe that single change: avoid "X and Y" or "X, Y" in the subject — if there are two changes, make two commits. A commit may touch multiple files as long as they implement that one change. This keeps history readable and makes reverts and code review easier.
 2. Use frontend and backend best practices.
 3. Use TypeScript for all code: no `any` types.
 4. Always think about secure connection to the API and database, and safe handling of users’ data.
