@@ -4,6 +4,13 @@ import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/mat
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { getAuthErrorMessage } from '@/lib/errors'
+import {
+  sanitizeEmail,
+  sanitizePassword,
+  clampAndStripControlChars,
+  MAX_EMAIL_LENGTH,
+  MAX_PASSWORD_LENGTH,
+} from '@/lib/sanitize'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -17,9 +24,14 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    const safeEmail = sanitizeEmail(email)
+    const safePassword = sanitizePassword(password)
     setLoading(true)
     try {
-      const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: err } = await supabase.auth.signInWithPassword({
+        email: safeEmail,
+        password: safePassword,
+      })
       if (err) {
         setError(getAuthErrorMessage(err))
         return
@@ -54,7 +66,7 @@ export function LoginPage() {
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(clampAndStripControlChars(e.target.value, MAX_EMAIL_LENGTH))}
           sx={{ mb: 2 }}
         />
         <TextField
@@ -64,7 +76,7 @@ export function LoginPage() {
           required
           autoComplete="current-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => setPassword(clampAndStripControlChars(e.target.value, MAX_PASSWORD_LENGTH))}
           sx={{ mb: 2 }}
         />
         <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>

@@ -136,10 +136,8 @@ Use this for context when continuing work on the language app.
 
 ### Priority for next stage (implement first)
 
-**1) Input sanitization (security) — do before proceeding further**
-- **Goal:** Sanitize all user inputs across the whole app to prevent common attacks (XSS, DDoS, injection, etc. per OWASP).
-- **Scope:** Every user-controlled input: auth forms (login/signup/forgot password), Library add/edit word, Settings, search fields, any future forms. Apply on client and, where applicable, validate/sanitize on server (e.g. Supabase RLS / Edge Functions if used).
-- **Approach:** Define a small sanitization layer (e.g. trim, max length, escape/sanitize HTML if rendered, rate-limit or debounce where relevant). Consider a dedicated package (e.g. DOMPurify for HTML, or a minimal allowlist) and document rules in one place so all new inputs use it.
+**1) Input sanitization (security) — DONE**
+- **Implemented:** `src/lib/sanitize.ts` — trim, max length (email 255, password 128, word/translation 500, search 200), strip control chars. Applied to: Login, Signup, Forgot password (email/password); Library add word, edit word, search. See `docs/INPUT_SANITIZATION.md`. Unit tests: `src/__tests__/lib/sanitize.test.ts`.
 
 **2) Dictionary feature (new tab + route, high priority)**
 - **Goal:** A dedicated **Dictionary** tab/route where users can search and look up words, then add any result to their custom vocabulary. Supports all app languages (EN, RU, SR) with **Russian as the main dictionary** (search by Russian, get translations to English and Serbian).
