@@ -48,6 +48,9 @@ Use this for context when continuing work on the language app.
 14. Offline mode toggle and dictionary plan: offlineModeStore, Navbar switch, DICTIONARY_PLAN.md.
 15. Meaningful error handling: logError, catch blocks everywhere, useAuth signOut try/finally.
 16. Dictionary route + shell: `/dictionary`, nav tab, DictionaryPage with search placeholder.
+17. Dictionary: MyMemory en-ru lookup service (`src/lib/dictionary.ts`).
+18. Dictionary: results UI with Add to library (debounced search, direction, offline message).
+19. Dictionary: pick best match to avoid echo (ru→en names/same word); use MyMemory `matches` array, prefer translation that differs from source.
 
 ---
 
@@ -71,7 +74,7 @@ Use this for context when continuing work on the language app.
 - **Input sanitization**: `src/lib/sanitize.ts` — trim, max length, strip control chars; applied to auth forms, Library add/edit/search. See `docs/INPUT_SANITIZATION.md`.
 - **Offline mode**: Navbar toggle (persisted in localStorage); when on, no dictionary/pronunciation API calls. Store: `src/stores/offlineModeStore.ts`.
 - **Error handling**: `logError(context, error)` in `src/lib/errors.ts`; all catch blocks log with context (offlineModeStore, theme, auth pages, useAuth).
-- **Dictionary**: Route `/dictionary`, nav tab, shell page with search input (placeholder; online lookup and Add to library not yet wired). Plan: `docs/DICTIONARY_PLAN.md` (one language pair first, offline/cache separate step).
+- **Dictionary**: Route `/dictionary`, nav tab. MyMemory en↔ru lookup (`src/lib/dictionary.ts`); uses `matches` array to pick best translation (avoids echo e.g. ru "любовь" → "Любовь"; prefers real translation "love"). Debounced search, direction selector, results list, Add to library. Offline/Offline mode: no API call, message shown. Plan: `docs/DICTIONARY_PLAN.md` (offline/cache separate step).
 - **DB**: Run `001_profiles.sql` then `002_core_data_layer.sql` in Supabase. See `docs/SUPABASE_SETUP.md`.
 
 ---
@@ -140,9 +143,14 @@ Use this for context when continuing work on the language app.
 - **Meaningful error handling:** `logError(context, error)` in `lib/errors.ts`; all catch blocks use it (offlineModeStore, theme get/set, Login/Signup/ForgotPassword, useAuth getSession and signOut). Unit tests for `logError`.
 
 **Done in this session (committed):**
-- **Dictionary route + shell:** Route `/dictionary`, “Dictionary” in navbar, `DictionaryPage` with search field (sanitized) and placeholder text. No API or results yet.
+- **Dictionary route + shell:** Route `/dictionary`, “Dictionary” in navbar, `DictionaryPage` with search field (sanitized) and placeholder text.
+- **Dictionary: MyMemory en-ru lookup service:** `lookup(query, from, to, { offlineMode })` in `src/lib/dictionary.ts`; en↔ru only; no cache.
+- **Dictionary: results UI with Add to library:** Debounced search, direction (en→ru / ru→en), results list, Add to library per result; offline message when Offline mode or no connection.
+- **Dictionary: pick best match:** MyMemory sometimes returns echo/same word (e.g. ru "любовь" → "Любовь"). We use `matches` array, filter out translations that equal the source (normalized), pick highest-quality real translation.
 
-**Current state (after this session):** Auth, Settings, Library (as before); input sanitization; offline mode toggle; consistent error logging; Dictionary page (shell only). Next: one API for en–ru, then results UI + Add to library; later: offline + cache + bundles.
+**Current state (after this session):** Auth, Settings, Library (as before); input sanitization; offline mode toggle; consistent error logging; Dictionary with MyMemory en–ru lookup (best-match logic), Add to library. Next: optional en–sr; later: offline + cache + bundles.
+
+**Session complete.** Handoff updated; continue from “Suggestions for next steps” in the next session.
 
 ---
 
@@ -153,10 +161,10 @@ Use this for context when continuing work on the language app.
 **1) Input sanitization (security) — DONE**
 - **Implemented:** `src/lib/sanitize.ts` — trim, max length (email 255, password 128, word/translation 500, search 200), strip control chars. Applied to: Login, Signup, Forgot password (email/password); Library add word, edit word, search. See `docs/INPUT_SANITIZATION.md`. Unit tests: `src/__tests__/lib/sanitize.test.ts`.
 
-**2) Dictionary feature — in progress**
-- **Done:** Route `/dictionary`, nav tab, shell page with search input (no API yet). See `docs/DICTIONARY_PLAN.md`.
-- **Next:** One API for en–ru only (e.g. MyMemory or LibreTranslate), online only. Then: Dictionary UI — debounced search, show results, “Add to my library” per result (reuse existing add-word flow). When offline or Offline mode on: no API calls (cache/bundles in a later step).
-- **Later (separate step):** IndexedDB cache, optional bundled data, virtual list for large result sets. More language pairs (e.g. en–sr) one at a time.
+**2) Dictionary feature — en–ru done**
+- **Done:** Route `/dictionary`, MyMemory en↔ru lookup, debounced search, direction selector, results, Add to library. Offline/Offline mode: no API, message shown. See `docs/DICTIONARY_PLAN.md`.
+- **Next (optional):** More language pairs (e.g. en–sr) one at a time.
+- **Later (separate step):** IndexedDB cache, optional bundled data, virtual list for large result sets.
 
 ### Then (after sanitization + dictionary)
 3. **Week 5 (roadmap):** Seed data (EN–RU, EN–SR), app library browse, add from app to personal, import/export CSV.
@@ -168,4 +176,4 @@ Use this for context when continuing work on the language app.
 
 ---
 
-*Last updated: after Dictionary route + shell commit. Next: en–ru API + results + Add to library.*
+*Last updated: end of session. Commit 19: Dictionary best-match fix. Next session: optional en–sr; later offline/cache; or Week 5 / Phase 3 per §8.*
