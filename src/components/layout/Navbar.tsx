@@ -1,10 +1,11 @@
-import { AppBar, Toolbar, Typography, Button, Box, IconButton } from '@mui/material'
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Switch, Tooltip } from '@mui/material'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '@/theme/ThemeModeContext'
 import { useAuth } from '@/hooks/useAuth'
+import { useOfflineModeStore } from '@/stores/offlineModeStore'
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -19,6 +20,8 @@ export function Navbar() {
   const navigate = useNavigate()
   const { mode, toggleMode } = useThemeMode()
   const { isAuthenticated, user, signOut } = useAuth()
+  const offlineMode = useOfflineModeStore((s) => s.offlineMode)
+  const setOfflineMode = useOfflineModeStore((s) => s.setOfflineMode)
 
   const handleSignOut = () => {
     signOut()
@@ -34,6 +37,18 @@ export function Navbar() {
         <IconButton color="inherit" onClick={toggleMode} aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
           {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
         </IconButton>
+        <Tooltip title={offlineMode ? 'Offline mode: no internet search (dictionary, pronunciation)' : 'Use internet for dictionary and pronunciation'}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }} component="span">
+            <Typography variant="caption" sx={{ mr: 0.5, opacity: 0.9 }}>Offline</Typography>
+            <Switch
+              size="small"
+              color="default"
+              checked={offlineMode}
+              onChange={(_, checked) => setOfflineMode(checked)}
+              aria-label="Offline mode"
+            />
+          </Box>
+        </Tooltip>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           {navItems.map(({ label, path }) => (
             <Button
