@@ -41,6 +41,7 @@ import { isSupabaseTableMissingError } from '@/lib/errors'
 import {
   SUPPORTED_LANGUAGE_PAIRS,
   BIDIRECTIONAL_PAIRS,
+  VIRTUAL_PAIR_RU_SR,
   LANGUAGE_PLACEHOLDERS,
   getBidirectionalKey,
 } from '@/types'
@@ -90,12 +91,19 @@ export function LibraryPage() {
     return Array.from(set)
   }, [userLangs])
 
-  const filterOptions = useMemo(() => {
-    return bidirectionalKeysFromUser
+  const hasVirtualPair =
+    bidirectionalKeysFromUser.includes('en-ru') && bidirectionalKeysFromUser.includes('en-sr')
+
+  const filterOptions = useMemo((): { value: string; label: string }[] => {
+    const list: { value: string; label: string }[] = bidirectionalKeysFromUser
       .map((key) => BIDIRECTIONAL_PAIRS.find((p) => p.key === key))
       .filter(Boolean)
       .map((p) => ({ value: p!.key, label: p!.label }))
-  }, [bidirectionalKeysFromUser])
+    if (hasVirtualPair) {
+      list.push({ value: VIRTUAL_PAIR_RU_SR.key, label: VIRTUAL_PAIR_RU_SR.label })
+    }
+    return list
+  }, [bidirectionalKeysFromUser, hasVirtualPair])
 
   const addFormPairOptions = useMemo(
     () =>
@@ -192,13 +200,22 @@ export function LibraryPage() {
       })
     }
     if (languageFilter) {
-      const [lang1, lang2] = languageFilter.split('-')
-      items = items.filter((item) => {
-        const v = item.vocabulary
-        if (!v) return false
-        const pairKey = getBidirectionalKey(v.language_from, v.language_to)
-        return pairKey === `${lang1}-${lang2}`
-      })
+      if (languageFilter === VIRTUAL_PAIR_RU_SR.key) {
+        items = items.filter((item) => {
+          const v = item.vocabulary
+          if (!v) return false
+          const fromTo = [v.language_from, v.language_to].sort().join('-')
+          return fromTo === 'en-ru' || fromTo === 'en-sr'
+        })
+      } else {
+        const [lang1, lang2] = languageFilter.split('-')
+        items = items.filter((item) => {
+          const v = item.vocabulary
+          if (!v) return false
+          const pairKey = getBidirectionalKey(v.language_from, v.language_to)
+          return pairKey === `${lang1}-${lang2}`
+        })
+      }
     }
     return items
   }, [libraryItems, search, languageFilter])
@@ -358,16 +375,28 @@ export function LibraryPage() {
             </Typography>
           ) : (
             <List dense disablePadding sx={{ bgcolor: 'action.hover', borderRadius: 1 }}>
+              {languageFilter === VIRTUAL_PAIR_RU_SR.key && filteredItems.length > 0 && (
+                <ListItem sx={{ bgcolor: 'action.selected', py: 0.5 }}>
+                  <ListItemText
+                    secondary={VIRTUAL_PAIR_RU_SR.label + ': words from your Russian↔English and Serbian↔English lists.'}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItem>
+              )}
               {filteredItems.map((item) => {
                 const v = item.vocabulary
                 const label = v
                   ? languagePairLabel(v.language_from, v.language_to)
                   : 'Unknown'
+                const secondary =
+                  languageFilter === VIRTUAL_PAIR_RU_SR.key && v
+                    ? `${label} (via English)`
+                    : label
                 return (
                   <ListItem key={item.id} divider>
                     <ListItemText
                       primary={v ? `${v.word} — ${v.translation}` : '—'}
-                      secondary={label}
+                      secondary={secondary}
                     />
                     <ListItemSecondaryAction>
                       <IconButton
