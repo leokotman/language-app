@@ -46,10 +46,14 @@ function matchQuality(m: MyMemoryMatch): number {
   return typeof q === 'string' ? parseInt(q, 10) || 0 : q
 }
 
+/** Max translations to return (API may return more; we show this many, best quality first). */
+export const MAX_TRANSLATIONS = 50
+
 /**
- * Look up a word/phrase. Returns one entry (word → translation).
+ * Look up a word/phrase. Returns multiple entries when the API has several translations (e.g. "key" → клавиша, ключ, …).
+ * Filters out echo/same-word (e.g. "любовь" → "Любовь"); dedupes by normalized translation; sorts by quality.
  * When offline or offlineMode is true, returns empty array (no network call).
- * Only en↔ru is supported for now.
+ * Only en↔ru is supported for now. MyMemory does not document a fixed limit for matches; we cap at MAX_TRANSLATIONS.
  */
 export async function lookup(
   query: string,
@@ -81,7 +85,6 @@ export async function lookup(
     }
     const json = (await res.json()) as MyMemoryResponse
 
-    // Prefer a match where translation actually differs from source (avoids "любовь" → "Любовь" or names echoed back)
     const matches = json.matches ?? []
     const realTranslations = matches.filter(
       (m) =>
@@ -89,22 +92,38 @@ export async function lookup(
         m.translation !== '' &&
         !normalizedSame(trimmed, m.translation)
     )
-    const best = realTranslations.length > 0
-      ? realTranslations.sort((a, b) => matchQuality(b) - matchQuality(a))[0]
-      : null
+    const byQuality = realTranslations.sort((a, b) => matchQuality(b) - matchQuality(a))
 
-    const translatedText = best?.translation ?? json.responseData?.translatedText
-    if (translatedText == null || translatedText === '') {
-      return []
-    }
-    return [
-      {
+    // Dedupe by normalized translation (e.g. "love" and "Love" → one entry)
+    const seen = new Set<string>()
+    const entries: DictionaryEntry[] = []
+    for (const m of byQuality) {
+      const t = String(m.translation).trim()
+      const key = t.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      entries.push({
         word: trimmed,
-        translation: String(translatedText).trim(),
+        translation: t,
         language_from: fromLang,
         language_to: toLang,
-      },
-    ]
+      })
+      if (entries.length >= MAX_TRANSLATIONS) break
+    }
+
+    if (entries.length === 0) {
+      const fallback = json.responseData?.translatedText
+      if (fallback != null && fallback !== '' && !normalizedSame(trimmed, fallback)) {
+        entries.push({
+          word: trimmed,
+          translation: String(fallback).trim(),
+          language_from: fromLang,
+          language_to: toLang,
+        })
+      }
+    }
+
+    return entries
   } catch (err) {
     logError('dictionary.lookup', err)
     throw err
