@@ -39,6 +39,15 @@ import {
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { isSupabaseTableMissingError } from '@/lib/errors'
 import {
+  sanitizeWord,
+  sanitizeTranslation,
+  sanitizeSearch,
+  clampAndStripControlChars,
+  MAX_WORD_LENGTH,
+  MAX_TRANSLATION_LENGTH,
+  MAX_SEARCH_LENGTH,
+} from '@/lib/sanitize'
+import {
   SUPPORTED_LANGUAGE_PAIRS,
   BIDIRECTIONAL_PAIRS,
   VIRTUAL_PAIR_RU_SR,
@@ -161,12 +170,14 @@ export function LibraryPage() {
   }, [directionOptionsForPair, addDirection])
 
   const handleAddWord = () => {
-    if (!userId || !addDirection || !addWord.trim() || !addTranslation.trim()) return
+    const word = sanitizeWord(addWord)
+    const translation = sanitizeTranslation(addTranslation)
+    if (!userId || !addDirection || !word || !translation) return
     const [language_from, language_to] = addDirection.split('-')
     addMutation.mutate(
       {
-        word: addWord.trim(),
-        translation: addTranslation.trim(),
+        word,
+        translation,
         language_from,
         language_to,
       },
@@ -180,11 +191,14 @@ export function LibraryPage() {
   }
 
   const handleSaveEdit = () => {
-    if (!editingItem || !editingItem.word.trim() || !editingItem.translation.trim()) return
+    if (!editingItem) return
+    const word = sanitizeWord(editingItem.word)
+    const translation = sanitizeTranslation(editingItem.translation)
+    if (!word || !translation) return
     updateMutation.mutate(
       {
         id: editingItem.vocabulary_id,
-        updates: { word: editingItem.word.trim(), translation: editingItem.translation.trim() },
+        updates: { word, translation },
       },
       { onSuccess: () => setEditingItem(null) }
     )
@@ -198,8 +212,9 @@ export function LibraryPage() {
 
   const filteredItems = useMemo(() => {
     let items = libraryItems as LibraryItem[]
-    if (search.trim()) {
-      const q = search.trim().toLowerCase()
+    const searchQuery = sanitizeSearch(search)
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
       items = items.filter((item) => {
         const v = item.vocabulary
         if (!v) return false
@@ -268,7 +283,7 @@ export function LibraryPage() {
                 label="Word"
                 placeholder={addFormPlaceholders.word}
                 value={addWord}
-                onChange={(e) => setAddWord(e.target.value)}
+                onChange={(e) => setAddWord(clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH))}
                 sx={{ minWidth: 160 }}
               />
               <TextField
@@ -276,7 +291,11 @@ export function LibraryPage() {
                 label="Translation"
                 placeholder={addFormPlaceholders.translation}
                 value={addTranslation}
-                onChange={(e) => setAddTranslation(e.target.value)}
+                onChange={(e) =>
+                  setAddTranslation(
+                    clampAndStripControlChars(e.target.value, MAX_TRANSLATION_LENGTH)
+                  )
+                }
                 sx={{ minWidth: 160 }}
               />
               <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -335,7 +354,9 @@ export function LibraryPage() {
               size="small"
               placeholder="Search word or translation…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(clampAndStripControlChars(e.target.value, MAX_SEARCH_LENGTH))
+              }
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -449,7 +470,14 @@ export function LibraryPage() {
                   label="Word"
                   value={editingItem?.word ?? ''}
                   onChange={(e) =>
-                    setEditingItem((prev) => (prev ? { ...prev, word: e.target.value } : null))
+                    setEditingItem((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            word: clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH),
+                          }
+                        : null
+                    )
                   }
                 />
                 <TextField
@@ -457,7 +485,15 @@ export function LibraryPage() {
                   value={editingItem?.translation ?? ''}
                   onChange={(e) =>
                     setEditingItem((prev) =>
-                      prev ? { ...prev, translation: e.target.value } : null
+                      prev
+                        ? {
+                            ...prev,
+                            translation: clampAndStripControlChars(
+                              e.target.value,
+                              MAX_TRANSLATION_LENGTH
+                            ),
+                          }
+                        : null
                     )
                   }
                 />

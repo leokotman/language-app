@@ -4,6 +4,14 @@ import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/mat
 import { supabase } from '@/lib/supabase'
 import { upsertProfile } from '@/api/profiles'
 import { getAuthErrorMessage } from '@/lib/errors'
+import {
+  sanitizeEmail,
+  sanitizePassword,
+  clampAndStripControlChars,
+  MIN_PASSWORD_LENGTH,
+  MAX_EMAIL_LENGTH,
+  MAX_PASSWORD_LENGTH,
+} from '@/lib/sanitize'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -16,17 +24,22 @@ export function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    if (password !== confirmPassword) {
+    const safeEmail = sanitizeEmail(email)
+    const safePassword = sanitizePassword(password)
+    if (safePassword !== sanitizePassword(confirmPassword)) {
       setError('Passwords do not match.')
       return
     }
-    if (password.length < 6) {
+    if (safePassword.length < MIN_PASSWORD_LENGTH) {
       setError('Password must be at least 6 characters.')
       return
     }
     setLoading(true)
     try {
-      const { data, error: err } = await supabase.auth.signUp({ email, password })
+      const { data, error: err } = await supabase.auth.signUp({
+        email: safeEmail,
+        password: safePassword,
+      })
       if (err) {
         setError(getAuthErrorMessage(err))
         return
@@ -60,7 +73,7 @@ export function SignupPage() {
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(clampAndStripControlChars(e.target.value, MAX_EMAIL_LENGTH))}
           sx={{ mb: 2 }}
         />
         <TextField
@@ -70,7 +83,7 @@ export function SignupPage() {
           required
           autoComplete="new-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => setPassword(clampAndStripControlChars(e.target.value, MAX_PASSWORD_LENGTH))}
           helperText="At least 6 characters"
           sx={{ mb: 2 }}
         />
@@ -81,7 +94,9 @@ export function SignupPage() {
           required
           autoComplete="new-password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e) =>
+            setConfirmPassword(clampAndStripControlChars(e.target.value, MAX_PASSWORD_LENGTH))
+          }
           sx={{ mb: 2 }}
         />
         <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>

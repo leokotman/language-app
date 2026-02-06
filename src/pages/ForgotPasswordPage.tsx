@@ -3,6 +3,11 @@ import { Link as RouterLink } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import { getAuthErrorMessage } from '@/lib/errors'
+import {
+  sanitizeEmail,
+  clampAndStripControlChars,
+  MAX_EMAIL_LENGTH,
+} from '@/lib/sanitize'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -13,15 +18,17 @@ export function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    const safeEmail = sanitizeEmail(email)
     setLoading(true)
     try {
-      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(safeEmail, {
         redirectTo: `${window.location.origin}/settings`,
       })
       if (err) {
         setError(getAuthErrorMessage(err))
         return
       }
+      setEmail(safeEmail)
       setSent(true)
     } catch {
       setError('Something went wrong. Please try again.')
@@ -69,7 +76,7 @@ export function ForgotPasswordPage() {
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(clampAndStripControlChars(e.target.value, MAX_EMAIL_LENGTH))}
           sx={{ mb: 2 }}
         />
         <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
