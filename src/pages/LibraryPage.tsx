@@ -38,7 +38,12 @@ import {
 } from '@/hooks/useVocabulary'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { isSupabaseTableMissingError } from '@/lib/errors'
-import { SUPPORTED_LANGUAGE_PAIRS, LANGUAGE_PLACEHOLDERS } from '@/types'
+import {
+  SUPPORTED_LANGUAGE_PAIRS,
+  BIDIRECTIONAL_PAIRS,
+  LANGUAGE_PLACEHOLDERS,
+  getBidirectionalKey,
+} from '@/types'
 
 type LibraryItem = {
   id: string
@@ -61,7 +66,8 @@ export function LibraryPage() {
   const [languageFilter, setLanguageFilter] = useState<string>('')
   const [addWord, setAddWord] = useState('')
   const [addTranslation, setAddTranslation] = useState('')
-  const [addLanguagePair, setAddLanguagePair] = useState('')
+  const [addPairKey, setAddPairKey] = useState('')
+  const [addDirection, setAddDirection] = useState('')
   const [editingItem, setEditingItem] = useState<{
     vocabulary_id: string
     word: string
@@ -78,32 +84,70 @@ export function LibraryPage() {
   const updateMutation = useUpdateVocabulary(userId ?? '')
   const deleteMutation = useDeleteVocabulary(userId ?? '')
 
-  const languageOptions = useMemo(() => {
-    if (!userLangs?.length) return []
-    return userLangs.map((ul) => ({
-      value: `${ul.native_code}-${ul.learning_code}`,
-      label: languagePairLabel(ul.native_code, ul.learning_code),
-    }))
+  const bidirectionalKeysFromUser = useMemo(() => {
+    const set = new Set<string>()
+    ;(userLangs ?? []).forEach((ul) => set.add(getBidirectionalKey(ul.native_code, ul.learning_code)))
+    return Array.from(set)
   }, [userLangs])
 
+  const filterOptions = useMemo(() => {
+    return bidirectionalKeysFromUser
+      .map((key) => BIDIRECTIONAL_PAIRS.find((p) => p.key === key))
+      .filter(Boolean)
+      .map((p) => ({ value: p!.key, label: p!.label }))
+  }, [bidirectionalKeysFromUser])
+
+  const addFormPairOptions = useMemo(
+    () =>
+      bidirectionalKeysFromUser
+        .filter((k) => k !== VIRTUAL_PAIR_RU_SR.key)
+        .map((key) => BIDIRECTIONAL_PAIRS.find((p) => p.key === key))
+        .filter(Boolean)
+        .map((p) => ({ value: p!.key, label: p!.label })),
+    [bidirectionalKeysFromUser]
+  )
+
+  const directionOptionsForPair = useMemo(() => {
+    if (!addPairKey) return []
+    const [lang1, lang2] = addPairKey.split('-')
+    if (!lang1 || !lang2) return []
+    return [
+      {
+        value: `${lang1}-${lang2}`,
+        label: languagePairLabel(lang1, lang2),
+      },
+      {
+        value: `${lang2}-${lang1}`,
+        label: languagePairLabel(lang2, lang1),
+      },
+    ]
+  }, [addPairKey])
+
   const addFormPlaceholders = useMemo(() => {
-    if (!addLanguagePair) return { word: 'e.g. …', translation: 'e.g. …' }
-    const [language_from, language_to] = addLanguagePair.split('-')
+    if (!addDirection) return { word: 'e.g. …', translation: 'e.g. …' }
+    const [language_from, language_to] = addDirection.split('-')
     return {
       word: LANGUAGE_PLACEHOLDERS[language_from] ?? `e.g. (${language_from})`,
       translation: LANGUAGE_PLACEHOLDERS[language_to] ?? `e.g. (${language_to})`,
     }
-  }, [addLanguagePair])
+  }, [addDirection])
 
   useEffect(() => {
-    if (languageOptions.length > 0 && !addLanguagePair) {
-      setAddLanguagePair(languageOptions[0].value)
+    if (addFormPairOptions.length > 0 && !addPairKey) {
+      setAddPairKey(addFormPairOptions[0].value)
     }
-  }, [languageOptions, addLanguagePair])
+  }, [addFormPairOptions, addPairKey])
+
+  useEffect(() => {
+    if (directionOptionsForPair.length > 0) {
+      const currentValid = directionOptionsForPair.some((d) => d.value === addDirection)
+      if (!currentValid) setAddDirection(directionOptionsForPair[0].value)
+    }
+  }, [directionOptionsForPair, addDirection])
 
   const handleAddWord = () => {
-    if (!userId || !addLanguagePair || !addWord.trim() || !addTranslation.trim()) return
-    const [language_from, language_to] = addLanguagePair.split('-')
+    if (!userId || !addDirection || !addWord.trim() || !addTranslation.trim()) return
+    const [language_from, language_to] = addDirection.split('-')
     addMutation.mutate(
       {
         word: addWord.trim(),
@@ -148,11 +192,12 @@ export function LibraryPage() {
       })
     }
     if (languageFilter) {
-      const [language_from, language_to] = languageFilter.split('-')
+      const [lang1, lang2] = languageFilter.split('-')
       items = items.filter((item) => {
         const v = item.vocabulary
         if (!v) return false
-        return v.language_from === language_from && v.language_to === language_to
+        const pairKey = getBidirectionalKey(v.language_from, v.language_to)
+        return pairKey === `${lang1}-${lang2}`
       })
     }
     return items
@@ -214,11 +259,26 @@ export function LibraryPage() {
                 <InputLabel id="add-lang-pair">Language pair</InputLabel>
                 <Select
                   labelId="add-lang-pair"
-                  value={addLanguagePair}
+                  value={addPairKey}
                   label="Language pair"
-                  onChange={(e) => setAddLanguagePair(e.target.value)}
+                  onChange={(e) => setAddPairKey(e.target.value)}
                 >
-                  {languageOptions.map((opt) => (
+                  {addFormPairOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel id="add-direction">Direction</InputLabel>
+                <Select
+                  labelId="add-direction"
+                  value={addDirection}
+                  label="Direction"
+                  onChange={(e) => setAddDirection(e.target.value)}
+                >
+                  {directionOptionsForPair.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </MenuItem>
@@ -230,7 +290,10 @@ export function LibraryPage() {
                 startIcon={<AddIcon />}
                 onClick={handleAddWord}
                 disabled={
-                  addMutation.isPending || !addWord.trim() || !addTranslation.trim()
+                  addMutation.isPending ||
+                  !addWord.trim() ||
+                  !addTranslation.trim() ||
+                  !addDirection
                 }
               >
                 {addMutation.isPending ? 'Adding…' : 'Add'}
@@ -258,7 +321,7 @@ export function LibraryPage() {
               }}
               sx={{ minWidth: 220 }}
             />
-            <FormControl size="small" sx={{ minWidth: 200 }}>
+            <FormControl size="small" sx={{ minWidth: 260 }}>
               <InputLabel id="library-lang-filter">Language pair</InputLabel>
               <Select
                 labelId="library-lang-filter"
@@ -267,7 +330,7 @@ export function LibraryPage() {
                 onChange={(e) => setLanguageFilter(e.target.value)}
               >
                 <MenuItem value="">All</MenuItem>
-                {languageOptions.map((opt) => (
+                {filterOptions.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </MenuItem>
