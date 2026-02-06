@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useAuthStore } from '@/stores/authStore'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { useUserLanguages, useAddUserLanguage, useRemoveUserLanguage } from '@/hooks/useUserLanguages'
 import { isSupabaseTableMissingError } from '@/lib/errors'
 import { SUPPORTED_LANGUAGE_PAIRS } from '@/types'
@@ -29,6 +30,7 @@ export function SettingsPage() {
   const removeMutation = useRemoveUserLanguage(userId ?? '')
 
   const [selectedPairIndex, setSelectedPairIndex] = useState<number>(0)
+  const [removePairId, setRemovePairId] = useState<string | null>(null)
 
   const alreadyAdded = new Set(
     (userLangs ?? []).map((ul) => `${ul.learning_code}-${ul.native_code}`)
@@ -47,8 +49,14 @@ export function SettingsPage() {
     })
   }
 
-  const handleRemove = (id: string) => {
-    removeMutation.mutate(id)
+  const handleRemoveClick = (id: string) => {
+    setRemovePairId(id)
+  }
+
+  const handleConfirmRemovePair = () => {
+    if (removePairId) {
+      removeMutation.mutate(removePairId, { onSuccess: () => setRemovePairId(null) })
+    }
   }
 
   return (
@@ -109,8 +117,8 @@ export function SettingsPage() {
                     <ListItemSecondaryAction>
                       <IconButton
                         edge="end"
-                        aria-label="Remove"
-                        onClick={() => handleRemove(ul.id)}
+                        aria-label="Remove language pair"
+                        onClick={() => handleRemoveClick(ul.id)}
                         disabled={removeMutation.isPending}
                       >
                         <DeleteIcon />
@@ -153,6 +161,18 @@ export function SettingsPage() {
               )}
             </Box>
           )}
+
+          <ConfirmDialog
+            open={!!removePairId}
+            title="Remove language pair"
+            message="Remove this language pair? Your words for this pair will stay in My Library."
+            confirmLabel="Remove"
+            cancelLabel="Cancel"
+            confirmColor="error"
+            loading={removeMutation.isPending}
+            onConfirm={handleConfirmRemovePair}
+            onCancel={() => setRemovePairId(null)}
+          />
         </>
       )}
     </>
