@@ -70,6 +70,10 @@ Week 6: Testing & Polish
 ✅ MILESTONE: Family can build vocabulary, import/export, works offline
    TESTS: Vocabulary CRUD E2E, import/export unit tests
 
+Suggested (from implementation): Consider adding "Verification / dictionaries" — way for users
+to check spelling/meaning when adding words (e.g. curated word lists, optional dictionary API, or
+document as future improvement). See HANDOFF_SESSION_SUMMARY.md §8.
+
 
 PHASE 3: Learning Engine (3-4 weeks)
 ════════════════════════════════════
