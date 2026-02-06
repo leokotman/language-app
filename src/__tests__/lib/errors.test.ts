@@ -1,5 +1,23 @@
-import { describe, it, expect } from 'vitest'
-import { getAuthErrorMessage, isSupabaseTableMissingError } from '@/lib/errors'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { getAuthErrorMessage, isSupabaseTableMissingError, logError } from '@/lib/errors'
+
+describe('logError', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('does not throw when given an Error', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(() => logError('test', new Error('msg'))).not.toThrow()
+    expect(spy).toHaveBeenCalledWith('[test]', 'msg', expect.any(Object))
+  })
+
+  it('does not throw when given a non-Error value', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(() => logError('ctx', 'string error')).not.toThrow()
+    expect(spy).toHaveBeenCalled()
+  })
+})
 
 describe('getAuthErrorMessage', () => {
   it('returns message from error object', () => {

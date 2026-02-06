@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import { logError } from '@/lib/errors'
 
 export function useAuth() {
   const { user, session, loading, setAuth, setLoading, signOut: clearStore } = useAuthStore()
@@ -21,7 +22,8 @@ export function useAuth() {
           setAuth(session?.user ?? null, session ?? null)
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        logError('useAuth.getSession', err)
         if (mounted.current) {
           setAuth(null, null)
         }
@@ -41,8 +43,14 @@ export function useAuth() {
   }, [setAuth, setLoading])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    clearStore()
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      logError('useAuth.signOut', err)
+      // Still clear local state so the UI reflects signed-out
+    } finally {
+      clearStore()
+    }
   }
 
   return {
