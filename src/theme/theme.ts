@@ -1,4 +1,5 @@
 import { createTheme, type ThemeOptions, type PaletteMode } from '@mui/material/styles'
+import { logError } from '@/lib/errors'
 
 const THEME_STORAGE_KEY = 'themeMode'
 
@@ -7,13 +8,19 @@ export function getStoredThemeMode(): PaletteMode {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY) as PaletteMode | null
     return stored === 'dark' || stored === 'light' ? stored : 'light'
-  } catch {
+  } catch (err) {
+    logError('theme.getStoredThemeMode', err)
     return 'light'
   }
 }
 
 export function setStoredThemeMode(mode: PaletteMode): void {
-  localStorage.setItem(THEME_STORAGE_KEY, mode)
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, mode)
+  } catch (err) {
+    logError('theme.setStoredThemeMode', err)
+    // Theme still applied in memory; only persistence failed
+  }
 }
 
 const baseOptions: Omit<ThemeOptions, 'palette'> = {

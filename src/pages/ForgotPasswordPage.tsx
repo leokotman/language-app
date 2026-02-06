@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
-import { getAuthErrorMessage } from '@/lib/errors'
+import { getAuthErrorMessage, logError } from '@/lib/errors'
 import {
   sanitizeEmail,
   clampAndStripControlChars,
@@ -30,7 +30,8 @@ export function ForgotPasswordPage() {
       }
       setEmail(safeEmail)
       setSent(true)
-    } catch {
+    } catch (err) {
+      logError('ForgotPasswordPage.handleSubmit', err)
       setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)

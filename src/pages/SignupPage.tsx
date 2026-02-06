@@ -3,7 +3,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import { upsertProfile } from '@/api/profiles'
-import { getAuthErrorMessage } from '@/lib/errors'
+import { getAuthErrorMessage, logError } from '@/lib/errors'
 import {
   sanitizeEmail,
   sanitizePassword,
@@ -48,7 +48,8 @@ export function SignupPage() {
         await upsertProfile({ id: data.user.id, email: data.user.email ?? undefined })
       }
       navigate('/', { replace: true })
-    } catch {
+    } catch (err) {
+      logError('SignupPage.handleSubmit', err)
       setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)

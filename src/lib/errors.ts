@@ -84,6 +84,16 @@ export const errorMessages: Partial<
   },
 }
 
+/**
+ * Log an error with context for debugging. Use in catch blocks so failures are visible
+ * without swallowing them silently. Safe to call with any thrown value.
+ */
+export function logError(context: string, error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error)
+  const stack = error instanceof Error ? error.stack : undefined
+  console.error(`[${context}]`, message, stack != null ? { stack } : '')
+}
+
 export function getAuthErrorMessage(error: unknown): string {
   if (
     error &&

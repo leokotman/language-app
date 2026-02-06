@@ -3,7 +3,7 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { getAuthErrorMessage } from '@/lib/errors'
+import { getAuthErrorMessage, logError } from '@/lib/errors'
 import {
   sanitizeEmail,
   sanitizePassword,
@@ -41,7 +41,8 @@ export function LoginPage() {
         useAuthStore.getState().setAuth(data.session.user, data.session)
       }
       navigate(from, { replace: true })
-    } catch {
+    } catch (err) {
+      logError('LoginPage.handleSubmit', err)
       setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
