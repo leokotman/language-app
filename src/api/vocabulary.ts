@@ -113,3 +113,33 @@ export async function removeFromUserLibrary(id: string): Promise<{ error: Error 
   const { error } = await supabase.from('user_vocabulary').delete().eq('id', id)
   return { error: error as Error | null }
 }
+
+/** Create a new user word and add it to the user's library (vocabulary + user_vocabulary). */
+export async function addWordToLibrary(
+  userId: string,
+  params: { word: string; translation: string; language_from: string; language_to: string }
+): Promise<{
+  data: (UserVocabularyRow & { vocabulary: VocabularyRow | null }) | null
+  error: Error | null
+}> {
+  const { data: vocab, error: createErr } = await createVocabulary({
+    word: params.word.trim(),
+    translation: params.translation.trim(),
+    language_from: params.language_from,
+    language_to: params.language_to,
+    source: 'user',
+    created_by: userId,
+  })
+  if (createErr || !vocab) return { data: null, error: createErr ?? new Error('Failed to create word') }
+
+  const { data: userVocab, error: addErr } = await addToUserLibrary({
+    user_id: userId,
+    vocabulary_id: vocab.id,
+  })
+  if (addErr || !userVocab) return { data: null, error: addErr ?? new Error('Failed to add to library') }
+
+  return {
+    data: { ...userVocab, vocabulary: vocab } as UserVocabularyRow & { vocabulary: VocabularyRow | null },
+    error: null,
+  }
+}
