@@ -115,9 +115,41 @@ Use this for context when continuing work on the language app.
 ### 6.5 Language pairs: one bidirectional pair — Fixed
 - Settings and Library now use **one entry per language combination**: “Russian ↔ English”, “Serbian (Latin) ↔ English”. Adding a pair in Settings inserts both directions in the DB. Removing a pair removes both. Library filter shows one option per pair (words in both directions). Add-word form: choose **Language pair** (e.g. Russian ↔ English) then **Direction** (e.g. Russian → English) for the new word.
 
-### 6.6 Virtual pair: Russian ↔ Serbian (via English) — Implemented (basic)
-- When the user has both **Russian ↔ English** and **Serbian (Latin) ↔ English**, the app shows an automatic **“Russian ↔ Serbian (via English)”** pair (Settings: listed as info; Library: filter option). Library filter “Russian ↔ Serbian (via English)” shows all words from EN–RU, RU–EN, EN–SR, SR–EN. No direct RU–SR vocabulary; words are used via English. Full two-step translation (e.g. RU → EN → SR) can be added later.
+### 6.6 Virtual pair: Russian ↔ Serbian (via English) — Implemented (full add/list)
+- When the user has both **Russian ↔ English** and **Serbian (Latin) ↔ English**, the app shows **“Russian ↔ Serbian (via English)”** in Settings (informational) and in Library filter. User can **add words** for this pair: in Add word form, choose Language pair “Russian ↔ Serbian (via English)” and Direction “Russian → Serbian (via English)” or “Serbian → Russian (via English)”. Words are stored as vocabulary with `language_from`/`language_to` = ru/sr or sr/ru. List shows correct direction labels. Filter “Russian ↔ Serbian (via English)” shows both base-pair words (EN–RU, EN–SR, etc.) and direct RU–SR/SR–RU entries.
 
 ---
 
-*Last updated: 6.5 (bidirectional pairs) and 6.6 (virtual pair RU↔SR via English) implemented; 6.3 clarification added.*
+## 7. Session summary (latest — today’s work)
+
+**Done and fixed in this session:**
+- **Bidirectional pairs (6.5):** One row per language combination in Settings and Library (e.g. “Russian ↔ English”). Add pair = insert both directions; remove pair = remove both. Library: filter by pair; add form = Pair + Direction.
+- **Virtual pair (6.6):** “Russian ↔ Serbian (via English)” appears when user has both EN–RU and EN–SR. Settings shows it as info; Library has filter and **add-word support** (user can add Russian→Serbian and Serbian→Russian words; stored as ru–sr/sr–ru).
+- **Commit style:** AI instructions updated — one logical change per commit, no “X and Y” in commit messages. Changes committed in single-purpose commits (types, API, hooks, Settings bidirectional, Settings virtual, Library bidirectional, Library virtual, handoff, AI instructions).
+- **Virtual pair add-word fix:** Virtual pair added to add-form pair options; direction labels “Russian → Serbian (via English)” / “Serbian → Russian (via English)”; list shows proper labels for ru–sr/sr–ru vocabulary.
+
+**Current state (after this session):** Auth, Settings (bidirectional + virtual display), Library (bidirectional filter/add, virtual pair filter + add word, list labels). DB unchanged (migrations 001 + 002). PWA build still fails (known workbox issue); `tsc -b` and tests pass.
+
+---
+
+## 8. Suggestions for next steps
+
+### Recommended order
+1. **Week 5 (roadmap):** Seed data (EN–RU, EN–SR), app library browse, add from app to personal, import/export CSV.
+2. **Week 6:** E2E for vocabulary flows, loading/error/empty states, fix PWA build if needed.
+3. **Phase 3:** FSRS + study session, then exercise types.
+
+### Roadmap / product suggestion: dictionaries and verification
+- **Gap:** There is no way for users to **verify** that the words or phrases they enter are correct (spelling, meaning). The app accepts any input.
+- **Suggestion:** Consider adding a **“dictionary / verification”** strand to the roadmap (e.g. after or alongside Week 5):
+  - **Option A — Offline word lists:** Ship curated word lists per language pair (e.g. EN–RU, EN–SR) and, when adding a word, suggest matches or “did you mean?” from that list (no API).
+  - **Option B — External dictionary API:** Integrate a free dictionary/translation API (e.g. free tier of a translation API or an open dictionary) to validate or suggest translations when the user adds a word (requires API key and rate limits).
+  - **Option C — Community / manual:** Rely on “add and review later” and future features (e.g. study feedback, corrections) without real-time verification for now; document the limitation.
+- Updating the roadmap: add a short bullet under Phase 2 or as a “Phase 2.5” such as: “**Verification / dictionaries:** Explore word-list or API-based verification so users can check spelling/meaning when adding words.”
+
+### Other small improvements (unchanged)
+- Default language pair; trim/validation on add/edit; “I’ve run the migration” refresh button.
+
+---
+
+*Last updated: session summary and virtual pair add-word support; suggestions for next steps and roadmap (dictionaries/verification) added.*
