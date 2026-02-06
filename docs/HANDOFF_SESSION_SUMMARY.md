@@ -39,6 +39,10 @@ Use this for context when continuing work on the language app.
 9. **6.3** Settings: confirmation dialog before removing a language pair (ConfirmDialog: “Remove this language pair? Your words for this pair will stay in My Library.”).
 10. **6.4** Layout: sticky navbar (`AppBar position="sticky"`), full-height layout (flex column, `minHeight: 100vh`, main `flex: 1`, `overflow: auto`).
 
+### Post–handoff fixes (issues 6.5, 6.6)
+11. **6.5 Bidirectional pairs:** `BIDIRECTIONAL_PAIRS` and `getBidirectionalKey` in types; Settings shows one row per pair (e.g. "Russian ↔ English"), add inserts both directions via `addBidirectionalPair`, remove deletes both via `removeUserLanguagesByIds`. Library: filter by bidirectional pair; add form has Pair + Direction dropdowns.
+12. **6.6 Virtual pair:** `VIRTUAL_PAIR_RU_SR`; when user has both EN–RU and EN–SR, Settings lists "Russian ↔ Serbian (via English)" (informational); Library filter option shows words from all four directions (EN–RU, RU–EN, EN–SR, SR–EN) with "(via English)" note.
+
 ---
 
 ## 2. Issues we hit
@@ -105,19 +109,15 @@ Use this for context when continuing work on the language app.
 ### 6.1–6.4 — Fixed (post–handoff)
 - **6.1** Add-word form: placeholders are now **dynamic** per selected language pair (`LANGUAGE_PLACEHOLDERS`: en, ru, sr).
 - **6.2** Library filter: fixed mapping so filter value matches `language_from` / `language_to` (list and dropdown stay in sync).
-- **6.3** Settings: **ConfirmDialog** added for language pair removal (“Your words for this pair will stay in My Library.”).
+- **6.3** Settings: **ConfirmDialog** for language pair removal. **How to check:** In Settings, click the delete/remove icon next to a language pair; a dialog should appear with title “Remove language pair”, message “Remove this language pair? Your words for this pair will stay in My Library.” and buttons Cancel / Remove. Only after clicking Remove is the pair removed.
 - **6.4** Layout: navbar is **sticky**; main content uses full height (flex layout, `minHeight: 100vh`).
 
-### 6.5 Language pairs: one bidirectional pair instead of two separate (open)
-- **What:** Currently there are two separate pairs: "English → Russian" and "Russian → English" (and similarly for Serbian).
-- **Problem:** From the user's perspective it should be **one bidirectional pair** (e.g. "Russian ↔ English"). When **adding** a word, the user still chooses the direction of the translation (e.g. Russian → English or English → Russian), but the **library** should show all words for that language combination as **one** pair, not two separate lists/filters.
-- **Fix:** Rethink data/UI so that: (1) user_languages stores one "pair" (e.g. RU–EN) without direction for display/filter; (2) vocabulary still has language_from / language_to for each word; (3) Library filter and list show one entry per language pair (e.g. "Russian ↔ English") and include words in both directions.
+### 6.5 Language pairs: one bidirectional pair — Fixed
+- Settings and Library now use **one entry per language combination**: “Russian ↔ English”, “Serbian (Latin) ↔ English”. Adding a pair in Settings inserts both directions in the DB. Removing a pair removes both. Library filter shows one option per pair (words in both directions). Add-word form: choose **Language pair** (e.g. Russian ↔ English) then **Direction** (e.g. Russian → English) for the new word.
 
-### 6.6 Virtual pair: Russian ↔ Serbian (via English)
-- **What:** User wants to support a "virtual" language pair **Russian ↔ Serbian** that has no direct word list but uses **two-step translation** under the hood: Russian → English → Serbian and vice versa (similar to Google Translate).
-- **Use case:** Users who want to learn or practice Russian ↔ Serbian using English as the pivot.
-- **Fix (future):** Design a "virtual" or composite pair type that: uses existing EN↔RU and EN↔SR data; when user adds or reviews "Russian ↔ Serbian", the app resolves via English (e.g. show RU word, offer SR translation via EN, or use EN as intermediate). This is a larger feature for a later phase.
+### 6.6 Virtual pair: Russian ↔ Serbian (via English) — Implemented (basic)
+- When the user has both **Russian ↔ English** and **Serbian (Latin) ↔ English**, the app shows an automatic **“Russian ↔ Serbian (via English)”** pair (Settings: listed as info; Library: filter option). Library filter “Russian ↔ Serbian (via English)” shows all words from EN–RU, RU–EN, EN–SR, SR–EN. No direct RU–SR vocabulary; words are used via English. Full two-step translation (e.g. RU → EN → SR) can be added later.
 
 ---
 
-*Last updated: fixes 6.1–6.4 implemented; 6.5 and 6.6 remain for future iterations.*
+*Last updated: 6.5 (bidirectional pairs) and 6.6 (virtual pair RU↔SR via English) implemented; 6.3 clarification added.*
