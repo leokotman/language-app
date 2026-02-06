@@ -24,7 +24,11 @@ import {
   useRemoveUserLanguagesByIds,
 } from '@/hooks/useUserLanguages'
 import { isSupabaseTableMissingError } from '@/lib/errors'
-import { BIDIRECTIONAL_PAIRS, getBidirectionalKey } from '@/types'
+import {
+  BIDIRECTIONAL_PAIRS,
+  VIRTUAL_PAIR_RU_SR,
+  getBidirectionalKey,
+} from '@/types'
 
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user)
@@ -58,6 +62,10 @@ export function SettingsPage() {
   const availableBidirectionalPairs = BIDIRECTIONAL_PAIRS.filter(
     (p) => !bidirectionalPairsWithIds.some((b) => b.key === p.key)
   )
+
+  const hasVirtualPair =
+    bidirectionalPairsWithIds.some((b) => b.key === 'en-ru') &&
+    bidirectionalPairsWithIds.some((b) => b.key === 'en-sr')
 
   const handleAdd = () => {
     if (!userId || !selectedPairKey) return
@@ -120,26 +128,36 @@ export function SettingsPage() {
       ) : (
         <>
           <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1, mb: 2 }}>
-            {bidirectionalPairsWithIds.length === 0 ? (
+            {bidirectionalPairsWithIds.length === 0 && !hasVirtualPair ? (
               <ListItem>
                 <ListItemText primary="No language pairs yet. Add one below." />
               </ListItem>
             ) : (
-              bidirectionalPairsWithIds.map((pair) => (
-                <ListItem key={pair.key}>
-                  <ListItemText primary={pair.label} />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      edge="end"
-                      aria-label={`Remove ${pair.label}`}
-                      onClick={() => handleRemoveClick(pair.key)}
-                      disabled={removeMutation.isPending}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))
+              <>
+                {bidirectionalPairsWithIds.map((pair) => (
+                  <ListItem key={pair.key}>
+                    <ListItemText primary={pair.label} />
+                    <ListItemSecondaryAction>
+                      <IconButton
+                        edge="end"
+                        aria-label={`Remove ${pair.label}`}
+                        onClick={() => handleRemoveClick(pair.key)}
+                        disabled={removeMutation.isPending}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                ))}
+                {hasVirtualPair && (
+                  <ListItem>
+                    <ListItemText
+                      primary={VIRTUAL_PAIR_RU_SR.label}
+                      secondary="Available when you have Russian↔English and Serbian↔English. Words are used via English."
+                    />
+                  </ListItem>
+                )}
+              </>
             )}
           </List>
 
