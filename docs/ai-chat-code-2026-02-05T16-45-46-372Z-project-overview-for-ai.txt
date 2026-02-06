@@ -1,0 +1,148 @@
+LANGUAGE LEARNING APP - PROJECT SPECIFICATION
+=============================================
+Context for AI Agent: This is a complete specification for a language learning web application. Use this as the source of truth for all architectural and implementation decisions.
+
+PROJECT OVERVIEW
+----------------
+Type: Language learning PWA (Progressive Web App)
+Purpose: Personal/family use, portfolio showcase
+Constraints: Free-tier services only, no paid APIs
+Developer Stack: React, TypeScript, Node.js
+
+CORE FEATURES
+-------------
+1. User Authentication - Email/password + Google OAuth via Supabase
+2. Vocabulary Management - Personal library + app library (curated words)
+3. Spaced Repetition - FSRS algorithm for optimal review scheduling
+4. Exercise Types - Flashcards, typing, multiple choice, listening, speaking
+5. Pronunciation Practice - Web Speech API with text comparison scoring
+6. Progress Tracking - Stats, streaks, XP, achievements
+7. AI Features - On-demand mnemonics, pronunciation tips (Gemini free tier)
+8. Offline Support - PWA with cached vocabulary
+
+TECH STACK
+----------
+Frontend:
+- React 18+ with TypeScript
+- Vite (build tool)
+- MUI (Material UI) - NOT Tailwind
+- Zustand (client state)
+- TanStack Query (server state)
+- vite-plugin-pwa (offline support)
+- Web Speech API (recognition + synthesis)
+
+Backend:
+- Supabase (all-in-one, free tier)
+  - PostgreSQL database
+  - Authentication
+  - Storage (audio files)
+  - Row Level Security
+- Vercel Edge Functions (AI proxy only)
+
+AI:
+- Google Gemini API (free tier, 60 req/min)
+- Upstash Redis (rate limiting, free tier)
+
+Testing:
+- Vitest (unit tests)
+- Playwright (E2E tests)
+- Testing Library (component tests)
+
+SUPPORTED LANGUAGES
+-------------------
+English <-> Russian: Full speech recognition support
+English <-> Serbian/Croatian: Limited speech support, fallback to typing exercises
+
+Important: Web Speech API has poor Serbian/Croatian support. Implement graceful degradation - detect support at runtime and offer alternative exercises.
+
+DATABASE SCHEMA (Supabase PostgreSQL)
+-------------------------------------
+Key Tables:
+- profiles: User data, extends Supabase auth.users
+- user_languages: Which languages user is learning
+- vocabulary: Words (app library + user-created)
+- user_vocabulary: Personal library with FSRS fields (state, due, stability, difficulty, elapsed_days, scheduled_days, reps, lapses, last_review)
+- study_sessions: Session history and stats
+- pronunciation_attempts: Speaking practice logs
+- user_stats: Streaks, XP, totals
+- achievements / user_achievements: Gamification
+
+KEY IMPLEMENTATION NOTES
+------------------------
+1. FSRS Algorithm
+Use ts-fsrs npm package. Critical for learning effectiveness - ensure 100% test coverage.
+
+2. Pronunciation Scoring (Free Approach)
+User speaks -> Web Speech API transcribes -> Compare text with expected -> Calculate Levenshtein distance -> Return 0-1 score
+No phoneme-level feedback without paid APIs.
+
+3. AI Security (Critical)
+- Never expose API keys in frontend
+- All AI calls through Vercel Edge Functions
+- Rate limit per user (20 mnemonics/hour)
+- Sanitize inputs (remove prompt injection attempts)
+- Cache responses in localStorage (24h expiry)
+- AI features are ON-DEMAND only (user clicks button)
+
+4. Error Handling
+Handle gracefully: Speech not supported (show alternative), Microphone permission denied, AI rate limited (show retry timer), Offline mode (queue syncs), Supabase errors
+
+5. PWA Requirements
+- Service worker caches vocabulary for offline review
+- Installable on mobile home screen
+- Offline indicator in UI
+- Sync when back online
+
+PROJECT STRUCTURE
+-----------------
+src/
+  components/
+    common/           -> Reusable (LoadingSpinner, ErrorAlert)
+    features/         -> Feature-specific (auth, vocabulary, learning, pronunciation, progress)
+    layout/
+  hooks/              -> Custom hooks (useAuth, useFSRS, useSpeechRecognition)
+  lib/                -> Utilities (supabase, fsrs, speech, errors, ai-security)
+  stores/             -> Zustand stores
+  api/                -> Supabase query functions
+  pages/              -> Route components
+  theme/              -> MUI theme config
+  types/              -> TypeScript types
+  __tests__/          -> Unit tests
+
+api/                  -> Vercel Edge Functions
+  ai/
+    mnemonic.ts
+    pronunciation-tip.ts
+
+e2e/                  -> Playwright tests
+
+DEVELOPMENT PHASES
+------------------
+Phase 1: Foundation + PWA -> Auth working, PWA installable
+Phase 2: Vocabulary -> CRUD, import/export, offline cache
+Phase 3: Learning Engine -> FSRS, all exercise types
+Phase 4: Pronunciation -> Speech recognition with fallbacks
+Phase 5: Progress -> Stats, streaks, achievements
+Phase 6: AI Features -> Mnemonics, tips (rate-limited)
+Phase 7: Polish -> Testing, performance, deploy
+
+COMMANDS TO START
+-----------------
+npm create vite@latest language-app -- --template react-ts
+cd language-app
+npm install @mui/material @mui/icons-material @emotion/react @emotion/styled
+npm install @supabase/supabase-js @tanstack/react-query zustand
+npm install ts-fsrs react-router-dom
+npm install -D vite-plugin-pwa vitest @testing-library/react playwright
+
+KEY DECISIONS LOG
+-----------------
+1. MUI over Tailwind - Developer preference, familiar with MUI
+2. Supabase over separate services - Simpler, all-in-one free tier
+3. FSRS over SM-2 - Modern algorithm, better retention
+4. Gemini over OpenAI - Generous free tier (60 req/min)
+5. PWA over React Native - Web-first, mobile later
+6. Edge Functions for AI - Security, never expose keys
+7. Playwright over Cypress - Better PWA testing, faster
+
+Begin implementation with Phase 1: Project setup, MUI configuration, Supabase connection, and authentication.

@@ -1,0 +1,200 @@
+┌─────────────────────────────────────────────────────────────────────────┐
+│              UPDATED ROADMAP (with your requirements)                    │
+│              Assuming ~10 hours/week                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 1: Foundation + PWA Setup (2-3 weeks)
+═══════════════════════════════════════════
+
+Week 1: Project Setup
+├── □ Initialize Vite + React + TypeScript project
+├── □ Configure MUI theme (light/dark mode ready)
+├── □ Set up project structure
+├── □ Configure PWA plugin (vite-plugin-pwa)
+├── □ Set up Supabase project
+├── □ Configure environment variables
+├── □ Set up Vitest for unit testing
+└── □ Create basic layout components (AppBar, Navigation, etc.)
+
+Week 2: Authentication
+├── □ Implement Supabase Auth
+│   ├── Email/password signup & login
+│   ├── Google OAuth
+│   └── Password reset flow
+├── □ Auth state management (Zustand store)
+├── □ Protected routes
+├── □ User profile creation (auto-create on signup)
+├── □ Error handling for auth flows
+└── □ Unit tests for auth utilities
+
+Week 3: Core Data Layer
+├── □ Database schema in Supabase (run migrations)
+├── □ Row Level Security policies
+├── □ Supabase client setup with TypeScript types
+├── □ Basic CRUD hooks for vocabulary
+├── □ Language selection (EN↔RU, EN↔SR/HR)
+└── □ Error handling for database operations
+
+✅ MILESTONE: Users can sign up, select languages, PWA installable
+   TESTS: Auth flow E2E test
+
+
+PHASE 2: Vocabulary Management (2-3 weeks)
+══════════════════════════════════════════
+
+Week 4: Personal Library
+├── □ Add word form (word, translation, notes, category)
+├── □ Word list view with search & filters
+├── □ Edit & delete words
+├── □ Categories/tags management
+├── □ Responsive design (mobile-friendly)
+└── □ Unit tests for vocabulary utilities
+
+Week 5: App Library & Import
+├── □ Seed initial vocabulary data
+│   ├── EN-RU: 500 common words (from free lists)
+│   └── EN-SR: 500 common words
+├── □ Browse app library
+├── □ Add from app library to personal library
+├── □ Import from CSV file
+├── □ Export personal library to CSV/JSON
+└── □ Offline caching for vocabulary (PWA)
+
+Week 6: Testing & Polish
+├── □ E2E tests for vocabulary flows
+├── □ Error states and edge cases
+├── □ Loading states
+├── □ Empty states
+└── □ Offline indicator & sync status
+
+✅ MILESTONE: Family can build vocabulary, import/export, works offline
+   TESTS: Vocabulary CRUD E2E, import/export unit tests
+
+
+PHASE 3: Learning Engine (3-4 weeks)
+════════════════════════════════════
+
+Week 7-8: Spaced Repetition
+├── □ Implement FSRS algorithm
+├── □ Unit tests for FSRS (CRITICAL)
+├── □ "Due today" query
+├── □ Study session flow
+│   ├── Start session
+│   ├── Show card
+│   ├── Reveal answer
+│   ├── Rate (Again/Hard/Good/Easy)
+│   └── Session complete summary
+├── □ Update SRS data after each review
+└── □ Store session history
+
+Week 9-10: Exercise Types
+├── □ Flashcard (show word → reveal translation)
+├── □ Reverse flashcard (translation → word)
+├── □ Typing exercise (type the translation)
+├── □ Multiple choice
+├── □ Listening exercise (TTS plays → select answer)
+├── □ Adaptive exercise selection based on performance
+├── □ Session settings (exercise types, card count)
+└── □ E2E test for complete study session
+
+✅ MILESTONE: Fully functional SRS-based learning
+   TESTS: FSRS unit tests (100% coverage), study session E2E
+
+
+PHASE 4: Pronunciation Practice (2-3 weeks)
+═══════════════════════════════════════════
+
+Week 11: Speech Integration
+├── □ Check speech support per language (runtime check)
+├── □ Web Speech API wrapper with error handling
+├── □ Audio recording component (MUI-styled)
+├── □ Text-to-Speech for reference pronunciation
+├── □ Text comparison scoring algorithm
+├── □ Unit tests for scoring algorithm
+└── □ Graceful fallback when speech not supported
+
+Week 12: Speaking Exercise
+├── □ Speaking exercise component
+├── □ Score display with feedback
+├── □ Integrate into study session
+├── □ Show "typing instead" option for unsupported languages
+├── □ Store pronunciation attempts
+└── □ Pronunciation history view
+
+Week 13: Polish & Edge Cases
+├── □ Handle microphone permissions gracefully
+├── □ Handle network issues
+├── □ Test on mobile browsers
+├── □ Serbian/Croatian fallback handling
+└── □ E2E test for pronunciation flow
+
+✅ MILESTONE: Pronunciation practice working (where supported)
+   TESTS: Speech utilities unit tests, pronunciation E2E
+
+
+PHASE 5: Progress & Gamification (2 weeks)
+══════════════════════════════════════════
+
+Week 14: Statistics
+├── □ Dashboard page
+├── □ Words learned count
+├── □ Accuracy statistics
+├── □ Study time tracking
+├── □ Charts (simple, maybe recharts - free)
+├── □ Per-language stats
+└── □ Weekly/monthly views
+
+Week 15: Engagement
+├── □ Streak tracking (with timezone handling)
+├── □ Daily goal setting
+├── □ XP system
+├── □ Achievements system (define achievements)
+├── □ Achievement notifications
+└── □ Streak recovery (miss one day grace?)
+
+✅ MILESTONE: Motivating progress tracking
+   TESTS: Streak logic unit tests
+
+
+PHASE 6: AI Features (1-2 weeks)
+════════════════════════════════
+
+Week 16: AI Integration
+├── □ Set up Vercel Edge Functions
+├── □ Implement rate limiting (Upstash Redis free tier)
+├── □ AI security measures
+├── □ Mnemonic generation feature (on-demand button)
+├── □ Pronunciation tips (when score is low)
+├── □ Response caching
+└── □ Error handling for AI failures
+
+Optional/Future:
+├── □ Weekly insights
+├── □ Example sentence generation
+└── □ AI conversation practice
+
+✅ MILESTONE: AI-enhanced learning (optional features)
+   TESTS: AI input sanitization unit tests
+
+
+PHASE 7: Final Polish (1-2 weeks)
+═════════════════════════════════
+
+Week 17-18:
+├── □ Full E2E test suite
+├── □ Performance optimization
+├── □ Lighthouse audit (PWA, performance, accessibility)
+├── □ Bug fixes from family testing
+├── □ Documentation (for portfolio)
+├── □ README with screenshots
+└── □ Deploy to production
+
+✅ FINAL MILESTONE: Production-ready app for family use
+
+═══════════════════════════════════════════════════════════════════════════
+
+TOTAL TIMELINE: ~18 weeks at 10 hrs/week
+                ~12 weeks if you can do 15+ hrs/week
+                
+PHASES 1-4 = Core app (usable by family)
+PHASES 5-7 = Nice to have (can skip/defer)
