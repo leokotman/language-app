@@ -77,4 +77,57 @@ Use this for context when continuing work on the language app.
 
 ---
 
-*Last updated: end of session (Phase 2 Week 4 + migration 404 handling).*
+## 5. Manual test results (post-session)
+
+| # | Test | Result |
+|---|------|--------|
+| 1 | Open app, go to Library | OK |
+| 2 | Add a word | OK |
+| 3 | See word in list | OK |
+| 4 | Search by word/translation | OK (several languages) |
+| 5 | Filter by language pair | **Issue** — see §6.2 |
+| 6 | Edit word | OK |
+| 7 | Delete word (Cancel / Remove) | OK |
+| 8 | Empty list and "no match" messages | OK |
+| 9 | Remove all language pairs → Library still shows words | **OK (intended)** — vocabulary is not deleted when a pair is removed; avoid data loss for users with many words. **Change needed:** add confirmation dialog for pair removal (same as for word delete). |
+| 10 | Refresh page | OK |
+
+---
+
+## 6. Issues to fix (from manual testing)
+
+**No code changes were made for these in this session; address in future iterations.**
+
+### 6.1 Add-word form: hardcoded placeholders
+- **What:** Word and Translation fields use fixed placeholders: "e.g. hello" and "e.g. привет".
+- **Problem:** When the user changes the **Language pair** (e.g. to "Russian → English"), the placeholders stay the same and are misleading (e.g. "привет" is Russian, so it fits EN→RU, not RU→EN).
+- **Fix:** Placeholders should be **dynamic per selected language pair** (e.g. for "Russian → English": Word placeholder in Russian, Translation placeholder in English).
+
+### 6.2 Library: filter by language pair shows wrong / previous state
+- **What:** The "Language pair" filter dropdown and the list can get out of sync.
+- **Observed:** Select shows e.g. "English → Russian" (value `en-ru`) but the list shows entries that are "Russian → English" (e.g. "автомобиль — car"); or select "Russian → English" (`ru-en`) but list shows "hello — привет" (EN→RU). Filter appears to show "previous" state or the mapping between filter value and vocabulary `language_from` / `language_to` is wrong.
+- **Fix:** Align filter value with how vocabulary is stored (language_from, language_to). Ensure selecting a filter option correctly filters the list for that pair in both directions if we later move to bidirectional pairs (see §6.5).
+
+### 6.3 Settings: confirmation for language pair removal
+- **What:** Removing a language pair in Settings has no confirmation.
+- **Problem:** Accidental click could remove a pair; user might panic (even though words are correctly preserved in Library).
+- **Fix:** Use the same **ConfirmDialog** pattern as for word delete (e.g. "Remove this language pair? Your words for this pair will stay in My Library.").
+
+### 6.4 Layout / navbar stability
+- **What:** On refresh or when switching tabs, the layout jumps; navbar is not stable.
+- **Problem:** Navbar appears "in the middle" instead of fixed; main content doesn't consistently take full height/width.
+- **Fix:** **Stick the navbar to the top** of the page; make **main content** use full height and width so the UI is stable and doesn't jump.
+
+### 6.5 Language pairs: one bidirectional pair instead of two separate
+- **What:** Currently there are two separate pairs: "English → Russian" and "Russian → English" (and similarly for Serbian).
+- **Problem:** From the user's perspective it should be **one bidirectional pair** (e.g. "Russian ↔ English"). When **adding** a word, the user still chooses the direction of the translation (e.g. Russian → English or English → Russian), but the **library** should show all words for that language combination as **one** pair, not two separate lists/filters.
+- **Fix:** Rethink data/UI so that: (1) user_languages stores one "pair" (e.g. RU–EN) without direction for display/filter; (2) vocabulary still has language_from / language_to for each word; (3) Library filter and list show one entry per language pair (e.g. "Russian ↔ English") and include words in both directions.
+
+### 6.6 Virtual pair: Russian ↔ Serbian (via English)
+- **What:** User wants to support a "virtual" language pair **Russian ↔ Serbian** that has no direct word list but uses **two-step translation** under the hood: Russian → English → Serbian and vice versa (similar to Google Translate).
+- **Use case:** Users who want to learn or practice Russian ↔ Serbian using English as the pivot.
+- **Fix (future):** Design a "virtual" or composite pair type that: uses existing EN↔RU and EN↔SR data; when user adds or reviews "Russian ↔ Serbian", the app resolves via English (e.g. show RU word, offer SR translation via EN, or use EN as intermediate). This is a larger feature for a later phase.
+
+---
+
+*Last updated: after manual testing; issues 6.1–6.6 added for next iterations.*
