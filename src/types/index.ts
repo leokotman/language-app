@@ -22,4 +22,11 @@ export const SUPPORTED_LANGUAGE_PAIRS = [
   { learning: 'en', native: 'sr', label: 'Serbian (Latin) → English' },
 ] as const
 
+/** Example placeholders for add-word form (word/translation) per language code. */
+export const LANGUAGE_PLACEHOLDERS: Record<string, string> = {
+  en: 'e.g. hello',
+  ru: 'e.g. привет',
+  sr: 'e.g. zdravo',
+}
+
 export type LanguagePairCode = (typeof SUPPORTED_LANGUAGE_PAIRS)[number]['learning'] | (typeof SUPPORTED_LANGUAGE_PAIRS)[number]['native']

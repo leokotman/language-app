@@ -38,7 +38,7 @@ import {
 } from '@/hooks/useVocabulary'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { isSupabaseTableMissingError } from '@/lib/errors'
-import { SUPPORTED_LANGUAGE_PAIRS } from '@/types'
+import { SUPPORTED_LANGUAGE_PAIRS, LANGUAGE_PLACEHOLDERS } from '@/types'
 
 type LibraryItem = {
   id: string
@@ -85,6 +85,15 @@ export function LibraryPage() {
       label: languagePairLabel(ul.native_code, ul.learning_code),
     }))
   }, [userLangs])
+
+  const addFormPlaceholders = useMemo(() => {
+    if (!addLanguagePair) return { word: 'e.g. …', translation: 'e.g. …' }
+    const [language_from, language_to] = addLanguagePair.split('-')
+    return {
+      word: LANGUAGE_PLACEHOLDERS[language_from] ?? `e.g. (${language_from})`,
+      translation: LANGUAGE_PLACEHOLDERS[language_to] ?? `e.g. (${language_to})`,
+    }
+  }, [addLanguagePair])
 
   useEffect(() => {
     if (languageOptions.length > 0 && !addLanguagePair) {
@@ -178,7 +187,7 @@ export function LibraryPage() {
         </Alert>
       )}
 
-      {!isMigrationMissing && userLangs?.length > 0 && (
+      {!isMigrationMissing && (userLangs?.length ?? 0) > 0 && (
         <>
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
@@ -188,7 +197,7 @@ export function LibraryPage() {
               <TextField
                 size="small"
                 label="Word"
-                placeholder="e.g. hello"
+                placeholder={addFormPlaceholders.word}
                 value={addWord}
                 onChange={(e) => setAddWord(e.target.value)}
                 sx={{ minWidth: 160 }}
@@ -196,7 +205,7 @@ export function LibraryPage() {
               <TextField
                 size="small"
                 label="Translation"
-                placeholder="e.g. привет"
+                placeholder={addFormPlaceholders.translation}
                 value={addTranslation}
                 onChange={(e) => setAddTranslation(e.target.value)}
                 sx={{ minWidth: 160 }}
