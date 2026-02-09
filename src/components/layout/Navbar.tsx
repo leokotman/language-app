@@ -21,8 +21,8 @@ export function Navbar() {
   const navigate = useNavigate()
   const { mode, toggleMode } = useThemeMode()
   const { isAuthenticated, user, signOut } = useAuth()
-  const offlineMode = useOfflineModeStore((s) => s.offlineMode)
-  const setOfflineMode = useOfflineModeStore((s) => s.setOfflineMode)
+  const offlineMode = useOfflineModeStore((state) => state.offlineMode)
+  const setOfflineMode = useOfflineModeStore((state) => state.setOfflineMode)
 
   const handleSignOut = () => {
     signOut()

@@ -1,0 +1,41 @@
+---
+description: Page structure: one folder per page with component, models, constants, helpers
+globs: "src/pages/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Page architecture
+
+## One folder per page
+
+Each page lives in its own folder under `src/pages/`:
+
+```
+src/pages/
+  LibraryPage/
+    LibraryPage.tsx        # The page component
+    LibraryPage.models.ts  # Types/interfaces used only by this page
+    LibraryPage.constants.ts # Constants used only by this page
+    LibraryPage.helpers.ts  # Helper functions (component-specific)
+  DictionaryPage/
+    DictionaryPage.tsx
+    DictionaryPage.models.ts
+    DictionaryPage.constants.ts
+    DictionaryPage.helpers.ts
+  ...
+```
+
+- **Reusable** types/constants live in `src/types/`, `src/lib/`, or shared constants modules—not duplicated in page folders.
+- **Router imports**: Keep importing the page component from the folder, e.g. `@/pages/LibraryPage/LibraryPage` or `@/pages/LibraryPage` (barrel if you add one).
+
+## File roles
+
+- **PageName.tsx**: Only the React component and its local state/hooks. Compose features and shared components; avoid large inline logic.
+- **PageName.models.ts**: Types, interfaces, and type-only exports used by this page (and its helpers). Move types out of the `.tsx` file.
+- **PageName.constants.ts**: Constants (e.g. options arrays, config) used only by this page. Reusable constants stay in a shared place.
+- **PageName.helpers.ts**: Pure or mostly-pure functions and small utilities used only by this page (see helpers-extract rule).
+
+## Reusable UI and features
+
+- **Shared components**: `src/components/common/`, `src/components/layout/`, `src/components/features/`.
+- Prefer extracting repeated page sections into components in these folders so pages stay thin and only compose features.

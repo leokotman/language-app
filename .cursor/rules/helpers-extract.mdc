@@ -1,0 +1,45 @@
+---
+description: Extract helpers from components into *.helpers.ts
+globs: "**/*.tsx"
+alwaysApply: false
+---
+
+# Helper extraction
+
+## Where helpers live
+
+- **Component-specific**: Non-reusable logic used only in one component → `ComponentName.helpers.ts` next to the component (e.g. `LibraryPage.helpers.ts` next to `LibraryPage.tsx`).
+- **Shared**: Logic used in more than one component → put in a shared module (e.g. `src/lib/` or a shared `*.helpers.ts` in a common/features folder). Do not duplicate in each page’s helpers.
+
+## What to extract
+
+- **Large handlers** (e.g. file import, multi-step form submit): Extract the core logic into a pure or mostly-pure function in the helpers file. The component keeps a thin handler that calls the helper and updates state/side effects.
+- **Pure functions** used only in the component: Move to the component’s `*.helpers.ts` (e.g. `languagePairLabel`, formatters, small mappers).
+- **Constants** used only on that page: Prefer moving to `*.constants.ts` (see page-architecture rule); if they’re clearly “helper config”, they can live next to the helper that uses them.
+
+## Benefits
+
+- Smaller components, easier to read and test.
+- Helpers are easier to unit test and reuse when needed.
+
+### Example (conceptual)
+
+```typescript
+// LibraryPage.helpers.ts
+export function languagePairLabel(langFrom: string, langTo: string): string { ... }
+
+export async function processLibraryImport(file: File, options: ImportOptions): Promise<ImportResult> { ... }
+```
+
+```typescript
+// LibraryPage.tsx
+const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (!file || !userId) return
+  setIsImporting(true)
+  const result = await processLibraryImport(file, { userId, addMutation, existingLibraryKey })
+  setImportMessage(result.message)
+  setIsImporting(false)
+}
+```

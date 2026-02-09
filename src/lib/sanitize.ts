@@ -28,9 +28,9 @@ export const MAX_SEARCH_LENGTH = 200
 function stripControlChars(value: string): string {
   let out = ''
   for (let i = 0; i < value.length; i++) {
-    const c = value.charCodeAt(i)
-    if (c === 9 || c === 10 || c === 13) out += value[i]
-    else if (c < 32 || c === 127) continue
+    const charCode = value.charCodeAt(i)
+    if (charCode === 9 || charCode === 10 || charCode === 13) out += value[i]
+    else if (charCode < 32 || charCode === 127) continue
     else out += value[i]
   }
   return out

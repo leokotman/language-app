@@ -81,9 +81,11 @@ function parseCsvText(text: string): ParseResult {
     return { rows: [], errors: ['CSV must have header: word,translation,language_from,language_to'] }
   }
   const colIndex = (name: string): number => {
-    const cols = lines[0].split(',').map((c) => c.trim().toLowerCase().replace(/^"|"$/g, ''))
-    const i = cols.findIndex((c) => c === name)
-    return i >= 0 ? i : cols.length
+    const cols = lines[0]
+      .split(',')
+      .map((col) => col.trim().toLowerCase().replace(/^"|"$/g, ''))
+    const index = cols.findIndex((col) => col === name)
+    return index >= 0 ? index : cols.length
   }
   const wordIdx = colIndex('word')
   const transIdx = colIndex('translation')
@@ -96,20 +98,20 @@ function parseCsvText(text: string): ParseResult {
     let current = ''
     let inQuotes = false
     for (let j = 0; j < line.length; j++) {
-      const ch = line[j]
-      if (ch === '"') {
+      const character = line[j]
+      if (character === '"') {
         if (inQuotes && line[j + 1] === '"') {
           current += '"'
           j++
         } else {
           inQuotes = !inQuotes
         }
-      } else if ((ch === ',' && !inQuotes) || ch === '\n' || ch === '\r') {
+      } else if ((character === ',' && !inQuotes) || character === '\n' || character === '\r') {
         parts.push(current.trim())
         current = ''
-        if (ch !== ',') break
+        if (character !== ',') break
       } else {
-        current += ch
+        current += character
       }
     }
     parts.push(current.trim())
