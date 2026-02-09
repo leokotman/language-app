@@ -7,6 +7,7 @@ import { StudyPage } from '@/pages/StudyPage'
 import { ProgressPage } from '@/pages/ProgressPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { DictionaryPage } from '@/pages/DictionaryPage'
+import { AppLibraryPage } from '@/pages/AppLibraryPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
@@ -20,6 +21,7 @@ export function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<HomePage />} />
         <Route path="library" element={<LibraryPage />} />
+        <Route path="app-library" element={<AppLibraryPage />} />
         <Route path="dictionary" element={<DictionaryPage />} />
         <Route path="study" element={<StudyPage />} />
         <Route path="progress" element={<ProgressPage />} />
