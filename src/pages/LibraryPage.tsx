@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import {
   Typography,
@@ -28,6 +28,8 @@ import SearchIcon from '@mui/icons-material/Search'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import DownloadIcon from '@mui/icons-material/Download'
+import UploadIcon from '@mui/icons-material/Upload'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserLanguages } from '@/hooks/useUserLanguages'
 import {
@@ -54,6 +56,12 @@ import {
   LANGUAGE_PLACEHOLDERS,
   getBidirectionalKey,
 } from '@/types'
+import {
+  exportToCsv,
+  exportToJson,
+  parseLibraryFile,
+  type LibraryExportRow,
+} from '@/lib/importExport'
 
 type LibraryItem = {
   id: string
@@ -84,6 +92,9 @@ export function LibraryPage() {
     translation: string
   } | null>(null)
   const [deleteVocabularyId, setDeleteVocabularyId] = useState<string | null>(null)
+  const [importMessage, setImportMessage] = useState<string | null>(null)
+  const [isImporting, setIsImporting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: userLangs, isLoading: langsLoading, error: userLangsError } = useUserLanguages(userId)
   const { data: libraryItems = [], isLoading: listLoading, error } = useUserVocabularyList(userId)
@@ -207,6 +218,99 @@ export function LibraryPage() {
   const handleConfirmDelete = () => {
     if (deleteVocabularyId) {
       deleteMutation.mutate(deleteVocabularyId, { onSuccess: () => setDeleteVocabularyId(null) })
+    }
+  }
+
+  const exportRows = useMemo((): LibraryExportRow[] => {
+    return (libraryItems as LibraryItem[])
+      .filter((item) => item.vocabulary)
+      .map((item) => ({
+        word: item.vocabulary!.word,
+        translation: item.vocabulary!.translation,
+        language_from: item.vocabulary!.language_from,
+        language_to: item.vocabulary!.language_to,
+      }))
+  }, [libraryItems])
+
+  const existingLibraryKey = useMemo(() => {
+    const set = new Set<string>()
+    for (const item of libraryItems as LibraryItem[]) {
+      const v = item.vocabulary
+      if (v) set.add(`${v.word.toLowerCase()}|${v.translation.toLowerCase()}|${v.language_from}|${v.language_to}`)
+    }
+    return set
+  }, [libraryItems])
+
+  const handleExportCsv = () => {
+    const csv = exportToCsv(exportRows)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'library.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleExportJson = () => {
+    const json = exportToJson(exportRows)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'library.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportClick = () => {
+    setImportMessage(null)
+    fileInputRef.current?.click()
+  }
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !userId) return
+    setIsImporting(true)
+    setImportMessage(null)
+    try {
+      const { rows, errors } = await parseLibraryFile(file)
+      if (errors.length > 0 && rows.length === 0) {
+        setImportMessage(`Import failed: ${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '…' : ''}`)
+        return
+      }
+      let added = 0
+      let skipped = 0
+      for (const row of rows) {
+        const key = `${row.word.toLowerCase()}|${row.translation.toLowerCase()}|${row.language_from}|${row.language_to}`
+        if (existingLibraryKey.has(key)) {
+          skipped += 1
+          continue
+        }
+        try {
+          await addMutation.mutateAsync({
+            word: row.word,
+            translation: row.translation,
+            language_from: row.language_from,
+            language_to: row.language_to,
+          })
+          added += 1
+          existingLibraryKey.add(key)
+        } catch {
+          setImportMessage(`Import stopped after ${added} words. Could not add "${row.word}".`)
+          return
+        }
+      }
+      if (errors.length > 0) {
+        setImportMessage(`Imported ${added} words, skipped ${skipped} duplicates. Some rows had errors: ${errors.slice(0, 2).join('; ')}`)
+      } else {
+        setImportMessage(`Imported ${added} words. ${skipped > 0 ? `Skipped ${skipped} duplicates.` : ''}`)
+      }
+    } catch (err) {
+      setImportMessage('Could not read file. Use CSV or JSON with word, translation, language_from, language_to.')
+    } finally {
+      setIsImporting(false)
     }
   }
 
@@ -347,6 +451,50 @@ export function LibraryPage() {
                 Could not add word. Try again.
               </Typography>
             )}
+          </Paper>
+
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+              Import / Export
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+              <Button
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportCsv}
+                disabled={exportRows.length === 0}
+              >
+                Export CSV
+              </Button>
+              <Button
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportJson}
+                disabled={exportRows.length === 0}
+              >
+                Export JSON
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.json"
+                style={{ display: 'none' }}
+                onChange={handleImportFile}
+              />
+              <Button
+                size="small"
+                startIcon={<UploadIcon />}
+                onClick={handleImportClick}
+                disabled={isImporting}
+              >
+                {isImporting ? 'Importing…' : 'Import'}
+              </Button>
+              {importMessage && (
+                <Typography variant="body2" color="text.secondary">
+                  {importMessage}
+                </Typography>
+              )}
+            </Box>
           </Paper>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
