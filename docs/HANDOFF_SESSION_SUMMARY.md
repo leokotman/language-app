@@ -53,6 +53,9 @@ Use this for context when continuing work on the language app.
 19. Dictionary: pick best match to avoid echo (ru→en names/same word); use MyMemory `matches` array, prefer translation that differs from source.
 20. Dictionary: list all translations (dedupe by normalized translation, sort by quality, cap MAX_TRANSLATIONS 50); e.g. "key" → клавиша, ключ, …
 
+### Commits (docs: seed and lookup strategy)
+21. chore(lang-001): add seed and lookup strategy docs — SEED_AND_LOOKUP_STRATEGY.md (aligned triples §1, store-first lookup §2); DICTIONARY_PLAN.md and HANDOFF updated.
+
 ---
 
 ## 2. Issues we hit
