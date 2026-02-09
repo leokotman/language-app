@@ -10,7 +10,6 @@ import { useOfflineModeStore } from '@/stores/offlineModeStore'
 const navItems = [
   { label: 'Home', path: '/' },
   { label: 'My Library', path: '/library' },
-  { label: 'App Library', path: '/app-library' },
   { label: 'Dictionary', path: '/dictionary' },
   { label: 'Study', path: '/study' },
   { label: 'Progress', path: '/progress' },
