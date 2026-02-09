@@ -38,43 +38,31 @@ import {
 } from '@/hooks/useVocabulary'
 import { lookup, type DictionaryEntry } from '@/lib/dictionary'
 import type { VocabularyRow } from '@/types/database'
-
-const DEBOUNCE_MS = 400
-
-const DIRECTION_OPTIONS: { value: string; label: string; from: string; to: string }[] = [
-  { value: 'en-ru', label: 'English → Russian', from: 'en', to: 'ru' },
-  { value: 'ru-en', label: 'Russian → English', from: 'ru', to: 'en' },
-  { value: 'en-sr', label: 'English → Serbian', from: 'en', to: 'sr' },
-  { value: 'sr-en', label: 'Serbian → English', from: 'sr', to: 'en' },
-  { value: 'ru-sr', label: 'Russian → Serbian (via English)', from: 'ru', to: 'sr' },
-  { value: 'sr-ru', label: 'Serbian → Russian (via English)', from: 'sr', to: 'ru' },
-]
-
-type ResultItem =
-  | { source: 'store'; vocabularyId: string; word: string; translation: string; from: string; to: string }
-  | { source: 'api'; entry: DictionaryEntry }
+import type { ResultItem } from './DictionaryPage.models'
+import { DEBOUNCE_MS, DIRECTION_OPTIONS } from './DictionaryPage.constants'
 
 export function DictionaryPage() {
-  const userId = useAuthStore((s) => s.user?.id) ?? ''
-  const offlineMode = useOfflineModeStore((s) => s.offlineMode)
+  const userId = useAuthStore((state) => state.user?.id) ?? ''
+  const offlineMode = useOfflineModeStore((state) => state.offlineMode)
   const [search, setSearch] = useState('')
   const [direction, setDirection] = useState('en-ru')
   const [apiResults, setApiResults] = useState<DictionaryEntry[]>([])
   const [apiLoading, setApiLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
 
-  const opt = DIRECTION_OPTIONS.find((d) => d.value === direction) ?? DIRECTION_OPTIONS[0]
-  const lang1 = opt.from
-  const lang2 = opt.to
+  const translationDirection =
+    DIRECTION_OPTIONS.find((option) => option.value === direction) ?? DIRECTION_OPTIONS[0]
+  const languageSource = translationDirection.from
+  const languageTarget = translationDirection.to
 
-  const appVocab1 = useVocabularyList({
-    languageFrom: lang1,
-    languageTo: lang2,
+  const appVocabularySourceToTarget = useVocabularyList({
+    languageFrom: languageSource,
+    languageTo: languageTarget,
     includeUserCreated: false,
   })
-  const appVocab2 = useVocabularyList({
-    languageFrom: lang2,
-    languageTo: lang1,
+  const appVocabularyTargetToSource = useVocabularyList({
+    languageFrom: languageTarget,
+    languageTo: languageSource,
     includeUserCreated: false,
   })
   const { data: userLibraryItems = [] } = useUserVocabularyList(userId)
@@ -87,20 +75,23 @@ export function DictionaryPage() {
   )
 
   const appVocabulary = useMemo((): VocabularyRow[] => {
-    const list1 = (appVocab1.data ?? []) as VocabularyRow[]
-    const list2 = (appVocab2.data ?? []) as VocabularyRow[]
-    const combined = [...list1, ...list2]
-    combined.sort((a, b) => a.word.localeCompare(b.word, undefined, { sensitivity: 'base' }))
+    const listSourceToTarget = (appVocabularySourceToTarget.data ?? []) as VocabularyRow[]
+    const listTargetToSource = (appVocabularyTargetToSource.data ?? []) as VocabularyRow[]
+    const combined = [...listSourceToTarget, ...listTargetToSource]
+    combined.sort((rowA, rowB) =>
+      rowA.word.localeCompare(rowB.word, undefined, { sensitivity: 'base' })
+    )
     return combined
-  }, [appVocab1.data, appVocab2.data])
+  }, [appVocabularySourceToTarget.data, appVocabularyTargetToSource.data])
 
   const storeResults = useMemo((): ResultItem[] => {
-    const q = sanitizeSearch(search)
-    if (!q) return []
-    const lower = q.toLowerCase()
+    const searchQuery = sanitizeSearch(search)
+    if (!searchQuery) return []
+    const searchLower = searchQuery.toLowerCase()
     const matched = appVocabulary.filter(
       (row) =>
-        row.word.toLowerCase().includes(lower) || row.translation.toLowerCase().includes(lower)
+        row.word.toLowerCase().includes(searchLower) ||
+        row.translation.toLowerCase().includes(searchLower)
     )
     return matched.map((row) => ({
       source: 'store' as const,
@@ -124,12 +115,12 @@ export function DictionaryPage() {
         setApiError(null)
         return
       }
-      if (opt.from === opt.to) {
+      if (translationDirection.from === translationDirection.to) {
         setApiResults([])
         return
       }
-      const fromLang = opt.from
-      const toLang = opt.to
+      const fromLang = translationDirection.from
+      const toLang = translationDirection.to
       setApiLoading(true)
       setApiError(null)
       try {
@@ -142,11 +133,11 @@ export function DictionaryPage() {
         setApiLoading(false)
       }
     },
-    [opt, offlineMode]
+    [translationDirection, offlineMode]
   )
 
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (storeResults.length > 0) {
         setApiResults([])
         setApiError(null)
@@ -154,7 +145,7 @@ export function DictionaryPage() {
       }
       runApiLookup(search)
     }, DEBOUNCE_MS)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timeoutId)
   }, [search, storeResults.length, runApiLookup])
 
   const hasStoreResults = storeResults.length > 0
@@ -183,15 +174,15 @@ export function DictionaryPage() {
     })
   }
 
-  const inLibrary = (item: ResultItem) => {
+  const isItemInLibrary = (item: ResultItem) => {
     if (item.source === 'store') return userVocabularyIds.has(item.vocabularyId)
-    const e = item.entry
+    const dictionaryEntry = item.entry
     return userLibraryItems.some(
-      (uv) =>
-        uv.vocabulary?.word === e.word &&
-        uv.vocabulary?.translation === e.translation &&
-        uv.vocabulary?.language_from === e.language_from &&
-        uv.vocabulary?.language_to === e.language_to
+      (userVocab) =>
+        userVocab.vocabulary?.word === dictionaryEntry.word &&
+        userVocab.vocabulary?.translation === dictionaryEntry.translation &&
+        userVocab.vocabulary?.language_from === dictionaryEntry.language_from &&
+        userVocab.vocabulary?.language_to === dictionaryEntry.language_to
     )
   }
 
@@ -200,7 +191,7 @@ export function DictionaryPage() {
       <Typography variant="h4">Dictionary</Typography>
       <Typography color="text.secondary" sx={{ mt: 1, mb: 2 }}>
         Look up words and add them to your library. Results come from your saved words first; when
-        you’re online, we can also search the web for more.
+        you're online, we can also search the web for more.
       </Typography>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
@@ -208,7 +199,9 @@ export function DictionaryPage() {
           size="small"
           placeholder="Search (e.g. hello, привет)…"
           value={search}
-          onChange={(e) => setSearch(clampAndStripControlChars(e.target.value, MAX_SEARCH_LENGTH))}
+          onChange={(event) =>
+            setSearch(clampAndStripControlChars(event.target.value, MAX_SEARCH_LENGTH))
+          }
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -224,11 +217,11 @@ export function DictionaryPage() {
             labelId="dict-direction"
             value={direction}
             label="Direction"
-            onChange={(e) => setDirection(e.target.value)}
+            onChange={(event) => setDirection(event.target.value)}
           >
-            {DIRECTION_OPTIONS.map((o) => (
-              <MenuItem key={o.value} value={o.value}>
-                {o.label}
+            {DIRECTION_OPTIONS.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
               </MenuItem>
             ))}
           </Select>
@@ -237,7 +230,7 @@ export function DictionaryPage() {
 
       {isOffline && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          You’re offline. Connect to the internet to search for more words.
+          You're offline. Connect to the internet to search for more words.
         </Alert>
       )}
 
@@ -266,17 +259,23 @@ export function DictionaryPage() {
           </Typography>
         )}
 
-      {!apiLoading && search.trim() && combinedResults.length === 0 && hasStoreResults === false && apiSupported && !isOffline && !apiError && (
-        <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
-          No translation found. Try another word.
-        </Typography>
-      )}
+      {!apiLoading &&
+        search.trim() &&
+        combinedResults.length === 0 &&
+        hasStoreResults === false &&
+        apiSupported &&
+        !isOffline &&
+        !apiError && (
+          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
+            No translation found. Try another word.
+          </Typography>
+        )}
 
       {combinedResults.length > 0 && (
         <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1 }}>
-          {combinedResults.map((item, idx) => {
+          {combinedResults.map((item, index) => {
             if (item.source === 'store') {
-              const inLib = userVocabularyIds.has(item.vocabularyId)
+              const inLibrary = userVocabularyIds.has(item.vocabularyId)
               return (
                 <ListItem key={`store-${item.vocabularyId}`} divider>
                   <ListItemText
@@ -284,7 +283,7 @@ export function DictionaryPage() {
                     secondary={`${item.from} → ${item.to}`}
                   />
                   <ListItemSecondaryAction>
-                    {inLib ? (
+                    {inLibrary ? (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <CheckCircleIcon color="success" fontSize="small" />
                         <Typography variant="body2" color="text.secondary">
@@ -306,15 +305,15 @@ export function DictionaryPage() {
               )
             }
             const { entry } = item
-            const inLib = inLibrary(item)
+            const inLibrary = isItemInLibrary(item)
             return (
-              <ListItem key={`api-${entry.word}-${entry.translation}-${idx}`} divider>
+              <ListItem key={`api-${entry.word}-${entry.translation}-${index}`} divider>
                 <ListItemText
                   primary={`${entry.word} — ${entry.translation}`}
                   secondary={`${entry.language_from} → ${entry.language_to}`}
                 />
                 <ListItemSecondaryAction>
-                  {inLib ? (
+                  {inLibrary ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <CheckCircleIcon color="success" fontSize="small" />
                       <Typography variant="body2" color="text.secondary">
@@ -342,7 +341,7 @@ export function DictionaryPage() {
       {!search.trim() && !apiLoading && (
         <Typography color="text.secondary" variant="body2">
           Enter a word and choose a direction. Results from your saved words appear first; when
-          you’re online, we’ll also search for more.
+          you're online, we'll also search for more.
         </Typography>
       )}
     </>

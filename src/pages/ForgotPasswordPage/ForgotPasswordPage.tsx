@@ -15,17 +15,17 @@ export function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     setError(null)
     const safeEmail = sanitizeEmail(email)
     setLoading(true)
     try {
-      const { error: err } = await supabase.auth.resetPasswordForEmail(safeEmail, {
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(safeEmail, {
         redirectTo: `${window.location.origin}/settings`,
       })
-      if (err) {
-        setError(getAuthErrorMessage(err))
+      if (authError) {
+        setError(getAuthErrorMessage(authError))
         return
       }
       setEmail(safeEmail)
@@ -46,7 +46,8 @@ export function ForgotPasswordPage() {
         </Typography>
         <Paper sx={{ p: 3, mt: 2 }}>
           <Alert severity="success" sx={{ mb: 2 }}>
-            We sent a password reset link to <strong>{email}</strong>. Click the link in the email to set a new password.
+            We sent a password reset link to <strong>{email}</strong>. Click the link in the email
+            to set a new password.
           </Alert>
           <Link component={RouterLink} to="/login" variant="body2">
             Back to sign in
@@ -77,7 +78,9 @@ export function ForgotPasswordPage() {
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(clampAndStripControlChars(e.target.value, MAX_EMAIL_LENGTH))}
+          onChange={(event) =>
+            setEmail(clampAndStripControlChars(event.target.value, MAX_EMAIL_LENGTH))
+          }
           sx={{ mb: 2 }}
         />
         <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>

@@ -1,6 +1,5 @@
 import { Typography, Card, CardContent, Box, List, ListItem, ListItemText } from '@mui/material'
-
-const placeholderWords = ['word 1', 'word 2', 'word 3']
+import { PLACEHOLDER_WORDS } from './HomePage.constants'
 
 export function HomePage() {
   return (
@@ -23,8 +22,8 @@ export function HomePage() {
         Words
       </Typography>
       <List dense>
-        {placeholderWords.map((word, i) => (
-          <ListItem key={i}>
+        {PLACEHOLDER_WORDS.map((word, index) => (
+          <ListItem key={index}>
             <ListItemText primary={word} />
           </ListItem>
         ))}

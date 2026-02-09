@@ -9,17 +9,22 @@ Follow this workflow so every feature/fix is traceable.
 ### 1. Branch naming and creation
 
 - **Create a new branch for each feature or fix.** Before creating a new branch, **check git status and branch history** to see which branch is the most recent (e.g. `git branch -v` or `git for-each-ref --sort=-committerdate refs/heads/`), then create the new branch **from that most recent branch**. Use `main` only when the user has merged the previous PR and pulled `main`, or when starting the first feature in a session.
-- **Branch name format** (must match `.git/hooks/commit-msg` so commit messages get the scope):
-  - `{type}/{project_code}-{task_number}{separator}{task-title}`
+- **Branch name format is mandatory.** The format **must** include **project code** and **task number**; otherwise the commit-msg hook will not add the scope to commit messages and the log will show commits without the change type/scope (e.g. missing `(lang-001)`).
+
+  **Required pattern:** `{type}/{project_code}-{task_number}{separator}{task-title}`
+
   - **Type:** one of `feat`, `chore`, `fix`, `hotfix`, `release`.
-  - **Project code:** letters only (e.g. `lang`, `prj`).
-  - **Task number:** zero-padded from `001`, increment by 1 for each new branch (e.g. `001`, `002`, `003`).
+  - **Project code:** letters only, **required** (e.g. `lang`).
+  - **Task number:** zero-padded from `001`, **required**, increment by 1 for each new branch (e.g. `001`, `002`, `003`).
   - **Separator** between `{project_code}-{task_number}` and task title: one of `-`, `_`, `--`, `__`.
   - **Task title:** short kebab-case description (e.g. `add-seeds`, `fix-infinite-loop`).
 
-**Examples:** `feat/lang-001-add-seeds`, `fix/lang-002-fix-loop`, `chore/lang-003-update-deps`.
+  **Wrong (no scope in commits):** `chore/code-quality-rules-and-refactor`, `feat/add-login`  
+  **Right:** `chore/lang-004-code-quality-rules-and-refactor`, `feat/lang-001-add-login`
 
-When starting the first feature in a session, create from `main` (e.g. `feat/lang-001-add-seeds`). For each next feature/fix, **identify the most recent branch** (by checking branch list / commit dates), then create the new branch from that one (e.g. from `feat/lang-001-add-seeds` create `feat/lang-002-another-feature`).
+  **Examples:** `feat/lang-001-add-seeds`, `fix/lang-002-fix-loop`, `chore/lang-003-update-deps`.
+
+When starting the first feature in a session, create from `main` (e.g. `feat/lang-001-add-seeds`). For each next feature/fix, **identify the most recent branch** (by checking branch list / commit dates), then create the new branch from that one and **use the next task number** (e.g. from `feat/lang-001-add-seeds` create `feat/lang-002-another-feature`).
 
 ### 2. Commits in the branch
 
@@ -52,7 +57,7 @@ Project setup details:
 
 ## Code & work style
 
-1. **Clean code:** Prefer readable names over short or cryptic ones. Name variables, parameters, and types by role or meaning (e.g. `record`, `rawRow`, `parsedRow`) rather than single letters or abbreviations (e.g. avoid `o`, `x`, `tmp` unless they are idiomatic in a tiny scope). Keep functions small and focused; name them so that call sites read clearly.
+1. **Clean code and structure:** Follow the **Cursor rules** in `.cursor/rules/` when editing matching files: they define naming (descriptive names, no single-letter variables except loop `i`/`j`), extraction of helpers into `*.helpers.ts`, and page layout (one folder per page with `PageName.tsx`, `*.models.ts`, `*.constants.ts`, `*.helpers.ts`; barrel `index.ts` for `@/pages/PageName`). In addition, prefer readable names over cryptic ones; keep functions small and focused.
 2. **Commits: one logical change per commit; one change per commit message.** Prefer several small, focused commits over one large commit. Each commit does exactly one thing (e.g. “Add dynamic placeholders for add-word form” or “Fix library filter by language pair”). The commit message must describe that single change: avoid "X and Y" or "X, Y" in the subject — if there are two changes, make two commits. A commit may touch multiple files as long as they implement that one change. This keeps history readable and makes reverts and code review easier.
 3. Use frontend and backend best practices.
 4. Use TypeScript for all code: no `any` types.
