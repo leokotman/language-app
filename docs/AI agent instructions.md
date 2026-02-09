@@ -52,13 +52,14 @@ Project setup details:
 
 ## Code & work style
 
-1. **Commits: one logical change per commit; one change per commit message.** Prefer several small, focused commits over one large commit. Each commit does exactly one thing (e.g. “Add dynamic placeholders for add-word form” or “Fix library filter by language pair”). The commit message must describe that single change: avoid "X and Y" or "X, Y" in the subject — if there are two changes, make two commits. A commit may touch multiple files as long as they implement that one change. This keeps history readable and makes reverts and code review easier.
-2. Use frontend and backend best practices.
-3. Use TypeScript for all code: no `any` types.
-4. Always think about secure connection to the API and database, and safe handling of users’ data.
-5. Consider edge cases and errors, and how to handle them.
-6. Always think about performance and scalability.
-7. Where possible, suggest mobile-friendly components and UI.
-8. Use a11y best practices where possible and needed (texts, user interactions, layout changes).
-9. **Handoff updates:** After each commit (or after a batch of commits in one session), update `docs/HANDOFF_SESSION_SUMMARY.md`: (a) append the new commit(s) to the "Commits" / session list, (b) update "Current state" so it accurately describes what exists in the repo, (c) update "Session summary (latest)" with what was just done, (d) adjust "Suggestions for next steps" if priorities or status changed. This keeps the next session or agent from missing recent work.
-10. In case of any doubt about the solution — ask before proceeding.
+1. **Clean code:** Prefer readable names over short or cryptic ones. Name variables, parameters, and types by role or meaning (e.g. `record`, `rawRow`, `parsedRow`) rather than single letters or abbreviations (e.g. avoid `o`, `x`, `tmp` unless they are idiomatic in a tiny scope). Keep functions small and focused; name them so that call sites read clearly.
+2. **Commits: one logical change per commit; one change per commit message.** Prefer several small, focused commits over one large commit. Each commit does exactly one thing (e.g. “Add dynamic placeholders for add-word form” or “Fix library filter by language pair”). The commit message must describe that single change: avoid "X and Y" or "X, Y" in the subject — if there are two changes, make two commits. A commit may touch multiple files as long as they implement that one change. This keeps history readable and makes reverts and code review easier.
+3. Use frontend and backend best practices.
+4. Use TypeScript for all code: no `any` types.
+5. Always think about secure connection to the API and database, and safe handling of users’ data.
+6. Consider edge cases and errors, and how to handle them.
+7. Always think about performance and scalability.
+8. Where possible, suggest mobile-friendly components and UI.
+9. Use a11y best practices where possible and needed (texts, user interactions, layout changes).
+10. **Handoff updates:** After each commit (or after a batch of commits in one session), update `docs/HANDOFF_SESSION_SUMMARY.md`: (a) append the new commit(s) to the "Commits" / session list, (b) update "Current state" so it accurately describes what exists in the repo, (c) update "Session summary (latest)" with what was just done, (d) adjust "Suggestions for next steps" if priorities or status changed. This keeps the next session or agent from missing recent work.
+11. In case of any doubt about the solution — ask before proceeding.
