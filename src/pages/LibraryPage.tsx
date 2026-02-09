@@ -359,9 +359,7 @@ export function LibraryPage() {
 
       {isMigrationMissing && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Database tables are missing. In your Supabase project: open <strong>SQL Editor</strong>,
-          paste and run <strong>docs/supabase-migrations/002_core_data_layer.sql</strong> (see{' '}
-          <strong>docs/SUPABASE_SETUP.md</strong> step 8), then refresh.
+          We couldn&apos;t load your library. Please refresh the page or try again later.
         </Alert>
       )}
 
