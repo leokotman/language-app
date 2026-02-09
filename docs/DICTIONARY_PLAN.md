@@ -1,8 +1,8 @@
 # Dictionary feature: plan and research
 
-## Approach: online-first, offline fallback + “Offline mode” toggle
+## Approach: store-first, then API; offline message when no store result
 
-- **Online-first:** When the user has network, use dictionary API (and cache results). When offline or when “Offline mode” is on, use only cached/bundled data (no network lookups).
+- **Store-first lookup:** When the user looks up a word, **first** search in the data we have in the app (app library + user library; later plus cache). **If found** → use it (no API). **If not found** and online and Offline mode is off → call the dictionary API. **If not found** and (offline or Offline mode on) → show a clear message, e.g. *"We need an internet connection to translate this word."* See **`docs/SEED_AND_LOOKUP_STRATEGY.md`** §2 for the full flow.
 - **Navbar “Offline mode” toggle:** When on, the app does not perform dictionary (or future pronunciation/audio) requests to the internet. Use only local/cached data. Relevant for users who prefer no internet search and for future audio/pronunciation.
 
 ---
@@ -47,8 +47,8 @@
    - Route `/dictionary` and “Dictionary” tab in the navbar.  
    - Page: search input, results area (empty state).
 
-3. **One API, one language pair (en–ru), online only**  
-   - Dictionary service: `lookup(query, fromLang, toLang)` calling **MyMemory** or **LibreTranslate** for `en`↔`ru` only. No cache yet.  
+3. **One API, one language pair (en–ru), store-first then API**  
+   - **Lookup order:** (1) Search app library + user library for (query, fromLang, toLang). (2) If found, return store result. (3) If not found and online and not Offline mode → call **MyMemory** (or LibreTranslate) for `en`↔`ru`. (4) If not found and (offline or Offline mode) → show message: "We need an internet connection to translate this word." See `docs/SEED_AND_LOOKUP_STRATEGY.md` §2.  
    - Map API response to a single “DictionaryEntry” shape (word, translation(s)).  
    - Env var for API key only if needed (e.g. LibreTranslate hosted).
 
@@ -77,7 +77,7 @@
 | Item | Choice |
 |------|--------|
 | Providers | LibreTranslate, MyMemory, Free Dictionary API, Wiktionary only |
-| Phase 1 | One language pair (en–ru), online only; then UI + Add to library |
+| Phase 1 | One language pair (en–ru), **store-first then API**; then UI + Add to library. See `SEED_AND_LOOKUP_STRATEGY.md` §2. |
 | Phase 2 | Add more pairs (e.g. en–sr) one at a time |
 | Phase 3 (separate) | Offline + IndexedDB cache + optional bundled data |
 | Toggle | Navbar “Offline mode” — no network for dictionary (and future audio) |
