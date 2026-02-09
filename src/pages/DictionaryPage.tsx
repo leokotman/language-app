@@ -124,10 +124,6 @@ export function DictionaryPage() {
         setApiError(null)
         return
       }
-      if ((opt.from !== 'en' && opt.from !== 'ru') || (opt.to !== 'en' && opt.to !== 'ru')) {
-        setApiResults([])
-        return
-      }
       if (opt.from === opt.to) {
         setApiResults([])
         return
@@ -163,7 +159,7 @@ export function DictionaryPage() {
 
   const hasStoreResults = storeResults.length > 0
   const isOffline = offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
-  const apiSupported = (opt.from === 'en' || opt.from === 'ru') && (opt.to === 'en' || opt.to === 'ru')
+  const apiSupported = true
 
   const combinedResults: ResultItem[] = hasStoreResults
     ? storeResults
