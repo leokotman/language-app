@@ -136,3 +136,15 @@ This creates:
 After this, the Settings page can save language pairs and the app can use vocabulary CRUD.
 
 **Troubleshooting:** If you see "Failed to load language pairs" or 404 errors for `user_languages` / `user_vocabulary` in the network tab, the app is telling you to run this migration (step 8). Run **002_core_data_layer.sql** in the SQL Editor, then refresh the app.
+
+---
+
+## 9. (Optional) Seed app library vocabulary
+
+To browse the app library and add words from it to your personal library:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/003_seed_vocabulary.sql`** in this repo and copy its contents.
+3. Paste into the SQL Editor and click **Run**.
+
+This inserts aligned EN–RU–SR word triples (see `docs/SEED_AND_LOOKUP_STRATEGY.md` §1). Run **after** step 8. To regenerate the SQL from the triples source, run: `node scripts/generate-seed-sql.mjs`.
