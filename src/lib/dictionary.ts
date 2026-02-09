@@ -7,7 +7,7 @@ import { logError } from '@/lib/errors'
 import { sanitizeSearch } from '@/lib/sanitize'
 
 const MYMEMORY_BASE = 'https://api.mymemory.translated.net/get'
-const SUPPORTED_LANGS = ['en', 'ru'] as const
+const SUPPORTED_LANGS = ['en', 'ru', 'sr'] as const
 
 export type DictionaryEntry = {
   word: string
@@ -46,6 +46,24 @@ function matchQuality(m: MyMemoryMatch): number {
   return typeof q === 'string' ? parseInt(q, 10) || 0 : q
 }
 
+/** Cyrillic letters (Russian, Serbian Cyrillic, etc.). */
+const CYRILLIC_RANGE = /\p{Script=Cyrillic}/u
+
+/** Serbian Latin expects Latin script; API sometimes returns Cyrillic or mojibake (e.g. ã for š). */
+function isAcceptableTranslation(translation: string, targetLang: string): boolean {
+  const t = translation.trim()
+  if (!t.length) return false
+  if (t.includes('\uFFFD')) return false
+  if (/\u00E3|\u00C3/.test(t)) return false
+  if (targetLang === 'sr') {
+    const letters = t.replace(/\P{L}/gu, '')
+    if (!letters.length) return true
+    const cyrillicCount = (letters.match(CYRILLIC_RANGE) ?? []).length
+    if (cyrillicCount / letters.length > 0.2) return false
+  }
+  return true
+}
+
 /** Max translations to return (API may return more; we show this many, best quality first). */
 export const MAX_TRANSLATIONS = 50
 
@@ -53,7 +71,7 @@ export const MAX_TRANSLATIONS = 50
  * Look up a word/phrase. Returns multiple entries when the API has several translations (e.g. "key" → клавиша, ключ, …).
  * Filters out echo/same-word (e.g. "любовь" → "Любовь"); dedupes by normalized translation; sorts by quality.
  * When offline or offlineMode is true, returns empty array (no network call).
- * Only en↔ru is supported for now. MyMemory does not document a fixed limit for matches; we cap at MAX_TRANSLATIONS.
+ * Supports en, ru, sr (Serbian). MyMemory does not document a fixed limit for matches; we cap at MAX_TRANSLATIONS.
  */
 export async function lookup(
   query: string,
@@ -90,20 +108,25 @@ export async function lookup(
       (m) =>
         m.translation != null &&
         m.translation !== '' &&
-        !normalizedSame(trimmed, m.translation)
+        !normalizedSame(trimmed, m.translation) &&
+        isAcceptableTranslation(String(m.translation), toLang)
     )
     const byQuality = realTranslations.sort((a, b) => matchQuality(b) - matchQuality(a))
 
-    // Dedupe by normalized translation (e.g. "love" and "Love" → one entry)
+    // Use segment (source phrase) as word when present, so phrases are stored with the API's source text
     const seen = new Set<string>()
     const entries: DictionaryEntry[] = []
     for (const m of byQuality) {
       const t = String(m.translation).trim()
-      const key = t.toLowerCase()
+      const sourceWord =
+        m.segment != null && String(m.segment).trim() !== ''
+          ? String(m.segment).trim()
+          : trimmed
+      const key = `${sourceWord.toLowerCase()}|${t.toLowerCase()}`
       if (seen.has(key)) continue
       seen.add(key)
       entries.push({
-        word: trimmed,
+        word: sourceWord,
         translation: t,
         language_from: fromLang,
         language_to: toLang,
@@ -113,7 +136,12 @@ export async function lookup(
 
     if (entries.length === 0) {
       const fallback = json.responseData?.translatedText
-      if (fallback != null && fallback !== '' && !normalizedSame(trimmed, fallback)) {
+      if (
+        fallback != null &&
+        fallback !== '' &&
+        !normalizedSame(trimmed, fallback) &&
+        isAcceptableTranslation(String(fallback), toLang)
+      ) {
         entries.push({
           word: trimmed,
           translation: String(fallback).trim(),
