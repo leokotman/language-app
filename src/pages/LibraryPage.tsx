@@ -331,7 +331,7 @@ export function LibraryPage() {
           const v = item.vocabulary
           if (!v) return false
           const fromTo = [v.language_from, v.language_to].sort().join('-')
-          return fromTo === 'en-ru' || fromTo === 'en-sr'
+          return fromTo === 'ru-sr'
         })
       } else {
         const [lang1, lang2] = languageFilter.split('-')
@@ -359,9 +359,7 @@ export function LibraryPage() {
 
       {isMigrationMissing && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Database tables are missing. In your Supabase project: open <strong>SQL Editor</strong>,
-          paste and run <strong>docs/supabase-migrations/002_core_data_layer.sql</strong> (see{' '}
-          <strong>docs/SUPABASE_SETUP.md</strong> step 8), then refresh.
+          We couldn&apos;t load your library. Please refresh the page or try again later.
         </Alert>
       )}
 
@@ -554,7 +552,7 @@ export function LibraryPage() {
               {languageFilter === VIRTUAL_PAIR_RU_SR.key && filteredItems.length > 0 && (
                 <ListItem sx={{ bgcolor: 'action.selected', py: 0.5 }}>
                   <ListItemText
-                    secondary={VIRTUAL_PAIR_RU_SR.label + ': words from your Russian↔English and Serbian↔English lists.'}
+                    secondary={VIRTUAL_PAIR_RU_SR.label + ': direct Russian↔Serbian words only.'}
                     secondaryTypographyProps={{ variant: 'caption' }}
                   />
                 </ListItem>
