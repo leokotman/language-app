@@ -163,11 +163,8 @@ This enables RLS on the **languages** table (with a read-only policy) and sets a
 
 ---
 
-## 11. (Recommended) Leaked password protection (Auth)
+## 11. Leaked password protection (Auth) — Pro plan only
 
-The Supabase linter may warn that **Leaked password protection** is disabled. This uses HaveIBeenPwned.org to block compromised passwords.
+The Supabase linter may warn that **Leaked password protection** is disabled. This feature uses HaveIBeenPwned.org to reject compromised passwords and is **only available on the Pro plan**. On the free tier you can ignore this linter warning.
 
-1. In the dashboard, go to **Authentication** → **Providers** → **Email** (or **Authentication** → **Settings**).
-2. Enable **“Leaked password protection”** (or similar) if available for your project.
-
-See [Password strength and leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+If you are on Pro: go to **Authentication** → **Providers** → **Email** (or **Authentication** → **Settings**) and enable **“Prevent use of leaked passwords”**. See [Password strength and leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
