@@ -42,13 +42,13 @@ export async function addBidirectionalPair(
   userId: string,
   key: string
 ): Promise<{ data: UserLanguageRow[]; error: Error | null }> {
-  const [lang1, lang2] = key.split('-')
-  if (!lang1 || !lang2) {
+  const [languageCodeA, languageCodeB] = key.split('-')
+  if (!languageCodeA || !languageCodeB) {
     return { data: [], error: new Error('Invalid pair key') as Error }
   }
   const rows: UserLanguageInsert[] = [
-    { user_id: userId, native_code: lang1, learning_code: lang2 },
-    { user_id: userId, native_code: lang2, learning_code: lang1 },
+    { user_id: userId, native_code: languageCodeA, learning_code: languageCodeB },
+    { user_id: userId, native_code: languageCodeB, learning_code: languageCodeA },
   ]
   const { data, error } = await supabase.from('user_languages').insert(rows).select()
   return { data: (data ?? []) as UserLanguageRow[], error: error as Error | null }

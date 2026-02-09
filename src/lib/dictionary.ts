@@ -35,15 +35,15 @@ interface MyMemoryResponse {
 }
 
 /** Normalize for same-word check: trim and lowercase so "Любовь" vs "любовь" or "Love" vs "love" match. */
-function normalizedSame(a: string, b: string): boolean {
-  return a.trim().toLowerCase() === b.trim().toLowerCase()
+function normalizedSame(textA: string, textB: string): boolean {
+  return textA.trim().toLowerCase() === textB.trim().toLowerCase()
 }
 
 /** Numeric quality for sorting (higher = better). */
-function matchQuality(m: MyMemoryMatch): number {
-  const q = m.quality
-  if (q == null) return 0
-  return typeof q === 'string' ? parseInt(q, 10) || 0 : q
+function matchQuality(match: MyMemoryMatch): number {
+  const quality = match.quality
+  if (quality == null) return 0
+  return typeof quality === 'string' ? parseInt(quality, 10) || 0 : quality
 }
 
 /** Cyrillic letters (Russian, Serbian Cyrillic, etc.). */
@@ -105,29 +105,31 @@ export async function lookup(
 
     const matches = json.matches ?? []
     const realTranslations = matches.filter(
-      (m) =>
-        m.translation != null &&
-        m.translation !== '' &&
-        !normalizedSame(trimmed, m.translation) &&
-        isAcceptableTranslation(String(m.translation), toLang)
+      (match) =>
+        match.translation != null &&
+        match.translation !== '' &&
+        !normalizedSame(trimmed, match.translation) &&
+        isAcceptableTranslation(String(match.translation), toLang)
     )
-    const byQuality = realTranslations.sort((a, b) => matchQuality(b) - matchQuality(a))
+    const byQuality = realTranslations.sort(
+      (matchA, matchB) => matchQuality(matchB) - matchQuality(matchA)
+    )
 
     // Use segment (source phrase) as word when present, so phrases are stored with the API's source text
     const seen = new Set<string>()
     const entries: DictionaryEntry[] = []
-    for (const m of byQuality) {
-      const t = String(m.translation).trim()
+    for (const match of byQuality) {
+      const translationText = String(match.translation).trim()
       const sourceWord =
-        m.segment != null && String(m.segment).trim() !== ''
-          ? String(m.segment).trim()
+        match.segment != null && String(match.segment).trim() !== ''
+          ? String(match.segment).trim()
           : trimmed
-      const key = `${sourceWord.toLowerCase()}|${t.toLowerCase()}`
+      const key = `${sourceWord.toLowerCase()}|${translationText.toLowerCase()}`
       if (seen.has(key)) continue
       seen.add(key)
       entries.push({
         word: sourceWord,
-        translation: t,
+        translation: translationText,
         language_from: fromLang,
         language_to: toLang,
       })
