@@ -148,3 +148,26 @@ To browse the app library and add words from it to your personal library:
 3. Paste into the SQL Editor and click **Run**.
 
 This inserts aligned EN–RU–SR word triples (see `docs/SEED_AND_LOOKUP_STRATEGY.md` §1). Run **after** step 8. To regenerate the SQL from the triples source, run: `node scripts/generate-seed-sql.mjs`.
+
+---
+
+## 10. (Recommended) Linter and security fixes
+
+After running migrations 001 and 002 (and optionally 003), run the security/linter fix so the Supabase dashboard linter is happy:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/004_linter_security_fixes.sql`** and copy its contents.
+3. Paste and click **Run**.
+
+This enables RLS on the **languages** table (with a read-only policy) and sets an immutable **search_path** on the `set_updated_at()` function.
+
+---
+
+## 11. (Recommended) Leaked password protection (Auth)
+
+The Supabase linter may warn that **Leaked password protection** is disabled. This uses HaveIBeenPwned.org to block compromised passwords.
+
+1. In the dashboard, go to **Authentication** → **Providers** → **Email** (or **Authentication** → **Settings**).
+2. Enable **“Leaked password protection”** (or similar) if available for your project.
+
+See [Password strength and leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).

@@ -25,13 +25,14 @@ create policy "Users can update own profile"
   using (auth.uid() = id);
 
 -- Optional: trigger to keep updated_at in sync (run if you want).
+-- search_path set for linter: function_search_path_mutable
 create or replace function public.set_updated_at()
 returns trigger as $$
 begin
   new.updated_at = now();
   return new;
 end;
-$$ language plpgsql;
+$$ language plpgsql set search_path = public;
 
 create trigger profiles_updated_at
   before update on public.profiles
