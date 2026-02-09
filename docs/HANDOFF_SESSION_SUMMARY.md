@@ -170,6 +170,8 @@ Use this for context when continuing work on the language app.
 
 ### Then (after sanitization + dictionary)
 3. **Week 5 (roadmap):** Seed data (EN–RU, EN–SR), app library browse, add from app to personal, import/export CSV.
+   - **Seed data:** Use **aligned triples (EN, RU, SR)** so the virtual pair RU↔SR has the same concept in all three languages (e.g. love / любовь / ljubav); seed six vocabulary rows per triple (all directions). See **`docs/SEED_AND_LOOKUP_STRATEGY.md`** §1.
+   - **Lookup (Dictionary / any translation):** **Store-first, then API.** (1) Search app library + user library. (2) If found → use it. (3) If not found and online and not Offline mode → call API. (4) If not found and (offline or Offline mode) → show message: *"We need an internet connection to translate this word."* See **`docs/SEED_AND_LOOKUP_STRATEGY.md`** §2. `DICTIONARY_PLAN.md` updated to match.
 4. **Week 6:** E2E for vocabulary flows, loading/error/empty states, fix PWA build if needed.
 5. **Phase 3:** FSRS + study session, then exercise types.
 
