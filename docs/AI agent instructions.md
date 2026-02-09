@@ -52,7 +52,7 @@ Project setup details:
 
 ## Code & work style
 
-1. **Clean code:** Prefer readable names over short or cryptic ones. Name variables, parameters, and types by role or meaning (e.g. `record`, `rawRow`, `parsedRow`) rather than single letters or abbreviations (e.g. avoid `o`, `x`, `tmp` unless they are idiomatic in a tiny scope). Keep functions small and focused; name them so that call sites read clearly.
+1. **Clean code and structure:** Follow the **Cursor rules** in `.cursor/rules/` when editing matching files: they define naming (descriptive names, no single-letter variables except loop `i`/`j`), extraction of helpers into `*.helpers.ts`, and page layout (one folder per page with `PageName.tsx`, `*.models.ts`, `*.constants.ts`, `*.helpers.ts`; barrel `index.ts` for `@/pages/PageName`). In addition, prefer readable names over cryptic ones; keep functions small and focused.
 2. **Commits: one logical change per commit; one change per commit message.** Prefer several small, focused commits over one large commit. Each commit does exactly one thing (e.g. “Add dynamic placeholders for add-word form” or “Fix library filter by language pair”). The commit message must describe that single change: avoid "X and Y" or "X, Y" in the subject — if there are two changes, make two commits. A commit may touch multiple files as long as they implement that one change. This keeps history readable and makes reverts and code review easier.
 3. Use frontend and backend best practices.
 4. Use TypeScript for all code: no `any` types.

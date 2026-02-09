@@ -29,9 +29,10 @@ import {
   VIRTUAL_PAIR_RU_SR,
   getBidirectionalKey,
 } from '@/types'
+import type { BidirectionalPairWithIds } from './SettingsPage.models'
 
 export function SettingsPage() {
-  const user = useAuthStore((s) => s.user)
+  const user = useAuthStore((state) => state.user)
   const userId = user?.id
   const { data: userLangs, isLoading, error } = useUserLanguages(userId)
   const addMutation = useAddBidirectionalPair()
@@ -41,18 +42,18 @@ export function SettingsPage() {
   const [removePairKey, setRemovePairKey] = useState<string | null>(null)
 
   const bidirectionalPairsWithIds = useMemo(() => {
-    const list = (userLangs ?? []).reduce<{ key: string; label: string; ids: string[] }[]>(
-      (acc, ul) => {
-        const key = getBidirectionalKey(ul.native_code, ul.learning_code)
-        const existing = acc.find((p) => p.key === key)
+    const list = (userLangs ?? []).reduce<BidirectionalPairWithIds[]>(
+      (accumulator, userLang) => {
+        const key = getBidirectionalKey(userLang.native_code, userLang.learning_code)
+        const existingPair = accumulator.find((pair) => pair.key === key)
         const label =
-          BIDIRECTIONAL_PAIRS.find((p) => p.key === key)?.label ?? `${key} ↔`
-        if (existing) {
-          existing.ids.push(ul.id)
+          BIDIRECTIONAL_PAIRS.find((pair) => pair.key === key)?.label ?? `${key} ↔`
+        if (existingPair) {
+          existingPair.ids.push(userLang.id)
         } else {
-          acc.push({ key, label, ids: [ul.id] })
+          accumulator.push({ key, label, ids: [userLang.id] })
         }
-        return acc
+        return accumulator
       },
       []
     )
@@ -60,12 +61,12 @@ export function SettingsPage() {
   }, [userLangs])
 
   const availableBidirectionalPairs = BIDIRECTIONAL_PAIRS.filter(
-    (p) => !bidirectionalPairsWithIds.some((b) => b.key === p.key)
+    (pair) => !bidirectionalPairsWithIds.some((existingPair) => existingPair.key === pair.key)
   )
 
   const hasVirtualPair =
-    bidirectionalPairsWithIds.some((b) => b.key === 'en-ru') &&
-    bidirectionalPairsWithIds.some((b) => b.key === 'en-sr')
+    bidirectionalPairsWithIds.some((pair) => pair.key === 'en-ru') &&
+    bidirectionalPairsWithIds.some((pair) => pair.key === 'en-sr')
 
   const handleAdd = () => {
     if (!userId || !selectedPairKey) return
@@ -78,9 +79,11 @@ export function SettingsPage() {
 
   const handleConfirmRemovePair = () => {
     if (!removePairKey) return
-    const pair = bidirectionalPairsWithIds.find((p) => p.key === removePairKey)
-    if (pair?.ids.length) {
-      removeMutation.mutate(pair.ids, { onSuccess: () => setRemovePairKey(null) })
+    const pairToRemove = bidirectionalPairsWithIds.find(
+      (pair) => pair.key === removePairKey
+    )
+    if (pairToRemove?.ids.length) {
+      removeMutation.mutate(pairToRemove.ids, { onSuccess: () => setRemovePairKey(null) })
     } else {
       setRemovePairKey(null)
     }
@@ -162,11 +165,11 @@ export function SettingsPage() {
                   labelId="language-pair-label"
                   value={selectedPairKey}
                   label="Add language pair"
-                  onChange={(e) => setSelectedPairKey(e.target.value)}
+                  onChange={(event) => setSelectedPairKey(event.target.value)}
                 >
-                  {availableBidirectionalPairs.map((p) => (
-                    <MenuItem key={p.key} value={p.key}>
-                      {p.label}
+                  {availableBidirectionalPairs.map((option) => (
+                    <MenuItem key={option.key} value={option.key}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </Select>

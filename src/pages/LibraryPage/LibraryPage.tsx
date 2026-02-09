@@ -50,35 +50,23 @@ import {
   MAX_SEARCH_LENGTH,
 } from '@/lib/sanitize'
 import {
-  SUPPORTED_LANGUAGE_PAIRS,
-  BIDIRECTIONAL_PAIRS,
   VIRTUAL_PAIR_RU_SR,
   LANGUAGE_PLACEHOLDERS,
   getBidirectionalKey,
 } from '@/types'
+import { exportToCsv, exportToJson, type LibraryExportRow } from '@/lib/importExport'
+import type { LibraryItem, LibraryEditingItem } from './LibraryPage.models'
 import {
-  exportToCsv,
-  exportToJson,
-  parseLibraryFile,
-  type LibraryExportRow,
-} from '@/lib/importExport'
-
-type LibraryItem = {
-  id: string
-  vocabulary_id: string
-  vocabulary: { word: string; translation: string; language_from: string; language_to: string } | null
-}
-
-function languagePairLabel(langFrom: string, langTo: string): string {
-  const pair = SUPPORTED_LANGUAGE_PAIRS.find(
-    (p) => p.native === langFrom && p.learning === langTo
-  )
-  if (pair) return pair.label
-  return `${langFrom} → ${langTo}`
-}
+  getLanguagePairLabel,
+  processLibraryImport,
+  buildLibraryImportMessage,
+  downloadBlob,
+  buildBidirectionalFilterOptions,
+  buildDirectionOptionsForPair,
+} from './LibraryPage.helpers'
 
 export function LibraryPage() {
-  const user = useAuthStore((s) => s.user)
+  const user = useAuthStore((state) => state.user)
   const userId = user?.id
   const [search, setSearch] = useState('')
   const [languageFilter, setLanguageFilter] = useState<string>('')
@@ -86,11 +74,7 @@ export function LibraryPage() {
   const [addTranslation, setAddTranslation] = useState('')
   const [addPairKey, setAddPairKey] = useState('')
   const [addDirection, setAddDirection] = useState('')
-  const [editingItem, setEditingItem] = useState<{
-    vocabulary_id: string
-    word: string
-    translation: string
-  } | null>(null)
+  const [editingItem, setEditingItem] = useState<LibraryEditingItem | null>(null)
   const [deleteVocabularyId, setDeleteVocabularyId] = useState<string | null>(null)
   const [importMessage, setImportMessage] = useState<string | null>(null)
   const [isImporting, setIsImporting] = useState(false)
@@ -106,64 +90,37 @@ export function LibraryPage() {
   const deleteMutation = useDeleteVocabulary(userId ?? '')
 
   const bidirectionalKeysFromUser = useMemo(() => {
-    const set = new Set<string>()
-    ;(userLangs ?? []).forEach((ul) => set.add(getBidirectionalKey(ul.native_code, ul.learning_code)))
-    return Array.from(set)
+    const keySet = new Set<string>()
+    ;(userLangs ?? []).forEach((userLang) =>
+      keySet.add(getBidirectionalKey(userLang.native_code, userLang.learning_code))
+    )
+    return Array.from(keySet)
   }, [userLangs])
 
   const hasVirtualPair =
     bidirectionalKeysFromUser.includes('en-ru') && bidirectionalKeysFromUser.includes('en-sr')
 
-  const filterOptions = useMemo((): { value: string; label: string }[] => {
-    const list: { value: string; label: string }[] = bidirectionalKeysFromUser
-      .map((key) => BIDIRECTIONAL_PAIRS.find((p) => p.key === key))
-      .filter(Boolean)
-      .map((p) => ({ value: p!.key, label: p!.label }))
-    if (hasVirtualPair) {
-      list.push({ value: VIRTUAL_PAIR_RU_SR.key, label: VIRTUAL_PAIR_RU_SR.label })
-    }
-    return list
-  }, [bidirectionalKeysFromUser, hasVirtualPair])
+  const filterOptions = useMemo(
+    () => buildBidirectionalFilterOptions(bidirectionalKeysFromUser, hasVirtualPair),
+    [bidirectionalKeysFromUser, hasVirtualPair]
+  )
 
-  const addFormPairOptions = useMemo((): { value: string; label: string }[] => {
-    const list: { value: string; label: string }[] = bidirectionalKeysFromUser
-      .map((key) => BIDIRECTIONAL_PAIRS.find((p) => p.key === key))
-      .filter(Boolean)
-      .map((p) => ({ value: p!.key, label: p!.label }))
-    if (hasVirtualPair) {
-      list.push({ value: VIRTUAL_PAIR_RU_SR.key, label: VIRTUAL_PAIR_RU_SR.label })
-    }
-    return list
-  }, [bidirectionalKeysFromUser, hasVirtualPair])
+  const addFormPairOptions = useMemo(
+    () => buildBidirectionalFilterOptions(bidirectionalKeysFromUser, hasVirtualPair),
+    [bidirectionalKeysFromUser, hasVirtualPair]
+  )
 
-  const directionOptionsForPair = useMemo(() => {
-    if (!addPairKey) return []
-    const [lang1, lang2] = addPairKey.split('-')
-    if (!lang1 || !lang2) return []
-    if (addPairKey === VIRTUAL_PAIR_RU_SR.key) {
-      return [
-        {
-          value: 'ru-sr',
-          label: VIRTUAL_PAIR_RU_SR.directionLabels['ru-sr'],
-        },
-        {
-          value: 'sr-ru',
-          label: VIRTUAL_PAIR_RU_SR.directionLabels['sr-ru'],
-        },
-      ]
-    }
-    return [
-      { value: `${lang1}-${lang2}`, label: languagePairLabel(lang1, lang2) },
-      { value: `${lang2}-${lang1}`, label: languagePairLabel(lang2, lang1) },
-    ]
-  }, [addPairKey])
+  const directionOptionsForPair = useMemo(
+    () => buildDirectionOptionsForPair(addPairKey, getLanguagePairLabel),
+    [addPairKey]
+  )
 
   const addFormPlaceholders = useMemo(() => {
     if (!addDirection) return { word: 'e.g. …', translation: 'e.g. …' }
-    const [language_from, language_to] = addDirection.split('-')
+    const [languageFrom, languageTo] = addDirection.split('-')
     return {
-      word: LANGUAGE_PLACEHOLDERS[language_from] ?? `e.g. (${language_from})`,
-      translation: LANGUAGE_PLACEHOLDERS[language_to] ?? `e.g. (${language_to})`,
+      word: LANGUAGE_PLACEHOLDERS[languageFrom] ?? `e.g. (${languageFrom})`,
+      translation: LANGUAGE_PLACEHOLDERS[languageTo] ?? `e.g. (${languageTo})`,
     }
   }, [addDirection])
 
@@ -175,8 +132,10 @@ export function LibraryPage() {
 
   useEffect(() => {
     if (directionOptionsForPair.length > 0) {
-      const currentValid = directionOptionsForPair.some((d) => d.value === addDirection)
-      if (!currentValid) setAddDirection(directionOptionsForPair[0].value)
+      const isCurrentDirectionValid = directionOptionsForPair.some(
+        (directionOption) => directionOption.value === addDirection
+      )
+      if (!isCurrentDirectionValid) setAddDirection(directionOptionsForPair[0].value)
     }
   }, [directionOptionsForPair, addDirection])
 
@@ -184,14 +143,9 @@ export function LibraryPage() {
     const word = sanitizeWord(addWord)
     const translation = sanitizeTranslation(addTranslation)
     if (!userId || !addDirection || !word || !translation) return
-    const [language_from, language_to] = addDirection.split('-')
+    const [languageFrom, languageTo] = addDirection.split('-')
     addMutation.mutate(
-      {
-        word,
-        translation,
-        language_from,
-        language_to,
-      },
+      { word, translation, language_from: languageFrom, language_to: languageTo },
       {
         onSuccess: () => {
           setAddWord('')
@@ -207,10 +161,7 @@ export function LibraryPage() {
     const translation = sanitizeTranslation(editingItem.translation)
     if (!word || !translation) return
     updateMutation.mutate(
-      {
-        id: editingItem.vocabulary_id,
-        updates: { word, translation },
-      },
+      { id: editingItem.vocabulary_id, updates: { word, translation } },
       { onSuccess: () => setEditingItem(null) }
     )
   }
@@ -233,34 +184,26 @@ export function LibraryPage() {
   }, [libraryItems])
 
   const existingLibraryKey = useMemo(() => {
-    const set = new Set<string>()
+    const keySet = new Set<string>()
     for (const item of libraryItems as LibraryItem[]) {
-      const v = item.vocabulary
-      if (v) set.add(`${v.word.toLowerCase()}|${v.translation.toLowerCase()}|${v.language_from}|${v.language_to}`)
+      const vocabulary = item.vocabulary
+      if (vocabulary) {
+        keySet.add(
+          `${vocabulary.word.toLowerCase()}|${vocabulary.translation.toLowerCase()}|${vocabulary.language_from}|${vocabulary.language_to}`
+        )
+      }
     }
-    return set
+    return keySet
   }, [libraryItems])
 
   const handleExportCsv = () => {
     const csv = exportToCsv(exportRows)
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'library.csv'
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadBlob(csv, 'text/csv;charset=utf-8', 'library.csv')
   }
 
   const handleExportJson = () => {
     const json = exportToJson(exportRows)
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'library.json'
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadBlob(json, 'application/json', 'library.json')
   }
 
   const handleImportClick = () => {
@@ -268,47 +211,30 @@ export function LibraryPage() {
     fileInputRef.current?.click()
   }
 
-  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
     if (!file || !userId) return
     setIsImporting(true)
     setImportMessage(null)
     try {
-      const { rows, errors } = await parseLibraryFile(file)
-      if (errors.length > 0 && rows.length === 0) {
-        setImportMessage(`Import failed: ${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '…' : ''}`)
-        return
-      }
-      let added = 0
-      let skipped = 0
-      for (const row of rows) {
-        const key = `${row.word.toLowerCase()}|${row.translation.toLowerCase()}|${row.language_from}|${row.language_to}`
-        if (existingLibraryKey.has(key)) {
-          skipped += 1
-          continue
-        }
-        try {
-          await addMutation.mutateAsync({
+      const result = await processLibraryImport(file, {
+        addWordAsync: (row) =>
+          addMutation.mutateAsync({
             word: row.word,
             translation: row.translation,
             language_from: row.language_from,
             language_to: row.language_to,
-          })
-          added += 1
-          existingLibraryKey.add(key)
-        } catch {
-          setImportMessage(`Import stopped after ${added} words. Could not add "${row.word}".`)
-          return
-        }
-      }
-      if (errors.length > 0) {
-        setImportMessage(`Imported ${added} words, skipped ${skipped} duplicates. Some rows had errors: ${errors.slice(0, 2).join('; ')}`)
-      } else {
-        setImportMessage(`Imported ${added} words. ${skipped > 0 ? `Skipped ${skipped} duplicates.` : ''}`)
-      }
+          }),
+        existingKeys: existingLibraryKey,
+      })
+      setImportMessage(buildLibraryImportMessage(result))
     } catch (err) {
-      setImportMessage('Could not read file. Use CSV or JSON with word, translation, language_from, language_to.')
+      setImportMessage(
+        err instanceof Error
+          ? err.message
+          : 'Could not read file. Use CSV or JSON with word, translation, language_from, language_to.'
+      )
     } finally {
       setIsImporting(false)
     }
@@ -318,28 +244,31 @@ export function LibraryPage() {
     let items = libraryItems as LibraryItem[]
     const searchQuery = sanitizeSearch(search)
     if (searchQuery) {
-      const q = searchQuery.toLowerCase()
+      const searchLower = searchQuery.toLowerCase()
       items = items.filter((item) => {
-        const v = item.vocabulary
-        if (!v) return false
-        return v.word.toLowerCase().includes(q) || v.translation.toLowerCase().includes(q)
+        const vocabulary = item.vocabulary
+        if (!vocabulary) return false
+        return (
+          vocabulary.word.toLowerCase().includes(searchLower) ||
+          vocabulary.translation.toLowerCase().includes(searchLower)
+        )
       })
     }
     if (languageFilter) {
       if (languageFilter === VIRTUAL_PAIR_RU_SR.key) {
         items = items.filter((item) => {
-          const v = item.vocabulary
-          if (!v) return false
-          const fromTo = [v.language_from, v.language_to].sort().join('-')
+          const vocabulary = item.vocabulary
+          if (!vocabulary) return false
+          const fromTo = [vocabulary.language_from, vocabulary.language_to].sort().join('-')
           return fromTo === 'ru-sr'
         })
       } else {
-        const [lang1, lang2] = languageFilter.split('-')
+        const [filterSourceLang, filterTargetLang] = languageFilter.split('-')
         items = items.filter((item) => {
-          const v = item.vocabulary
-          if (!v) return false
-          const pairKey = getBidirectionalKey(v.language_from, v.language_to)
-          return pairKey === `${lang1}-${lang2}`
+          const vocabulary = item.vocabulary
+          if (!vocabulary) return false
+          const pairKey = getBidirectionalKey(vocabulary.language_from, vocabulary.language_to)
+          return pairKey === `${filterSourceLang}-${filterTargetLang}`
         })
       }
     }
@@ -385,7 +314,9 @@ export function LibraryPage() {
                 label="Word"
                 placeholder={addFormPlaceholders.word}
                 value={addWord}
-                onChange={(e) => setAddWord(clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH))}
+                onChange={(event) =>
+                  setAddWord(clampAndStripControlChars(event.target.value, MAX_WORD_LENGTH))
+                }
                 sx={{ minWidth: 160 }}
               />
               <TextField
@@ -393,9 +324,9 @@ export function LibraryPage() {
                 label="Translation"
                 placeholder={addFormPlaceholders.translation}
                 value={addTranslation}
-                onChange={(e) =>
+                onChange={(event) =>
                   setAddTranslation(
-                    clampAndStripControlChars(e.target.value, MAX_TRANSLATION_LENGTH)
+                    clampAndStripControlChars(event.target.value, MAX_TRANSLATION_LENGTH)
                   )
                 }
                 sx={{ minWidth: 160 }}
@@ -406,11 +337,11 @@ export function LibraryPage() {
                   labelId="add-lang-pair"
                   value={addPairKey}
                   label="Language pair"
-                  onChange={(e) => setAddPairKey(e.target.value)}
+                  onChange={(event) => setAddPairKey(event.target.value)}
                 >
-                  {addFormPairOptions.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                  {addFormPairOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </Select>
@@ -421,11 +352,11 @@ export function LibraryPage() {
                   labelId="add-direction"
                   value={addDirection}
                   label="Direction"
-                  onChange={(e) => setAddDirection(e.target.value)}
+                  onChange={(event) => setAddDirection(event.target.value)}
                 >
-                  {directionOptionsForPair.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                  {directionOptionsForPair.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </Select>
@@ -500,8 +431,8 @@ export function LibraryPage() {
               size="small"
               placeholder="Search word or translation…"
               value={search}
-              onChange={(e) =>
-                setSearch(clampAndStripControlChars(e.target.value, MAX_SEARCH_LENGTH))
+              onChange={(event) =>
+                setSearch(clampAndStripControlChars(event.target.value, MAX_SEARCH_LENGTH))
               }
               InputProps={{
                 startAdornment: (
@@ -518,12 +449,12 @@ export function LibraryPage() {
                 labelId="library-lang-filter"
                 value={languageFilter}
                 label="Language pair"
-                onChange={(e) => setLanguageFilter(e.target.value)}
+                onChange={(event) => setLanguageFilter(event.target.value)}
               >
                 <MenuItem value="">All</MenuItem>
-                {filterOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                {filterOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
                   </MenuItem>
                 ))}
               </Select>
@@ -558,25 +489,26 @@ export function LibraryPage() {
                 </ListItem>
               )}
               {filteredItems.map((item) => {
-                const v = item.vocabulary
-                const label = v
-                  ? (getBidirectionalKey(v.language_from, v.language_to) ===
+                const vocabulary = item.vocabulary
+                const label = vocabulary
+                  ? (getBidirectionalKey(vocabulary.language_from, vocabulary.language_to) ===
                     VIRTUAL_PAIR_RU_SR.key
                       ? VIRTUAL_PAIR_RU_SR.directionLabels[
-                          `${v.language_from}-${v.language_to}` as keyof typeof VIRTUAL_PAIR_RU_SR.directionLabels
+                          `${vocabulary.language_from}-${vocabulary.language_to}` as keyof typeof VIRTUAL_PAIR_RU_SR.directionLabels
                         ]
-                      : languagePairLabel(v.language_from, v.language_to))
+                      : getLanguagePairLabel(vocabulary.language_from, vocabulary.language_to))
                   : 'Unknown'
                 const secondary =
                   languageFilter === VIRTUAL_PAIR_RU_SR.key &&
-                  v &&
-                  getBidirectionalKey(v.language_from, v.language_to) !== VIRTUAL_PAIR_RU_SR.key
+                  vocabulary &&
+                  getBidirectionalKey(vocabulary.language_from, vocabulary.language_to) !==
+                    VIRTUAL_PAIR_RU_SR.key
                     ? `${label} (via English)`
                     : label
                 return (
                   <ListItem key={item.id} divider>
                     <ListItemText
-                      primary={v ? `${v.word} — ${v.translation}` : '—'}
+                      primary={vocabulary ? `${vocabulary.word} — ${vocabulary.translation}` : '—'}
                       secondary={secondary}
                     />
                     <ListItemSecondaryAction>
@@ -584,10 +516,11 @@ export function LibraryPage() {
                         edge="end"
                         aria-label="Edit"
                         onClick={() =>
-                          v && setEditingItem({
+                          vocabulary &&
+                          setEditingItem({
                             vocabulary_id: item.vocabulary_id,
-                            word: v.word,
-                            translation: v.translation,
+                            word: vocabulary.word,
+                            translation: vocabulary.translation,
                           })
                         }
                       >
@@ -615,12 +548,12 @@ export function LibraryPage() {
                   autoFocus
                   label="Word"
                   value={editingItem?.word ?? ''}
-                  onChange={(e) =>
+                  onChange={(event) =>
                     setEditingItem((prev) =>
                       prev
                         ? {
                             ...prev,
-                            word: clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH),
+                            word: clampAndStripControlChars(event.target.value, MAX_WORD_LENGTH),
                           }
                         : null
                     )
@@ -629,13 +562,13 @@ export function LibraryPage() {
                 <TextField
                   label="Translation"
                   value={editingItem?.translation ?? ''}
-                  onChange={(e) =>
+                  onChange={(event) =>
                     setEditingItem((prev) =>
                       prev
                         ? {
                             ...prev,
                             translation: clampAndStripControlChars(
-                              e.target.value,
+                              event.target.value,
                               MAX_TRANSLATION_LENGTH
                             ),
                           }

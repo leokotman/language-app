@@ -41,8 +41,11 @@ export const VIRTUAL_PAIR_RU_SR = {
 } as const
 
 /** Normalize two language codes to a bidirectional key (sorted). */
-export function getBidirectionalKey(lang1: string, lang2: string): string {
-  return [lang1, lang2].sort().join('-')
+export function getBidirectionalKey(
+  languageCodeA: string,
+  languageCodeB: string
+): string {
+  return [languageCodeA, languageCodeB].sort().join('-')
 }
 
 /** Example placeholders for add-word form (word/translation) per language code. */

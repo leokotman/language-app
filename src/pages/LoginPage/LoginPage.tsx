@@ -1,55 +1,48 @@
 import { useState } from 'react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
-import { upsertProfile } from '@/api/profiles'
+import { useAuthStore } from '@/stores/authStore'
 import { getAuthErrorMessage, logError } from '@/lib/errors'
 import {
   sanitizeEmail,
   sanitizePassword,
   clampAndStripControlChars,
-  MIN_PASSWORD_LENGTH,
   MAX_EMAIL_LENGTH,
   MAX_PASSWORD_LENGTH,
 } from '@/lib/sanitize'
 
-export function SignupPage() {
+export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectFrom =
+    (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     setError(null)
     const safeEmail = sanitizeEmail(email)
     const safePassword = sanitizePassword(password)
-    if (safePassword !== sanitizePassword(confirmPassword)) {
-      setError('Passwords do not match.')
-      return
-    }
-    if (safePassword.length < MIN_PASSWORD_LENGTH) {
-      setError('Password must be at least 6 characters.')
-      return
-    }
     setLoading(true)
     try {
-      const { data, error: err } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: safeEmail,
         password: safePassword,
       })
-      if (err) {
-        setError(getAuthErrorMessage(err))
+      if (authError) {
+        setError(getAuthErrorMessage(authError))
         return
       }
-      if (data.user) {
-        await upsertProfile({ id: data.user.id, email: data.user.email ?? undefined })
+      if (data?.session) {
+        useAuthStore.getState().setAuth(data.session.user, data.session)
       }
-      navigate('/', { replace: true })
+      navigate(redirectFrom, { replace: true })
     } catch (err) {
-      logError('SignupPage.handleSubmit', err)
+      logError('LoginPage.handleSubmit', err)
       setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
@@ -59,7 +52,7 @@ export function SignupPage() {
   return (
     <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Sign up
+        Sign in
       </Typography>
       <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, mt: 2 }}>
         {error && (
@@ -74,7 +67,9 @@ export function SignupPage() {
           required
           autoComplete="email"
           value={email}
-          onChange={(e) => setEmail(clampAndStripControlChars(e.target.value, MAX_EMAIL_LENGTH))}
+          onChange={(event) =>
+            setEmail(clampAndStripControlChars(event.target.value, MAX_EMAIL_LENGTH))
+          }
           sx={{ mb: 2 }}
         />
         <TextField
@@ -82,30 +77,24 @@ export function SignupPage() {
           type="password"
           fullWidth
           required
-          autoComplete="new-password"
+          autoComplete="current-password"
           value={password}
-          onChange={(e) => setPassword(clampAndStripControlChars(e.target.value, MAX_PASSWORD_LENGTH))}
-          helperText="At least 6 characters"
-          sx={{ mb: 2 }}
-        />
-        <TextField
-          label="Confirm password"
-          type="password"
-          fullWidth
-          required
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={(e) =>
-            setConfirmPassword(clampAndStripControlChars(e.target.value, MAX_PASSWORD_LENGTH))
+          onChange={(event) =>
+            setPassword(clampAndStripControlChars(event.target.value, MAX_PASSWORD_LENGTH))
           }
           sx={{ mb: 2 }}
         />
         <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
-          {loading ? 'Creating account…' : 'Sign up'}
+          {loading ? 'Signing in…' : 'Sign in'}
         </Button>
-        <Link component={RouterLink} to="/login" variant="body2">
-          Already have an account? Sign in
-        </Link>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Link component={RouterLink} to="/forgot-password" variant="body2">
+            Forgot password?
+          </Link>
+          <Link component={RouterLink} to="/signup" variant="body2">
+            Don&apos;t have an account? Sign up
+          </Link>
+        </Box>
       </Paper>
     </Box>
   )
