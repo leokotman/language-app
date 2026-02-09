@@ -103,22 +103,15 @@ export function SettingsPage() {
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {isSupabaseTableMissingError(error) ? (
-            <>
-              Database tables for language pairs are missing. In your Supabase project: open{' '}
-              <strong>SQL Editor</strong>, paste and run the contents of{' '}
-              <strong>docs/supabase-migrations/002_core_data_layer.sql</strong> from this repo (see{' '}
-              <strong>docs/SUPABASE_SETUP.md</strong> step 8).
-            </>
-          ) : (
-            'Failed to load language pairs. Check your connection and try again.'
-          )}
+          {isSupabaseTableMissingError(error)
+            ? "We couldn't load language pairs. Please refresh the page or try again later."
+            : 'Failed to load language pairs. Check your connection and try again.'}
         </Alert>
       )}
 
       {error && isSupabaseTableMissingError(error) ? (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          After running the migration, refresh this page.
+          If the problem continues, try refreshing the page.
         </Typography>
       ) : isLoading ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
