@@ -136,3 +136,35 @@ This creates:
 After this, the Settings page can save language pairs and the app can use vocabulary CRUD.
 
 **Troubleshooting:** If you see "Failed to load language pairs" or 404 errors for `user_languages` / `user_vocabulary` in the network tab, the app is telling you to run this migration (step 8). Run **002_core_data_layer.sql** in the SQL Editor, then refresh the app.
+
+---
+
+## 9. (Optional) Seed app library vocabulary
+
+To browse the app library and add words from it to your personal library:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/003_seed_vocabulary.sql`** in this repo and copy its contents.
+3. Paste into the SQL Editor and click **Run**.
+
+This inserts aligned EN–RU–SR word triples (see `docs/SEED_AND_LOOKUP_STRATEGY.md` §1). Run **after** step 8. To regenerate the SQL from the triples source, run: `node scripts/generate-seed-sql.mjs`.
+
+---
+
+## 10. (Recommended) Linter and security fixes
+
+After running migrations 001 and 002 (and optionally 003), run the security/linter fix so the Supabase dashboard linter is happy:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/004_linter_security_fixes.sql`** and copy its contents.
+3. Paste and click **Run**.
+
+This enables RLS on the **languages** table (with a read-only policy) and sets an immutable **search_path** on the `set_updated_at()` function.
+
+---
+
+## 11. Leaked password protection (Auth) — Pro plan only
+
+The Supabase linter may warn that **Leaked password protection** is disabled. This feature uses HaveIBeenPwned.org to reject compromised passwords and is **only available on the Pro plan**. On the free tier you can ignore this linter warning.
+
+If you are on Pro: go to **Authentication** → **Providers** → **Email** (or **Authentication** → **Settings**) and enable **“Prevent use of leaked passwords”**. See [Password strength and leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
