@@ -40,6 +40,7 @@ import { lookup, type DictionaryEntry } from '@/lib/dictionary'
 import type { VocabularyRow } from '@/types/database'
 import type { ResultItem } from './DictionaryPage.models'
 import { DEBOUNCE_MS, DIRECTION_OPTIONS } from './DictionaryPage.constants'
+import { offlineLog } from '@/lib/offlineDebug'
 
 export function DictionaryPage() {
   const userId = useAuthStore((state) => state.user?.id) ?? ''
@@ -81,8 +82,16 @@ export function DictionaryPage() {
     combined.sort((rowA, rowB) =>
       rowA.word.localeCompare(rowB.word, undefined, { sensitivity: 'base' })
     )
+    offlineLog('Dictionary appVocabulary', {
+      direction,
+      languageSource,
+      languageTarget,
+      appVocabularyLen: combined.length,
+      sourceToTargetLen: listSourceToTarget.length,
+      targetToSourceLen: listTargetToSource.length,
+    })
     return combined
-  }, [appVocabularySourceToTarget.data, appVocabularyTargetToSource.data])
+  }, [direction, languageSource, languageTarget, appVocabularySourceToTarget.data, appVocabularyTargetToSource.data])
 
   const storeResults = useMemo((): ResultItem[] => {
     const searchQuery = sanitizeSearch(search)
@@ -151,6 +160,17 @@ export function DictionaryPage() {
   const hasStoreResults = storeResults.length > 0
   const isOffline = offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
   const apiSupported = true
+
+  useEffect(() => {
+    offlineLog('Dictionary state', {
+      direction,
+      search: search.trim().slice(0, 30),
+      appVocabularyLen: appVocabulary.length,
+      storeResultsLen: storeResults.length,
+      hasStoreResults,
+      isOffline,
+    })
+  }, [direction, search, appVocabulary.length, storeResults.length, hasStoreResults, isOffline])
 
   const combinedResults: ResultItem[] = hasStoreResults
     ? storeResults
@@ -230,7 +250,9 @@ export function DictionaryPage() {
 
       {isOffline && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          You're offline. Connect to the internet to search for more words.
+          {hasStoreResults
+            ? "You're offline. Showing words from your library and the app dictionary."
+            : "You're offline. Connect to the internet to search for more words."}
         </Alert>
       )}
 
