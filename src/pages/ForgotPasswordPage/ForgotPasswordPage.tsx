@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
-import { getAuthErrorMessage, logError } from '@/lib/errors'
+import { getAuthErrorMessage, isNetworkError, logError, OFFLINE_AUTH_MESSAGE } from '@/lib/errors'
 import {
   sanitizeEmail,
   clampAndStripControlChars,
@@ -18,6 +18,10 @@ export function ForgotPasswordPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setError(null)
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setError(OFFLINE_AUTH_MESSAGE)
+      return
+    }
     const safeEmail = sanitizeEmail(email)
     setLoading(true)
     try {
@@ -32,7 +36,7 @@ export function ForgotPasswordPage() {
       setSent(true)
     } catch (err) {
       logError('ForgotPasswordPage.handleSubmit', err)
-      setError('Something went wrong. Please try again.')
+      setError(isNetworkError(err) ? OFFLINE_AUTH_MESSAGE : 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }

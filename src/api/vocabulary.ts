@@ -1,4 +1,12 @@
 import { supabase } from '@/lib/supabase'
+import { isNetworkError } from '@/lib/errors'
+import { offlineLog } from '@/lib/offlineDebug'
+import {
+  getAppVocabulary,
+  mergeAppVocabulary,
+  getUserVocabularyList,
+  setUserVocabularyList,
+} from '@/lib/offlineCache'
 import type {
   VocabularyRow,
   VocabularyInsert,
@@ -8,27 +16,102 @@ import type {
   UserVocabularyUpdate,
 } from '@/types/database'
 
-/** List vocabulary for a language pair. App library + optionally user's own. */
+/** List all app-library vocabulary (source='app'). Used for offline cache prefetch. */
+export async function listAllAppVocabulary(): Promise<{
+  data: VocabularyRow[]
+  error: Error | null
+}> {
+  const { data, error } = await supabase
+    .from('vocabulary')
+    .select('*')
+    .eq('source', 'app')
+    .order('language_from')
+    .order('language_to')
+    .order('word')
+  return { data: (data ?? []) as VocabularyRow[], error: error as Error | null }
+}
+
+/** List vocabulary for a language pair. App library + optionally user's own. When offline, returns from cache immediately; on success merges into cache. */
 export async function listVocabulary(params: {
   languageFrom: string
   languageTo: string
   includeUserCreated?: boolean
   userId?: string
 }): Promise<{ data: VocabularyRow[]; error: Error | null }> {
-  let query = supabase
-    .from('vocabulary')
-    .select('*')
-    .eq('language_from', params.languageFrom)
-    .eq('language_to', params.languageTo)
-    .order('word')
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+  offlineLog('listVocabulary called', {
+    from: params.languageFrom,
+    to: params.languageTo,
+    navigatorOnLine: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+    isOffline,
+  })
 
-  if (!params.includeUserCreated) {
-    query = query.eq('source', 'app')
+  const filterCache = (rows: VocabularyRow[]) =>
+    rows.filter(
+      (row) =>
+        row.language_from === params.languageFrom && row.language_to === params.languageTo
+    )
+
+  if (isOffline) {
+    const cached = await getAppVocabulary()
+    const filtered = filterCache(cached)
+    offlineLog('listVocabulary offline', {
+      from: params.languageFrom,
+      to: params.languageTo,
+      cacheTotal: cached.length,
+      filtered: filtered.length,
+    })
+    return { data: filtered, error: null }
   }
-  // When includeUserCreated is true, RLS returns app library + user's own rows
 
-  const { data, error } = await query
-  return { data: (data ?? []) as VocabularyRow[], error: error as Error | null }
+  try {
+    let query = supabase
+      .from('vocabulary')
+      .select('*')
+      .eq('language_from', params.languageFrom)
+      .eq('language_to', params.languageTo)
+      .order('word')
+
+    if (!params.includeUserCreated) {
+      query = query.eq('source', 'app')
+    }
+
+    const { data, error } = await query
+    const result = { data: (data ?? []) as VocabularyRow[], error: error as Error | null }
+
+    if (result.error) {
+      if (isNetworkError(result.error)) {
+        const cached = await getAppVocabulary()
+        const filtered = filterCache(cached)
+        offlineLog('listVocabulary network error, from cache', {
+          from: params.languageFrom,
+          to: params.languageTo,
+          cacheTotal: cached.length,
+          filtered: filtered.length,
+        })
+        return { data: filtered, error: null }
+      }
+      return result
+    }
+
+    if (result.data.length > 0) {
+      await mergeAppVocabulary(result.data)
+    }
+    return result
+  } catch (err) {
+    if (isNetworkError(err)) {
+      const cached = await getAppVocabulary()
+      const filtered = filterCache(cached)
+      offlineLog('listVocabulary catch, from cache', {
+        from: params.languageFrom,
+        to: params.languageTo,
+        cacheTotal: cached.length,
+        filtered: filtered.length,
+      })
+      return { data: filtered, error: null }
+    }
+    throw err
+  }
 }
 
 /** Create a user vocabulary entry (word). */
@@ -70,19 +153,41 @@ export async function getVocabularyById(id: string): Promise<{
 
 // ---------- user_vocabulary (personal library with FSRS) ----------
 
-/** List user's personal library (user_vocabulary joined with vocabulary). */
+/** List user's personal library (user_vocabulary joined with vocabulary). When offline returns from cache immediately. */
 export async function listUserVocabulary(userId: string): Promise<{
   data: (UserVocabularyRow & { vocabulary: VocabularyRow | null })[]
   error: Error | null
 }> {
-  const { data, error } = await supabase
-    .from('user_vocabulary')
-    .select('*, vocabulary:vocabulary_id(*)')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-  return {
-    data: (data ?? []) as (UserVocabularyRow & { vocabulary: VocabularyRow | null })[],
-    error: error as Error | null,
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+
+  if (isOffline) {
+    const cached = await getUserVocabularyList(userId)
+    offlineLog('listUserVocabulary offline', { userId, cachedCount: cached.length })
+    return { data: cached, error: null }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_vocabulary')
+      .select('*, vocabulary:vocabulary_id(*)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error && isNetworkError(error)) {
+      const cached = await getUserVocabularyList(userId)
+      return { data: cached, error: null }
+    }
+    if (error) return { data: [], error: error as Error }
+
+    const result = (data ?? []) as (UserVocabularyRow & { vocabulary: VocabularyRow | null })[]
+    await setUserVocabularyList(userId, result)
+    return { data: result, error: null }
+  } catch (err) {
+    if (isNetworkError(err)) {
+      const cached = await getUserVocabularyList(userId)
+      return { data: cached, error: null }
+    }
+    throw err
   }
 }
 

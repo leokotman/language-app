@@ -12,8 +12,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      minify: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Avoid workbox-build terser "Unexpected early exit" (rollup/terser promise not resolving)
+        mode: 'development',
       },
       manifest: {
         name: 'Language Learning App',

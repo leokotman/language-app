@@ -1,11 +1,19 @@
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Switch, Tooltip } from '@mui/material'
+import { useState, useCallback } from 'react'
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Switch, Tooltip, Snackbar } from '@mui/material'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useThemeMode } from '@/theme/ThemeModeContext'
 import { useAuth } from '@/hooks/useAuth'
 import { useOfflineModeStore } from '@/stores/offlineModeStore'
+import { syncForOffline } from '@/lib/offlineSync'
+import { offlineLog } from '@/lib/offlineDebug'
+import { userVocabularyListQueryKey } from '@/hooks/useVocabulary'
+import { USER_LANGUAGES_QUERY_KEY } from '@/hooks/useUserLanguages'
+
+const SNACKBAR_AUTO_HIDE_MS = 5000
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -19,10 +27,34 @@ const navItems = [
 export function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { mode, toggleMode } = useThemeMode()
   const { isAuthenticated, user, signOut } = useAuth()
   const offlineMode = useOfflineModeStore((state) => state.offlineMode)
   const setOfflineMode = useOfflineModeStore((state) => state.setOfflineMode)
+  const [syncing, setSyncing] = useState(false)
+  const [snackMessage, setSnackMessage] = useState<string | null>(null)
+
+  const handleOfflineToggle = useCallback(
+    async (_event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+      setOfflineMode(checked)
+      if (checked && user?.id && typeof navigator !== 'undefined' && navigator.onLine) {
+        offlineLog('Navbar Offline toggle ON → sync started', { userId: user.id })
+        setSyncing(true)
+        const result = await syncForOffline(user.id)
+        setSyncing(false)
+        if (result.success) {
+          queryClient.invalidateQueries({ queryKey: ['vocabulary'] })
+          queryClient.invalidateQueries({ queryKey: userVocabularyListQueryKey(user.id) })
+          queryClient.invalidateQueries({ queryKey: [...USER_LANGUAGES_QUERY_KEY, user.id] })
+          setSnackMessage('Ready for offline. You can disconnect now.')
+        } else {
+          setSnackMessage('Sync failed. Stay online and try again.')
+        }
+      }
+    },
+    [user, setOfflineMode, queryClient]
+  )
 
   const handleSignOut = () => {
     signOut()
@@ -38,14 +70,23 @@ export function Navbar() {
         <IconButton color="inherit" onClick={toggleMode} aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
           {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
         </IconButton>
-        <Tooltip title={offlineMode ? 'Offline mode: no internet search (dictionary, pronunciation)' : 'Use internet for dictionary and pronunciation'}>
+        <Tooltip
+          title={
+            offlineMode
+              ? 'Offline mode on: no web search. Data is from cache.'
+              : 'Turn ON while online to sync all data for offline use. (The app cannot disconnect your device’s internet — turn off Wi‑Fi or use DevTools to test offline.)'
+          }
+        >
           <Box sx={{ display: 'flex', alignItems: 'center' }} component="span">
-            <Typography variant="caption" sx={{ mr: 0.5, opacity: 0.9 }}>Offline</Typography>
+            <Typography variant="caption" sx={{ mr: 0.5, opacity: 0.9 }}>
+              {syncing ? 'Syncing…' : 'Offline'}
+            </Typography>
             <Switch
               size="small"
               color="default"
               checked={offlineMode}
-              onChange={(_, checked) => setOfflineMode(checked)}
+              onChange={handleOfflineToggle}
+              disabled={syncing}
               aria-label="Offline mode"
             />
           </Box>
@@ -83,6 +124,13 @@ export function Navbar() {
             </>
           )}
         </Box>
+        <Snackbar
+          open={!!snackMessage}
+          autoHideDuration={SNACKBAR_AUTO_HIDE_MS}
+          onClose={() => setSnackMessage(null)}
+          message={snackMessage}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        />
       </Toolbar>
     </AppBar>
   )

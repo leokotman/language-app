@@ -21,6 +21,7 @@ export function useUserLanguages(userId: string | undefined) {
       return data
     },
     enabled: !!userId,
+    networkMode: 'always', // run when offline so getUserLanguages can return from IndexedDB cache
   })
 }
 

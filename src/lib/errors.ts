@@ -124,3 +124,25 @@ export function isSupabaseTableMissingError(error: unknown): boolean {
 /** Shown when isSupabaseTableMissingError is true. */
 export const SUPABASE_MIGRATION_SETUP_MESSAGE =
   'The database tables for this feature are missing. In your Supabase project: open **SQL Editor**, paste and run the contents of **docs/supabase-migrations/002_core_data_layer.sql** from this repo (see docs/SUPABASE_SETUP.md step 8).'
+
+/**
+ * True when the error is due to network being unavailable (e.g. offline, Failed to fetch).
+ * Use to show a friendly "you need internet" message instead of a generic error.
+ */
+export function isNetworkError(error: unknown): boolean {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return true
+  if (!error || typeof error !== 'object') return false
+  const message = (error as { message?: string }).message
+  if (typeof message !== 'string') return false
+  const lower = message.toLowerCase()
+  return (
+    lower.includes('failed to fetch') ||
+    lower.includes('network request failed') ||
+    lower.includes('networkerror') ||
+    (error instanceof TypeError && lower.includes('fetch'))
+  )
+}
+
+/** Shown when auth (login/signup/forgot-password) fails because the device is offline or the request could not reach the server. */
+export const OFFLINE_AUTH_MESSAGE =
+  'You need an internet connection to sign in. Connect to the internet and try again.'
