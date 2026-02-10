@@ -1,10 +1,65 @@
 /**
- * Dictionary lookup for en↔ru (MyMemory API). No cache yet; offline/Offline mode skip API.
- * See docs/DICTIONARY_PLAN.md.
+ * Dictionary lookup for en↔ru (MyMemory API). Lookups are cached in memory and in IndexedDB
+ * so they are available offline and after refresh. See docs/DICTIONARY_PLAN.md.
  */
 
 import { logError } from '@/lib/errors'
 import { sanitizeSearch } from '@/lib/sanitize'
+import {
+  getDictionaryLookupCache as getPersistedLookupCache,
+  setDictionaryLookupCache as setPersistedLookupCache,
+} from '@/lib/offlineCache'
+
+/** In-memory cache for fast repeat lookups in the same session. */
+const LOOKUP_CACHE_MAX_ENTRIES = 80
+const lookupCache = new Map<string, DictionaryEntry[]>()
+const lookupCacheKeys: string[] = []
+
+export function lookupCacheKey(from: string, to: string, query: string): string {
+  const q = query.trim().toLowerCase()
+  return `${from}|${to}|${q}`
+}
+
+/** Get cached lookup results (memory first, then IndexedDB). Use when offline or to show prior lookups. */
+export async function getLookupCache(
+  fromLang: string,
+  toLang: string,
+  query: string
+): Promise<DictionaryEntry[] | undefined> {
+  const key = lookupCacheKey(fromLang, toLang, query)
+  const fromMemory = lookupCache.get(key)
+  if (fromMemory !== undefined) return fromMemory
+  const fromIdb = await getPersistedLookupCache(key)
+  if (fromIdb && fromIdb.length > 0) {
+    lookupCache.set(key, fromIdb)
+    if (!lookupCacheKeys.includes(key)) {
+      if (lookupCacheKeys.length >= LOOKUP_CACHE_MAX_ENTRIES) lookupCacheKeys.shift()
+      lookupCacheKeys.push(key)
+    }
+    return fromIdb
+  }
+  return undefined
+}
+
+/** Store lookup results in memory and IndexedDB so they are available offline and after refresh. */
+export function setLookupCache(
+  fromLang: string,
+  toLang: string,
+  query: string,
+  entries: DictionaryEntry[]
+): void {
+  if (entries.length === 0) return
+  const key = lookupCacheKey(fromLang, toLang, query)
+  if (!lookupCache.has(key)) {
+    if (lookupCacheKeys.length >= LOOKUP_CACHE_MAX_ENTRIES) {
+      const oldest = lookupCacheKeys.shift()
+      if (oldest) lookupCache.delete(oldest)
+    }
+    lookupCacheKeys.push(key)
+  }
+  lookupCache.set(key, entries)
+  setPersistedLookupCache(key, entries).catch(() => {})
+}
 
 const MYMEMORY_BASE = 'https://api.mymemory.translated.net/get'
 const SUPPORTED_LANGS = ['en', 'ru', 'sr'] as const
@@ -153,6 +208,7 @@ export async function lookup(
       }
     }
 
+    setLookupCache(fromLang, toLang, trimmed, entries)
     return entries
   } catch (err) {
     logError('dictionary.lookup', err)
