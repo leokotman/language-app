@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   Typography,
   Box,
@@ -36,20 +36,48 @@ import {
   useAddWordToLibrary,
   useUserVocabularyList,
 } from '@/hooks/useVocabulary'
-import { lookup, type DictionaryEntry } from '@/lib/dictionary'
+import { lookup, getLookupCache, type DictionaryEntry } from '@/lib/dictionary'
 import type { VocabularyRow } from '@/types/database'
 import type { ResultItem } from './DictionaryPage.models'
 import { DEBOUNCE_MS, DIRECTION_OPTIONS } from './DictionaryPage.constants'
-import { offlineLog } from '@/lib/offlineDebug'
+import { offlineLog, dictPerfLog } from '@/lib/offlineDebug'
+
+const STORE_FILTER_DEBOUNCE_MS = 100
 
 export function DictionaryPage() {
   const userId = useAuthStore((state) => state.user?.id) ?? ''
   const offlineMode = useOfflineModeStore((state) => state.offlineMode)
   const [search, setSearch] = useState('')
+  const [searchForFilter, setSearchForFilter] = useState('')
   const [direction, setDirection] = useState('en-ru')
   const [apiResults, setApiResults] = useState<DictionaryEntry[]>([])
   const [apiLoading, setApiLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+
+  const renderCountRef = useRef(0)
+  renderCountRef.current += 1
+
+  const storeResultsLengthRef = useRef(0)
+
+  dictPerfLog('render', {
+    renderCount: renderCountRef.current,
+    searchLen: search.length,
+    searchForFilterLen: searchForFilter.length,
+    search,
+    searchForFilter,
+  })
+
+  useEffect(() => {
+    dictPerfLog('effect: search→searchForFilter scheduled', { search, delayMs: STORE_FILTER_DEBOUNCE_MS })
+    const t = setTimeout(() => {
+      dictPerfLog('effect: searchForFilter updated (timeout fired)', { from: search })
+      setSearchForFilter(search)
+    }, STORE_FILTER_DEBOUNCE_MS)
+    return () => {
+      dictPerfLog('effect: cleanup (timeout cleared)', {})
+      clearTimeout(t)
+    }
+  }, [search])
 
   const translationDirection =
     DIRECTION_OPTIONS.find((option) => option.value === direction) ?? DIRECTION_OPTIONS[0]
@@ -76,12 +104,15 @@ export function DictionaryPage() {
   )
 
   const appVocabulary = useMemo((): VocabularyRow[] => {
+    const start = typeof performance !== 'undefined' ? performance.now() : 0
     const listSourceToTarget = (appVocabularySourceToTarget.data ?? []) as VocabularyRow[]
     const listTargetToSource = (appVocabularyTargetToSource.data ?? []) as VocabularyRow[]
     const combined = [...listSourceToTarget, ...listTargetToSource]
     combined.sort((rowA, rowB) =>
       rowA.word.localeCompare(rowB.word, undefined, { sensitivity: 'base' })
     )
+    const ms = typeof performance !== 'undefined' ? (performance.now() - start).toFixed(2) : '?'
+    dictPerfLog('appVocabulary useMemo ran', { ms, combinedLen: combined.length })
     offlineLog('Dictionary appVocabulary', {
       direction,
       languageSource,
@@ -94,14 +125,20 @@ export function DictionaryPage() {
   }, [direction, languageSource, languageTarget, appVocabularySourceToTarget.data, appVocabularyTargetToSource.data])
 
   const storeResults = useMemo((): ResultItem[] => {
-    const searchQuery = sanitizeSearch(search)
-    if (!searchQuery) return []
+    const start = typeof performance !== 'undefined' ? performance.now() : 0
+    const searchQuery = sanitizeSearch(searchForFilter)
+    if (!searchQuery) {
+      dictPerfLog('storeResults useMemo ran', { ms: '0', matchedLen: 0, reason: 'empty searchForFilter' })
+      return []
+    }
     const searchLower = searchQuery.toLowerCase()
     const matched = appVocabulary.filter(
       (row) =>
         row.word.toLowerCase().includes(searchLower) ||
         row.translation.toLowerCase().includes(searchLower)
     )
+    const ms = typeof performance !== 'undefined' ? (performance.now() - start).toFixed(2) : '?'
+    dictPerfLog('storeResults useMemo ran', { ms, appVocabLen: appVocabulary.length, matchedLen: matched.length })
     return matched.map((row) => ({
       source: 'store' as const,
       vocabularyId: row.id,
@@ -110,7 +147,9 @@ export function DictionaryPage() {
       from: row.language_from,
       to: row.language_to,
     }))
-  }, [search, appVocabulary])
+  }, [searchForFilter, appVocabulary])
+
+  storeResultsLengthRef.current = storeResults.length
 
   const runApiLookup = useCallback(
     async (query: string) => {
@@ -146,16 +185,38 @@ export function DictionaryPage() {
   )
 
   useEffect(() => {
+    dictPerfLog('effect: lookup debounce scheduled', { search, delayMs: DEBOUNCE_MS })
     const timeoutId = setTimeout(() => {
-      if (storeResults.length > 0) {
+      const hasStoreResultsNow = storeResultsLengthRef.current > 0
+      dictPerfLog('effect: lookup debounce fired', { search, hasStoreResultsNow })
+      if (hasStoreResultsNow) {
         setApiResults([])
         setApiError(null)
         return
       }
+      const isOfflineNow = offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
+      if (isOfflineNow && search.trim()) {
+        getLookupCache(
+          translationDirection.from,
+          translationDirection.to,
+          search.trim()
+        ).then((cached) => {
+          if (cached && cached.length > 0) {
+            setApiResults(cached)
+            setApiError(null)
+          } else {
+            runApiLookup(search)
+          }
+        })
+        return
+      }
       runApiLookup(search)
     }, DEBOUNCE_MS)
-    return () => clearTimeout(timeoutId)
-  }, [search, storeResults.length, runApiLookup])
+    return () => {
+      dictPerfLog('effect: lookup debounce cleared', {})
+      clearTimeout(timeoutId)
+    }
+  }, [search, runApiLookup, offlineMode, translationDirection.from, translationDirection.to])
 
   const hasStoreResults = storeResults.length > 0
   const isOffline = offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
@@ -164,13 +225,10 @@ export function DictionaryPage() {
   useEffect(() => {
     offlineLog('Dictionary state', {
       direction,
-      search: search.trim().slice(0, 30),
       appVocabularyLen: appVocabulary.length,
-      storeResultsLen: storeResults.length,
-      hasStoreResults,
       isOffline,
     })
-  }, [direction, search, appVocabulary.length, storeResults.length, hasStoreResults, isOffline])
+  }, [direction, appVocabulary.length, isOffline])
 
   const combinedResults: ResultItem[] = hasStoreResults
     ? storeResults
