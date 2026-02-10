@@ -31,7 +31,15 @@ export async function listAllAppVocabulary(): Promise<{
   return { data: (data ?? []) as VocabularyRow[], error: error as Error | null }
 }
 
-/** List vocabulary for a language pair. App library + optionally user's own. When offline, returns from cache immediately; on success merges into cache. */
+/**
+ * List vocabulary for a language pair (app library + optionally user-created).
+ * On success, merges fetched rows into the offline cache.
+ *
+ * **Offline behavior:** When offline (or on network error), returns only **app vocabulary**
+ * from the IndexedDB cache. The `includeUserCreated` parameter has no effect offline;
+ * user-created words for the pair are not included until they have been fetched online
+ * and synced to the cache (e.g. after a full OfflinePrefetch or sync while online).
+ */
 export async function listVocabulary(params: {
   languageFrom: string
   languageTo: string

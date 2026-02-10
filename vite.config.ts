@@ -7,16 +7,21 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(() => {
+  // PWA: minify and workbox mode kept false/'development' until workbox-build/terser
+  // "Unexpected early exit" is fixed. Then use mode: defineConfig(({ mode }) => ...) and set
+  // minify: mode === 'production', workbox.mode: mode === 'production' ? 'production' : 'development'
+  const pwaMinify = false
+  const pwaWorkboxMode = 'development' as const
+  return {
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      minify: false,
+      minify: pwaMinify,
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Avoid workbox-build terser "Unexpected early exit" (rollup/terser promise not resolving)
-        mode: 'development',
+        mode: pwaWorkboxMode,
       },
       manifest: {
         name: 'Language Learning App',
@@ -44,4 +49,5 @@ export default defineConfig({
     setupFiles: './src/__tests__/setup.ts',
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
+  }
 })
