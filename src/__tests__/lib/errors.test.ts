@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { getAuthErrorMessage, isSupabaseTableMissingError, logError } from '@/lib/errors'
+import {
+  getAuthErrorMessage,
+  isNetworkError,
+  isSupabaseTableMissingError,
+  logError,
+} from '@/lib/errors'
 
 describe('logError', () => {
   afterEach(() => {
@@ -50,5 +55,29 @@ describe('isSupabaseTableMissingError', () => {
   it('returns false for null/undefined', () => {
     expect(isSupabaseTableMissingError(null)).toBe(false)
     expect(isSupabaseTableMissingError(undefined)).toBe(false)
+  })
+})
+
+describe('isNetworkError', () => {
+  it('returns true for "Failed to fetch" message', () => {
+    expect(isNetworkError(new Error('Failed to fetch'))).toBe(true)
+    expect(isNetworkError({ message: 'Failed to fetch' })).toBe(true)
+  })
+
+  it('returns true for TypeError with fetch', () => {
+    expect(isNetworkError(new TypeError('Failed to fetch'))).toBe(true)
+  })
+
+  it('returns true for network request failed', () => {
+    expect(isNetworkError({ message: 'Network request failed' })).toBe(true)
+  })
+
+  it('returns false for generic error', () => {
+    expect(isNetworkError(new Error('Invalid credentials'))).toBe(false)
+  })
+
+  it('returns false for null/undefined', () => {
+    expect(isNetworkError(null)).toBe(false)
+    expect(isNetworkError(undefined)).toBe(false)
   })
 })
