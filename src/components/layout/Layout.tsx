@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Box, Container } from '@mui/material'
 import { Navbar } from './Navbar'
+import { OfflinePrefetch } from '@/components/features/offline/OfflinePrefetch'
 
 export function Layout() {
   return (
@@ -11,6 +12,7 @@ export function Layout() {
         flexDirection: 'column',
       }}
     >
+      <OfflinePrefetch />
       <Navbar />
       <Box
         component="main"
