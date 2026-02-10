@@ -56,6 +56,17 @@ Use this for context when continuing work on the language app.
 ### Commits (docs: seed and lookup strategy)
 21. chore(lang-001): add seed and lookup strategy docs — SEED_AND_LOOKUP_STRATEGY.md (aligned triples §1, store-first lookup §2); DICTIONARY_PLAN.md and HANDOFF updated.
 
+### Commits (offline PWA — lang-005, this session)
+22. feat(lang-005): add offline debug logging (localStorage flag and [offline] prefix).
+23. feat(lang-005): add IndexedDB offline cache for app vocabulary and user data.
+24. feat(lang-005): API read from cache when offline (vocabulary and user languages).
+25. feat(lang-005): add full offline sync (app vocabulary, user languages, user library).
+26. feat(lang-005): run vocabulary and user-languages queries when offline (networkMode always).
+27. feat(lang-005): add OfflinePrefetch on login and mount in Layout.
+28. feat(lang-005): Navbar Offline toggle with sync on turn ON and snackbar.
+29. feat(lang-005): Dictionary use app vocabulary from cache and add offline debug logs.
+30. feat(lang-005): docs: add offline debugging and summary guide (OFFLINE_DEBUGGING.md, OFFLINE_SUMMARY_AND_DEBUG.md).
+
 ---
 
 ## 2. Issues we hit
@@ -82,6 +93,7 @@ Use this for context when continuing work on the language app.
 - **DB**: Run 001, 002, 003, (optional) 005_seed_vocabulary_expanded.sql, 004 in Supabase. See `docs/SUPABASE_SETUP.md`.
 - **PWA**: Build now succeeds (workbox `mode: 'development'`, `minify: false`). Precache 7 entries; `dist/sw.js` and workbox runtime generated.
 - **Offline auth**: Login, Signup, Forgot password show “You need an internet connection to sign in…” when offline or when the auth request fails with a network error (`isNetworkError`, `OFFLINE_AUTH_MESSAGE` in `lib/errors.ts`). You cannot sign in without network; returning users with a cached session can still use the app offline.
+- **Offline cache (PWA):** IndexedDB (`src/lib/offlineCache.ts`) caches app vocabulary, user languages, user library. When offline or on network error, API layer returns from cache so Dictionary and Library show data. `OfflinePrefetch` in Layout runs when user is logged in and online; Navbar “Offline” toggle ON (while online) runs full sync and shows “Ready for offline.” Vocabulary and user-languages hooks use `networkMode: 'always'` so queries run when offline and return from cache. Debug: `localStorage.setItem('language-app-debug-offline', '1')` then refresh to see `[offline]` logs. See `docs/OFFLINE_DEBUGGING.md` and `docs/OFFLINE_SUMMARY_AND_DEBUG.md`.
 - **Seed**: 003 = 82 triples (492 rows). 005 = 150 additional triples (900 rows); run after 003 for more offline data.
 
 ---
@@ -142,21 +154,12 @@ Use this for context when continuing work on the language app.
 
 ## 7. Session summary (latest — today’s work)
 
-**Earlier (previous sessions):** Bidirectional pairs (6.5), virtual pair (6.6), commit style and AI instructions.
+**Earlier (previous sessions):** Bidirectional pairs (6.5), virtual pair (6.6), commit style and AI instructions; Dictionary + MyMemory; offline mode toggle; error handling.
 
 **Done in this session (committed):**
-- **Input sanitization:** `src/lib/sanitize.ts` (trim, max length, strip control chars); applied to Login, Signup, Forgot password, Library add/edit/search. Regex replaced with char-code loop to satisfy ESLint. Docs: `INPUT_SANITIZATION.md`; tests: `sanitize.test.ts`.
-- **Offline mode toggle + dictionary plan:** `offlineModeStore` (zustand + localStorage), Navbar switch with tooltip. `docs/DICTIONARY_PLAN.md`: phases (one language pair online first; offline/cache/bundles as separate step); allowed providers only (LibreTranslate, MyMemory, Free Dictionary, Wiktionary).
-- **Meaningful error handling:** `logError(context, error)` in `lib/errors.ts`; all catch blocks use it (offlineModeStore, theme get/set, Login/Signup/ForgotPassword, useAuth getSession and signOut). Unit tests for `logError`.
+- **Offline PWA (lang-005):** IndexedDB cache (`offlineCache.ts`), offline debug logging (`offlineDebug.ts`), API layer reading from cache when offline (vocabulary, user languages), full sync (`offlineSync.ts`), hooks `networkMode: 'always'`, OfflinePrefetch in Layout, Navbar Offline toggle with sync on turn ON and snackbar, Dictionary using app vocabulary from cache and offline debug logs. Docs: `OFFLINE_DEBUGGING.md`, `OFFLINE_SUMMARY_AND_DEBUG.md`. Code style: Navbar event param `_event`, `SNACKBAR_AUTO_HIDE_MS` constant, descriptive catch comment in offlineDebug.
 
-**Done in this session (committed):**
-- **Dictionary route + shell:** Route `/dictionary`, “Dictionary” in navbar, `DictionaryPage` with search field (sanitized) and placeholder text.
-- **Dictionary: MyMemory en-ru lookup service:** `lookup(query, from, to, { offlineMode })` in `src/lib/dictionary.ts`; en↔ru only; no cache.
-- **Dictionary: results UI with Add to library:** Debounced search, direction (en→ru / ru→en), results list, Add to library per result; offline message when Offline mode or no connection.
-- **Dictionary: pick best match:** MyMemory sometimes returns echo/same word (e.g. ru "любовь" → "Любовь"). We use `matches` array, filter out translations that equal the source (normalized), pick highest-quality real translation.
-- **Dictionary: list all translations:** Return all valid matches (dedupe by normalized translation, sort by quality, cap MAX_TRANSLATIONS 50). E.g. "key" en→ru shows клавиша, ключ, etc.; each row has Add to library.
-
-**Current state (after this session):** Auth, Settings, Library (as before); input sanitization; offline mode toggle; consistent error logging; Dictionary with MyMemory en–ru lookup (all translations listed, echo filtered, cap 50), Add to library per row. Next: optional en–sr; later: offline + cache + bundles.
+**Current state (after this session):** Offline flow verified: login → Dictionary → search → go offline → change tab/direction still shows data from cache. Each functional change committed separately; handoff updated.
 
 **Session complete.** Handoff updated; continue from “Suggestions for next steps” in the next session.
 
@@ -182,4 +185,4 @@ Use this for context when continuing work on the language app.
 
 ---
 
-*Last updated: Handoff corrected (Week 5 done). Expanded seed: 005 + generator --additional. PWA build fixed. Next: test PWA install/offline; Phase 3 when ready.*
+*Last updated: Offline PWA commits 22–30 (cache, sync, API, hooks, prefetch, Navbar, Dictionary, docs). Code style fixes applied. Next: test PWA install/offline; Phase 3 when ready.*
