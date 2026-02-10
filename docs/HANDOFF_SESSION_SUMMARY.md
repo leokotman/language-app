@@ -109,6 +109,13 @@ Use this for context when continuing work on the language app.
 - **Single “active” language pair** — User can have multiple pairs; Library add form uses one selected pair. Consider whether study/session should be “per pair” and how to choose the active pair (e.g. Settings default, or per-page).
 - **Offline / PWA** — vite-plugin-pwa is configured but build was failing; caching strategy and “due today” offline are not implemented.
 
+### From code review (feat/lang-005-expand-seed-and-pwa)
+- **PWA production config** — `vite.config.ts` currently has `minify: false` and workbox `mode: 'development'` so the build succeeds; for production, re-enable minify and use workbox production mode (or make them env-dependent). See "Issues we hit" (PWA build failure).
+- **listVocabulary offline and includeUserCreated** — When offline, `listVocabulary` returns only app vocabulary from cache; `includeUserCreated` is not applied. Either document in JSDoc (e.g. in `src/api/vocabulary.ts`) or later extend cache so user-created words for a pair are available offline after that pair was fetched online.
+- **OfflinePrefetch** — Runs in background with no loading/error UI; acceptable for now. Optional later: show a short "Offline data: syncing" / "Ready" or "Sync failed" (e.g. snackbar or navbar hint).
+- **Migration order** — Docs say run 001, 002, 003, (optional) 005, 004. Keep this order documented so new setups don't run 004 before 003/005.
+- **Tests** — Only `errors.test.ts` covers new code (`isNetworkError`). Consider unit tests for `offlineCache`, `offlineSync`, and API offline/network-error paths (return from cache).
+
 ### Suggested order for next sessions
 1. **Expand seed + PWA (current focus):** Expand app library seed (more triples for EN–RU, EN–SR, virtual RU–SR) so offline PWA has decent data; then fix PWA build and ship working PWA.
 2. **Week 6:** E2E for vocabulary flows; loading/error/empty states.
@@ -183,9 +190,16 @@ Use this for context when continuing work on the language app.
 4. **Week 6:** E2E for vocabulary flows, loading/error/empty states.
 5. **Phase 3:** FSRS + study session, then exercise types.
 
+### Next steps from code review (lang-005)
+- **PWA production:** Make `minify` and workbox `mode` in `vite.config.ts` env-dependent (e.g. production = minify true, mode `'production'`) or document follow-up before release. See §4 "From code review" and "Issues we hit".
+- **Offline listVocabulary:** Document in JSDoc in `src/api/vocabulary.ts` that when offline only app vocabulary is returned (includeUserCreated has no effect), or extend cache so user-created words for a pair are available offline.
+- **OfflinePrefetch UX (optional):** Add brief "Offline data: syncing" / "Ready" or "Sync failed" feedback (e.g. snackbar or navbar) when prefetch runs.
+- **Migration order:** Keep 001 → 002 → 003 → (optional) 005 → 004 documented in SUPABASE_SETUP.md and HANDOFF so new setups run migrations in the right order.
+- **Offline tests:** Add unit tests for `offlineCache`, `offlineSync`, and API layer returning from cache on offline/network error (optional; `errors.test.ts` already covers `isNetworkError`).
+
 ### Other small improvements (unchanged)
 - Default language pair; trim/validation on add/edit; “I’ve run the migration” refresh button.
 
 ---
 
-*Last updated: Offline PWA commits 22–31; Navbar useCallback fix for React Compiler. Handoff complete. Next: test PWA install/offline; Phase 3 when ready.*
+*Last updated: Offline PWA commits 22–31; Navbar useCallback fix for React Compiler. Code review (feat/lang-005-expand-seed-and-pwa) points added to §4 and §8. Next: test PWA install/offline; Phase 3 when ready.*
