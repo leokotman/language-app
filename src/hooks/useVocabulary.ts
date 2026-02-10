@@ -52,6 +52,7 @@ export function useVocabularyList(params: {
       return data
     },
     enabled: !!params.languageFrom && !!params.languageTo,
+    networkMode: 'always', // run when offline so listVocabulary can return from IndexedDB cache
   })
 }
 
@@ -105,6 +106,7 @@ export function useUserVocabularyList(userId: string | undefined) {
       return data
     },
     enabled: !!userId,
+    networkMode: 'always', // run when offline so listUserVocabulary can return from IndexedDB cache
   })
 }
 
