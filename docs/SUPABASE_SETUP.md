@@ -120,6 +120,8 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 
 ## 8. Create the core data tables (vocabulary, languages, user library)
 
+**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → *(optional)* **005** (step 9b) → **004** (step 10). Do not run 004 before 003 or 005.
+
 For language selection and vocabulary (Phase 1, Week 3):
 
 1. In the Supabase dashboard, go to **SQL Editor**.
@@ -165,7 +167,7 @@ This adds 150 more aligned triples (900 rows). Source: `scripts/seed-triples-add
 
 ## 10. (Recommended) Linter and security fixes
 
-After running migrations 001 and 002 (and optionally 003 and 005), run the security/linter fix so the Supabase dashboard linter is happy:
+Run this **only after** 001, 002, 003 (and 005 if you use the expanded seed). Do not run 004 before 003 or 005. Then run the security/linter fix so the Supabase dashboard linter is happy:
 
 1. In the Supabase dashboard, go to **SQL Editor**.
 2. Open **`docs/supabase-migrations/004_linter_security_fixes.sql`** and copy its contents.
