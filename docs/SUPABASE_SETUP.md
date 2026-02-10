@@ -151,9 +151,21 @@ This inserts aligned EN–RU–SR word triples (see `docs/SEED_AND_LOOKUP_STRATE
 
 ---
 
+### 9b. (Optional) Expanded seed vocabulary
+
+For more app library data (e.g. for offline PWA), run the expanded seed after 003:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/005_seed_vocabulary_expanded.sql`** and copy its contents.
+3. Paste and click **Run**.
+
+This adds 150 more aligned triples (900 rows). Source: `scripts/seed-triples-additional.json`. To regenerate: `node scripts/generate-seed-sql.mjs --additional`.
+
+---
+
 ## 10. (Recommended) Linter and security fixes
 
-After running migrations 001 and 002 (and optionally 003), run the security/linter fix so the Supabase dashboard linter is happy:
+After running migrations 001 and 002 (and optionally 003 and 005), run the security/linter fix so the Supabase dashboard linter is happy:
 
 1. In the Supabase dashboard, go to **SQL Editor**.
 2. Open **`docs/supabase-migrations/004_linter_security_fixes.sql`** and copy its contents.
