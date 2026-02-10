@@ -66,6 +66,7 @@ Use this for context when continuing work on the language app.
 28. feat(lang-005): Navbar Offline toggle with sync on turn ON and snackbar.
 29. feat(lang-005): Dictionary use app vocabulary from cache and add offline debug logs.
 30. feat(lang-005): docs: add offline debugging and summary guide (OFFLINE_DEBUGGING.md, OFFLINE_SUMMARY_AND_DEBUG.md).
+31. fix(lang-005): useCallback deps in Navbar for React Compiler (user not user?.id).
 
 ---
 
@@ -78,6 +79,7 @@ Use this for context when continuing work on the language app.
 | **TypeScript build: Supabase client inferred `never`** | Database type was missing `Relationships: []` on each table (GenericSchema requirement). | Added `Relationships: []` to every table in `src/types/database.ts`. |
 | **`erasableSyntaxOnly` errors in errors.ts** | Project uses `enum` / `class`; TS config has `erasableSyntaxOnly: true`. | Replaced with const object + factory (`createAppError`, `createAppErrorAsError`) and type. |
 | **PWA build failure** (terser/workbox) | workbox-build uses terser in production mode; promise did not resolve. | Fixed: `workbox: { mode: 'development' }` and `minify: false` in vite.config.ts so SW is generated without terser; build succeeds. |
+| **React Compiler: useCallback deps (Navbar)** | Compiler inferred dependency `user` but deps listed `user?.id`; memoization could not be preserved. | Fixed: dependency array changed to `[user, setOfflineMode, queryClient]` so it matches what the callback closes over. |
 
 ---
 
@@ -158,8 +160,9 @@ Use this for context when continuing work on the language app.
 
 **Done in this session (committed):**
 - **Offline PWA (lang-005):** IndexedDB cache (`offlineCache.ts`), offline debug logging (`offlineDebug.ts`), API layer reading from cache when offline (vocabulary, user languages), full sync (`offlineSync.ts`), hooks `networkMode: 'always'`, OfflinePrefetch in Layout, Navbar Offline toggle with sync on turn ON and snackbar, Dictionary using app vocabulary from cache and offline debug logs. Docs: `OFFLINE_DEBUGGING.md`, `OFFLINE_SUMMARY_AND_DEBUG.md`. Code style: Navbar event param `_event`, `SNACKBAR_AUTO_HIDE_MS` constant, descriptive catch comment in offlineDebug.
+- **fix(lang-005):** Navbar `handleOfflineToggle` useCallback deps aligned with React Compiler (use `user` not `user?.id` so inferred deps match).
 
-**Current state (after this session):** Offline flow verified: login → Dictionary → search → go offline → change tab/direction still shows data from cache. Each functional change committed separately; handoff updated.
+**Current state (after this session):** Offline flow verified: login → Dictionary → search → go offline → change tab/direction still shows data from cache. All changes committed; handoff complete.
 
 **Session complete.** Handoff updated; continue from “Suggestions for next steps” in the next session.
 
@@ -185,4 +188,4 @@ Use this for context when continuing work on the language app.
 
 ---
 
-*Last updated: Offline PWA commits 22–30 (cache, sync, API, hooks, prefetch, Navbar, Dictionary, docs). Code style fixes applied. Next: test PWA install/offline; Phase 3 when ready.*
+*Last updated: Offline PWA commits 22–31; Navbar useCallback fix for React Compiler. Handoff complete. Next: test PWA install/offline; Phase 3 when ready.*
