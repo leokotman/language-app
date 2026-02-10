@@ -1,17 +1,45 @@
 import { supabase } from '@/lib/supabase'
+import { isNetworkError } from '@/lib/errors'
+import { offlineLog } from '@/lib/offlineDebug'
+import { getUserLanguages as getCachedUserLanguages, setUserLanguages } from '@/lib/offlineCache'
 import type { UserLanguageRow, UserLanguageInsert, UserLanguageRowUpdate } from '@/types/database'
 
-/** Fetch the current user's language pairs. */
+/** Fetch the current user's language pairs. When offline returns from cache immediately. */
 export async function getUserLanguages(userId: string): Promise<{
   data: UserLanguageRow[]
   error: Error | null
 }> {
-  const { data, error } = await supabase
-    .from('user_languages')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at')
-  return { data: (data ?? []) as UserLanguageRow[], error: error as Error | null }
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+
+  if (isOffline) {
+    const cached = await getCachedUserLanguages(userId)
+    offlineLog('getUserLanguages offline', { userId, cachedCount: cached.length })
+    return { data: cached, error: null }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_languages')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at')
+
+    if (error && isNetworkError(error)) {
+      const cached = await getCachedUserLanguages(userId)
+      return { data: cached, error: null }
+    }
+    if (error) return { data: [], error: error as Error }
+
+    const result = (data ?? []) as UserLanguageRow[]
+    await setUserLanguages(userId, result)
+    return { data: result, error: null }
+  } catch (err) {
+    if (isNetworkError(err)) {
+      const cached = await getCachedUserLanguages(userId)
+      return { data: cached, error: null }
+    }
+    throw err
+  }
 }
 
 /** Add a language pair for the user. */

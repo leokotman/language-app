@@ -56,6 +56,18 @@ Use this for context when continuing work on the language app.
 ### Commits (docs: seed and lookup strategy)
 21. chore(lang-001): add seed and lookup strategy docs — SEED_AND_LOOKUP_STRATEGY.md (aligned triples §1, store-first lookup §2); DICTIONARY_PLAN.md and HANDOFF updated.
 
+### Commits (offline PWA — lang-005, this session)
+22. feat(lang-005): add offline debug logging (localStorage flag and [offline] prefix).
+23. feat(lang-005): add IndexedDB offline cache for app vocabulary and user data.
+24. feat(lang-005): API read from cache when offline (vocabulary and user languages).
+25. feat(lang-005): add full offline sync (app vocabulary, user languages, user library).
+26. feat(lang-005): run vocabulary and user-languages queries when offline (networkMode always).
+27. feat(lang-005): add OfflinePrefetch on login and mount in Layout.
+28. feat(lang-005): Navbar Offline toggle with sync on turn ON and snackbar.
+29. feat(lang-005): Dictionary use app vocabulary from cache and add offline debug logs.
+30. feat(lang-005): docs: add offline debugging and summary guide (OFFLINE_DEBUGGING.md, OFFLINE_SUMMARY_AND_DEBUG.md).
+31. fix(lang-005): useCallback deps in Navbar for React Compiler (user not user?.id).
+
 ---
 
 ## 2. Issues we hit
@@ -66,7 +78,8 @@ Use this for context when continuing work on the language app.
 | **“Failed to load language pairs” + “No language pairs yet”** | Same as above; list was empty and add still 404’d. | Same migration; UI now shows the setup message and hides add/list until migration is done. |
 | **TypeScript build: Supabase client inferred `never`** | Database type was missing `Relationships: []` on each table (GenericSchema requirement). | Added `Relationships: []` to every table in `src/types/database.ts`. |
 | **`erasableSyntaxOnly` errors in errors.ts** | Project uses `enum` / `class`; TS config has `erasableSyntaxOnly: true`. | Replaced with const object + factory (`createAppError`, `createAppErrorAsError`) and type. |
-| **PWA build failure** (terser/workbox) | Existing vite-plugin-pwa / workbox issue; not caused by our code. | Not fixed this session; `tsc -b` and unit tests pass. |
+| **PWA build failure** (terser/workbox) | workbox-build uses terser in production mode; promise did not resolve. | Fixed: `workbox: { mode: 'development' }` and `minify: false` in vite.config.ts so SW is generated without terser; build succeeds. |
+| **React Compiler: useCallback deps (Navbar)** | Compiler inferred dependency `user` but deps listed `user?.id`; memoization could not be preserved. | Fixed: dependency array changed to `[user, setOfflineMode, queryClient]` so it matches what the callback closes over. |
 
 ---
 
@@ -78,8 +91,12 @@ Use this for context when continuing work on the language app.
 - **Input sanitization**: `src/lib/sanitize.ts` — trim, max length, strip control chars; applied to auth forms, Library add/edit/search. See `docs/INPUT_SANITIZATION.md`.
 - **Offline mode**: Navbar toggle (persisted in localStorage); when on, no dictionary/pronunciation API calls. Store: `src/stores/offlineModeStore.ts`.
 - **Error handling**: `logError(context, error)` in `src/lib/errors.ts`; all catch blocks log with context (offlineModeStore, theme, auth pages, useAuth).
-- **Dictionary**: Route `/dictionary`, nav tab. MyMemory en↔ru lookup (`src/lib/dictionary.ts`); returns all valid translations (filter echo, dedupe, sort by quality, cap 50). E.g. "key" → клавиша, ключ, …; "любовь" → love (no echo). Debounced search, direction selector, results list, Add to library per row. Offline/Offline mode: no API call, message shown. Plan: `docs/DICTIONARY_PLAN.md` (offline/cache separate step).
-- **DB**: Run `001_profiles.sql` then `002_core_data_layer.sql` in Supabase. See `docs/SUPABASE_SETUP.md`.
+- **Dictionary / App Library:** One tab: lookup (MyMemory en↔ru, en↔sr), browse app library (seed from migration 003), add to my library. See `docs/DICTIONARY_PLAN.md`.
+- **DB**: Run 001, 002, 003, (optional) 005_seed_vocabulary_expanded.sql, 004 in Supabase. See `docs/SUPABASE_SETUP.md`.
+- **PWA**: Build now succeeds (workbox `mode: 'development'`, `minify: false`). Precache 7 entries; `dist/sw.js` and workbox runtime generated.
+- **Offline auth**: Login, Signup, Forgot password show “You need an internet connection to sign in…” when offline or when the auth request fails with a network error (`isNetworkError`, `OFFLINE_AUTH_MESSAGE` in `lib/errors.ts`). You cannot sign in without network; returning users with a cached session can still use the app offline.
+- **Offline cache (PWA):** IndexedDB (`src/lib/offlineCache.ts`) caches app vocabulary, user languages, user library. When offline or on network error, API layer returns from cache so Dictionary and Library show data. `OfflinePrefetch` in Layout runs when user is logged in and online; Navbar “Offline” toggle ON (while online) runs full sync and shows “Ready for offline.” Vocabulary and user-languages hooks use `networkMode: 'always'` so queries run when offline and return from cache. Debug: `localStorage.setItem('language-app-debug-offline', '1')` then refresh to see `[offline]` logs. See `docs/OFFLINE_DEBUGGING.md` and `docs/OFFLINE_SUMMARY_AND_DEBUG.md`.
+- **Seed**: 003 = 82 triples (492 rows). 005 = 150 additional triples (900 rows); run after 003 for more offline data.
 
 ---
 
@@ -87,15 +104,15 @@ Use this for context when continuing work on the language app.
 
 ### Possible gaps / risks
 - **No categories or notes on vocabulary yet** — Roadmap mentioned “notes, category”; schema only has word/translation. Adding later would need a migration (e.g. `notes text`, `category text` or a categories table) and UI.
-- **App library not implemented** — “Browse app library” and “add from app to personal” (Week 5) need seed data and UI; no seed script or app-library flow yet.
+- **Week 5 done:** Seed (003), App Library, import/export — implemented in lang-002/lang-003; handoff was not updated at merge.
 - **FSRS not wired for study** — `user_vocabulary` has FSRS fields; Study page and “due today” / review flow are not built. ts-fsrs is in package.json but not used in app logic yet.
 - **Single “active” language pair** — User can have multiple pairs; Library add form uses one selected pair. Consider whether study/session should be “per pair” and how to choose the active pair (e.g. Settings default, or per-page).
 - **Offline / PWA** — vite-plugin-pwa is configured but build was failing; caching strategy and “due today” offline are not implemented.
 
 ### Suggested order for next sessions
-1. **Week 5**: Seed data (e.g. EN–RU, EN–SR word lists), app library browse + “add to my library”, then import/export CSV if time.
-2. **Week 6**: E2E for vocabulary flows; loading/error/empty states; fix PWA build if needed.
-3. **Phase 3**: FSRS + study session (due today, rate card, update user_vocabulary), then exercise types.
+1. **Expand seed + PWA (current focus):** Expand app library seed (more triples for EN–RU, EN–SR, virtual RU–SR) so offline PWA has decent data; then fix PWA build and ship working PWA.
+2. **Week 6:** E2E for vocabulary flows; loading/error/empty states.
+3. **Phase 3:** FSRS + study session (due today, rate card, update user_vocabulary), then exercise types.
 
 ### Small improvements to consider
 - **Default language pair**: If user has one pair, preselect it everywhere; if multiple, let user pick “study language” in Settings or on Study page.
@@ -139,21 +156,13 @@ Use this for context when continuing work on the language app.
 
 ## 7. Session summary (latest — today’s work)
 
-**Earlier (previous sessions):** Bidirectional pairs (6.5), virtual pair (6.6), commit style and AI instructions.
+**Earlier (previous sessions):** Bidirectional pairs (6.5), virtual pair (6.6), commit style and AI instructions; Dictionary + MyMemory; offline mode toggle; error handling.
 
 **Done in this session (committed):**
-- **Input sanitization:** `src/lib/sanitize.ts` (trim, max length, strip control chars); applied to Login, Signup, Forgot password, Library add/edit/search. Regex replaced with char-code loop to satisfy ESLint. Docs: `INPUT_SANITIZATION.md`; tests: `sanitize.test.ts`.
-- **Offline mode toggle + dictionary plan:** `offlineModeStore` (zustand + localStorage), Navbar switch with tooltip. `docs/DICTIONARY_PLAN.md`: phases (one language pair online first; offline/cache/bundles as separate step); allowed providers only (LibreTranslate, MyMemory, Free Dictionary, Wiktionary).
-- **Meaningful error handling:** `logError(context, error)` in `lib/errors.ts`; all catch blocks use it (offlineModeStore, theme get/set, Login/Signup/ForgotPassword, useAuth getSession and signOut). Unit tests for `logError`.
+- **Offline PWA (lang-005):** IndexedDB cache (`offlineCache.ts`), offline debug logging (`offlineDebug.ts`), API layer reading from cache when offline (vocabulary, user languages), full sync (`offlineSync.ts`), hooks `networkMode: 'always'`, OfflinePrefetch in Layout, Navbar Offline toggle with sync on turn ON and snackbar, Dictionary using app vocabulary from cache and offline debug logs. Docs: `OFFLINE_DEBUGGING.md`, `OFFLINE_SUMMARY_AND_DEBUG.md`. Code style: Navbar event param `_event`, `SNACKBAR_AUTO_HIDE_MS` constant, descriptive catch comment in offlineDebug.
+- **fix(lang-005):** Navbar `handleOfflineToggle` useCallback deps aligned with React Compiler (use `user` not `user?.id` so inferred deps match).
 
-**Done in this session (committed):**
-- **Dictionary route + shell:** Route `/dictionary`, “Dictionary” in navbar, `DictionaryPage` with search field (sanitized) and placeholder text.
-- **Dictionary: MyMemory en-ru lookup service:** `lookup(query, from, to, { offlineMode })` in `src/lib/dictionary.ts`; en↔ru only; no cache.
-- **Dictionary: results UI with Add to library:** Debounced search, direction (en→ru / ru→en), results list, Add to library per result; offline message when Offline mode or no connection.
-- **Dictionary: pick best match:** MyMemory sometimes returns echo/same word (e.g. ru "любовь" → "Любовь"). We use `matches` array, filter out translations that equal the source (normalized), pick highest-quality real translation.
-- **Dictionary: list all translations:** Return all valid matches (dedupe by normalized translation, sort by quality, cap MAX_TRANSLATIONS 50). E.g. "key" en→ru shows клавиша, ключ, etc.; each row has Add to library.
-
-**Current state (after this session):** Auth, Settings, Library (as before); input sanitization; offline mode toggle; consistent error logging; Dictionary with MyMemory en–ru lookup (all translations listed, echo filtered, cap 50), Add to library per row. Next: optional en–sr; later: offline + cache + bundles.
+**Current state (after this session):** Offline flow verified: login → Dictionary → search → go offline → change tab/direction still shows data from cache. All changes committed; handoff complete.
 
 **Session complete.** Handoff updated; continue from “Suggestions for next steps” in the next session.
 
@@ -166,16 +175,12 @@ Use this for context when continuing work on the language app.
 **1) Input sanitization (security) — DONE**
 - **Implemented:** `src/lib/sanitize.ts` — trim, max length (email 255, password 128, word/translation 500, search 200), strip control chars. Applied to: Login, Signup, Forgot password (email/password); Library add word, edit word, search. See `docs/INPUT_SANITIZATION.md`. Unit tests: `src/__tests__/lib/sanitize.test.ts`.
 
-**2) Dictionary feature — en–ru done**
-- **Done:** Route `/dictionary`, MyMemory en↔ru lookup, debounced search, direction selector, results, Add to library. Offline/Offline mode: no API, message shown. See `docs/DICTIONARY_PLAN.md`.
-- **Next (optional):** More language pairs (e.g. en–sr) one at a time.
-- **Later (separate step):** IndexedDB cache, optional bundled data, virtual list for large result sets.
+**2) Dictionary + App Library — DONE**
+- **Done:** Dictionary tab with MyMemory en↔ru, en↔sr; app library browse; add to my library; import/export CSV and JSON. Seed: migration 003 (82 triples, all pairs). See `docs/DICTIONARY_PLAN.md`, `docs/SEED_AND_LOOKUP_STRATEGY.md`.
 
-### Then (after sanitization + dictionary)
-3. **Week 5 (roadmap):** Seed data (EN–RU, EN–SR), app library browse, add from app to personal, import/export CSV.
-   - **Seed data:** Use **aligned triples (EN, RU, SR)** so the virtual pair RU↔SR has the same concept in all three languages (e.g. love / любовь / ljubav); seed six vocabulary rows per triple (all directions). See **`docs/SEED_AND_LOOKUP_STRATEGY.md`** §1.
-   - **Lookup (Dictionary / any translation):** **Store-first, then API.** (1) Search app library + user library. (2) If found → use it. (3) If not found and online and not Offline mode → call API. (4) If not found and (offline or Offline mode) → show message: *"We need an internet connection to translate this word."* See **`docs/SEED_AND_LOOKUP_STRATEGY.md`** §2. `DICTIONARY_PLAN.md` updated to match.
-4. **Week 6:** E2E for vocabulary flows, loading/error/empty states, fix PWA build if needed.
+### Priority now
+3. **Expand seed + PWA:** (1) Add more aligned triples (EN–RU, EN–SR, virtual RU–SR) so offline PWA has useful data. (2) Fix PWA build (workbox/terser “Unexpected early exit”); then ship working PWA with caching.
+4. **Week 6:** E2E for vocabulary flows, loading/error/empty states.
 5. **Phase 3:** FSRS + study session, then exercise types.
 
 ### Other small improvements (unchanged)
@@ -183,4 +188,4 @@ Use this for context when continuing work on the language app.
 
 ---
 
-*Last updated: Commit 20: Dictionary list all translations. Next session: optional en–sr; later offline/cache; or Week 5 / Phase 3 per §8.*
+*Last updated: Offline PWA commits 22–31; Navbar useCallback fix for React Compiler. Handoff complete. Next: test PWA install/offline; Phase 3 when ready.*

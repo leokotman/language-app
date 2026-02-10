@@ -3,7 +3,7 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { getAuthErrorMessage, logError } from '@/lib/errors'
+import { getAuthErrorMessage, isNetworkError, logError, OFFLINE_AUTH_MESSAGE } from '@/lib/errors'
 import {
   sanitizeEmail,
   sanitizePassword,
@@ -25,6 +25,10 @@ export function LoginPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setError(null)
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setError(OFFLINE_AUTH_MESSAGE)
+      return
+    }
     const safeEmail = sanitizeEmail(email)
     const safePassword = sanitizePassword(password)
     setLoading(true)
@@ -43,7 +47,7 @@ export function LoginPage() {
       navigate(redirectFrom, { replace: true })
     } catch (err) {
       logError('LoginPage.handleSubmit', err)
-      setError('Something went wrong. Please try again.')
+      setError(isNetworkError(err) ? OFFLINE_AUTH_MESSAGE : 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
