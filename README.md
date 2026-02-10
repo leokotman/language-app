@@ -1,6 +1,6 @@
 # Language Learning App
 
-A language learning PWA (React, TypeScript, Vite, MUI). Vocabulary, spaced repetition, and pronunciation practice. Practice exercises adapt to your needs!
+A language learning PWA (React, TypeScript, Vite, MUI). Vocabulary, spaced repetition, and pronunciation practice. Practice exercises adapt to your needs
 
 ## Setup
 
