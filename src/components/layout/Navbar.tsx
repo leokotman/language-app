@@ -53,7 +53,7 @@ export function Navbar() {
         }
       }
     },
-    [user?.id, setOfflineMode, queryClient]
+    [user, setOfflineMode, queryClient]
   )
 
   const handleSignOut = () => {
