@@ -41,7 +41,7 @@ Onboarding for a coding agent seeing this repo for the first time. Goals: reduce
 - **Data/API:** `src/api/` (Supabase calls: `vocabulary.ts`, `userLanguages.ts`, `profiles.ts`, etc.). `src/hooks/` wrap API with TanStack Query (e.g. `useVocabulary.ts`, `useUserLanguages.ts`, `useAuth.ts`). `src/stores/` (Zustand): `authStore.ts`, `offlineModeStore.ts`.
 - **Utilities:** `src/lib/` (e.g. `supabase.ts`, `errors.ts`, `sanitize.ts`, `dictionary.ts`, `offlineCache.ts`, `offlineSync.ts`). Types: `src/types/database.ts`, `src/types/index.ts`.
 - **Config:** Lint `eslint.config.js`; TypeScript `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`; Vite + PWA + Vitest in `vite.config.ts`; path alias `@` → `src/`.
-- **Docs:** `docs/` — `HANDOFF_SESSION_SUMMARY.md` (current state, commits), `AI agent instructions.md` (git workflow, handoff), `SUPABASE_SETUP.md`, plus DICTIONARY_PLAN, OFFLINE_DEBUGGING, etc. **Cursor rules:** `.cursor/rules/*.mdc` (naming, helpers, page layout, clean code).
+- **Docs:** `docs/` — Confluence page “Language Learning App – Project History” (current state, commits, next steps; see `docs/AI agent instructions.md` for link), `AI agent instructions.md` (git workflow, Jira/Confluence workflow), `JIRA_CONFLUENCE_WORKFLOW.md`, `SUPABASE_SETUP.md`, plus DICTIONARY_PLAN, OFFLINE_DEBUGGING, etc. **Cursor rules:** `.cursor/rules/*.mdc` (naming, helpers, page layout, clean code).
 
 ---
 
@@ -61,8 +61,8 @@ Onboarding for a coding agent seeing this repo for the first time. Goals: reduce
 
 ## Where to look next
 
-- **Current state and handoff:** `docs/HANDOFF_SESSION_SUMMARY.md`
-- **Branching, commits, handoff updates:** `docs/AI agent instructions.md`
+- **Current state and handoff:** Confluence page “Language Learning App – Project History” (link in `docs/AI agent instructions.md`).
+- **Branching, commits, Jira/Confluence workflow:** `docs/AI agent instructions.md`, `docs/JIRA_CONFLUENCE_WORKFLOW.md`
 - **Detailed rules:** `.cursor/rules/` (general-clean-code, naming-clean-code, helpers-extract, page-architecture)
 - **Supabase:** `docs/SUPABASE_SETUP.md`
 
