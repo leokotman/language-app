@@ -75,7 +75,7 @@ This file is the canonical handoff for the language app. Update it after each se
 - `src/pages/` — HomePage, LibraryPage, DictionaryPage, SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (shell).
 - `src/api/` — languages, userLanguages, vocabulary, profiles.
 - `src/hooks/` — useAuth, useLanguages, useUserLanguages, useVocabulary.
-- `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport.
+- `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport, fsrs.
 - `src/stores/` — authStore, offlineModeStore.
 - `docs/supabase-migrations/` — 001–008.
 - `e2e/` — home.spec.ts, library.spec.ts, helpers/auth.ts.
@@ -86,6 +86,8 @@ This file is the canonical handoff for the language app. Update it after each se
 
 Recent work (from git, latest first):
 
+- lang-011: FSRS + study session — src/lib/fsrs.ts (ts-fsrs: row↔Card, scheduleRating); API listDueToday(userId, filters?); hooks useDueToday, useUpdateUserVocabulary invalidates due-today; Study page: language pair, due count, start session, card → reveal → Again/Hard/Good/Easy, update SRS, next or complete. Unit tests for fsrs helper.
+- Doc revisions: agent instructions (branch-from-main clarity), HANDOFF session-start note and next task (lang-011).
 - Confluence/Jira removed; handoff moved to repo (`docs/HANDOFF.md`), docs updated.
 - E2E (lang-009): Playwright — home + library specs; unauthenticated redirect; authenticated add/edit/delete; data-testid for loading/error/empty; E2E auth helper and `.env` (E2E_TEST_EMAIL, E2E_TEST_PASSWORD).
 - Performance (lang-007): query and table updates for Supabase performance.
@@ -120,7 +122,7 @@ Recent work (from git, latest first):
 
 ## 6. Priority now
 
-1. **Phase 3:** Implement FSRS and study session flow (next: `feat/lang-011-fsrs-and-study-session`).
+1. **Phase 3 (continued):** More exercise types (reverse flashcard, typing, multiple choice), E2E for study.
 2. Default language pair and “study language” in Settings/Study.
 3. Validation (trim/max length) in add/edit word.
 4. “I’ve run the migration” button.
