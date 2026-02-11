@@ -315,13 +315,13 @@ export function DictionaryPage() {
       )}
 
       {apiError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setApiError(null)}>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setApiError(null)} data-testid="dictionary-error">
           {apiError}
         </Alert>
       )}
 
       {apiLoading && !hasStoreResults && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }} data-testid="dictionary-loading">
           <CircularProgress size={24} />
           <Typography variant="body2">Searching…</Typography>
         </Box>
@@ -332,7 +332,7 @@ export function DictionaryPage() {
         combinedResults.length === 0 &&
         !hasStoreResults &&
         (isOffline || !apiSupported) && (
-          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
+          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }} data-testid="dictionary-empty">
             {isOffline
               ? 'Connect to the internet to look up this word.'
               : 'No results found. Try another word or direction.'}
@@ -346,7 +346,7 @@ export function DictionaryPage() {
         apiSupported &&
         !isOffline &&
         !apiError && (
-          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
+          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }} data-testid="dictionary-empty">
             No translation found. Try another word.
           </Typography>
         )}
