@@ -144,7 +144,7 @@ Use this checklist to confirm the app works as expected (e.g. after setup or aft
 
 ### Prerequisites
 1. **Environment:** `npm install`, `.env` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-2. **Migrations:** Run in Supabase SQL Editor in this order: **001** → **002** → **003** → *(optional)* **005** → **004**. See `docs/SUPABASE_SETUP.md` §8 and §10.
+2. **Migrations:** Run in Supabase SQL Editor in this order: **001** → **002** → **003** → *(optional)* **005** → *(optional)* **008** → **004** → **006** → **007**. See `docs/SUPABASE_SETUP.md` §8 and §10.
 
 ### Dev flow
 3. **Start dev server:** `npm run dev`. Open the app in the browser.
@@ -203,7 +203,8 @@ Use this checklist to confirm the app works as expected (e.g. after setup or aft
 - **Done:** Dictionary tab with MyMemory en↔ru, en↔sr; app library browse; add to my library; import/export CSV and JSON. Seed: migration 003 (82 triples, all pairs). See `docs/DICTIONARY_PLAN.md`, `docs/SEED_AND_LOOKUP_STRATEGY.md`.
 
 ### Priority now
-3. **Expand seed + PWA:** (1) Add more aligned triples (EN–RU, EN–SR, virtual RU–SR) so offline PWA has useful data. (2) Fix PWA build (workbox/terser “Unexpected early exit”); then ship working PWA with caching.
+3. **Expand seed:** Phase 3 seed (008, 128 triples) added; optional. PWA caches app shell; we cache only user data (personal library, user language pairs, future exercise results). Library works offline from this cache.
+
 4. **Week 6:** E2E for vocabulary flows, loading/error/empty states.
 5. **Phase 3:** FSRS + study session, then exercise types.
 
@@ -212,4 +213,4 @@ Use this checklist to confirm the app works as expected (e.g. after setup or aft
 
 ---
 
-*Last updated: Verification steps in §5b. Next: test PWA install/offline; Phase 3 when ready.*
+*Last updated: Seed phase3 (008), offline cache note (user data only). Next: Week 6 E2E or Phase 3 FSRS.*
