@@ -99,7 +99,13 @@ export function userVocabularyListQueryKey(userId: string) {
 }
 
 export function dueTodayQueryKey(userId: string, filters?: DueTodayFilters) {
-  return ['due-today', userId, filters?.languageFrom ?? null, filters?.languageTo ?? null] as const
+  return [
+    'due-today',
+    userId,
+    filters?.languageFrom ?? null,
+    filters?.languageTo ?? null,
+    filters?.pairKey ?? null,
+  ] as const
 }
 
 export function useDueToday(userId: string | undefined, filters?: DueTodayFilters) {

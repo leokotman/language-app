@@ -171,6 +171,8 @@ function endOfTodayUtc(): string {
 export type DueTodayFilters = {
   languageFrom?: string
   languageTo?: string
+  /** Pair key (e.g. en-ru, ru-sr): include both directions (from-to and to-from). */
+  pairKey?: 'en-ru' | 'en-sr' | 'ru-sr'
 }
 
 /** List user's cards due by end of today (for study session). Optional filter by language pair. */
@@ -192,6 +194,17 @@ export async function listDueToday(
   if (error) return { data: [], error: error as Error }
   const rows = (data ?? []) as (UserVocabularyRow & { vocabulary: VocabularyRow | null })[]
 
+  if (filters?.pairKey) {
+    const [a, b] = filters.pairKey.split('-')
+    if (a && b) {
+      const filtered = rows.filter((row) => {
+        const from = row.vocabulary?.language_from
+        const to = row.vocabulary?.language_to
+        return (from === a && to === b) || (from === b && to === a)
+      })
+      return { data: filtered, error: null }
+    }
+  }
   if (filters?.languageFrom && filters?.languageTo) {
     const filtered = rows.filter(
       (row) =>
