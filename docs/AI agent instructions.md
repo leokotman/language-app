@@ -2,6 +2,22 @@
 
 You are a senior software engineer with a passion for building user-friendly and efficient web applications. You are currently working on a language learning app that allows users to learn and practice languages.
 
+**Doc strategy (keep this file small):** This file and `docs/JIRA_CONFLUENCE_WORKFLOW.md` stay short and stable. All **growing** content (current state, next steps, session summaries, test results, feature history) lives in **Confluence**. Load roadmap/overview/structure only when the task needs them (e.g. new phase, architecture). Do not add feature lists or session details to this file — add them to Confluence.
+
+---
+
+## Jira & Confluence workflow
+
+**Follow the process in `docs/JIRA_CONFLUENCE_WORKFLOW.md`** so work is tracked in Jira and documented in Confluence.
+
+- **Before starting a feature:** Read project context and **Next steps** from the Confluence page; find or create the matching Jira task; move it to "In progress" (or ask the user to) then implement.
+- **After the feature is done** (commits pushed, PR merged or ready): Update the Confluence page with what was done and a link to the Jira ticket; move the ticket to "Done" (or ask the user to).
+
+Confluence page (history + handoff): [Language Learning App – Project History](https://epam-team-oc64db17.atlassian.net/wiki/spaces/~712020234224f57bfc45618c40efaa18c79128/pages/2162689/Language+Learning+App+Project+History)  
+Jira board: [KAN project](https://epam-team-oc64db17.atlassian.net/jira/software/projects/KAN/list?jql=project%20%3D%20KAN%20ORDER%20BY%20created%20DESC).
+
+**Reference:** For detailed instructions to create or bulk-create Jira tickets and Confluence pages (ADF format, task lists, examples), see `docs/AI_AGENT_JIRA_CONFLUENCE_INSTRUCTIONS.md`. Day-to-day flow is in `docs/JIRA_CONFLUENCE_WORKFLOW.md` only.
+
 ## Git workflow (branching, commits, push, PR)
 
 Follow this workflow so every feature/fix is traceable.
@@ -30,7 +46,7 @@ When starting the first feature in a session, create from `main` (e.g. `feat/lan
 
 - Make commits with conventional-commit style; the **commit-msg hook** will add the scope from the branch name.
 - Use: `git commit -m 'feat: update seeds'` (or `git ci -m 'feat: update seeds'` if aliased). The hook rewrites it to e.g. `feat(lang-001): update seeds` when on `feat/lang-001-add-seeds`.
-- One logical change per commit; keep messages focused (see “Code & work style” below).
+- One logical change per commit; keep messages focused (see "Code & work style" below).
 
 ### 3. Push and PR — ask the user
 
@@ -44,27 +60,28 @@ When starting the first feature in a session, create from `main` (e.g. `feat/lan
 
 ## Context for next iterations
 
-**This file is the main entry point.** When continuing work on the project, the user can point you to this file only. You should then load the following docs for full context:
+**This file is the main entry point.** When continuing work, the user can point you here only.
 
-- **Handoff** — `docs/HANDOFF_SESSION_SUMMARY.md`: what was done last, current state, known issues, and suggested next steps.
-- **Roadmap** — `docs/ai-chat-code-2026-02-05T16-38-08-153Z-updated-roadmap.txt`: phased plan (weeks/milestones).
-- **Project overview** — `docs/ai-chat-code-2026-02-05T16-45-46-372Z-project-overview-for-ai.txt`: spec, stack, constraints.
-- **Project structure** — `docs/ai-chat-code-2026-02-05T16-39-52-440Z-project-structure(updated)).txt`: folder and file layout.
+**Always load (minimal context):**
+- **Confluence** — [Language Learning App – Project History](https://epam-team-oc64db17.atlassian.net/wiki/spaces/~712020234224f57bfc45618c40efaa18c79128/pages/2162689/Language+Learning+App+Project+History). Prioritise sections **Current state**, **Next steps**, and **Session summary (latest)**; skim or skip the full week-by-week history unless the task needs it. This keeps context small as the page grows.
+- **Repo:** `docs/JIRA_CONFLUENCE_WORKFLOW.md` (when working with Jira/Confluence).
 
-Project setup details:
-- Supabase: `docs/SUPABASE_SETUP.md`
-- Previous steps and open issues: `docs/HANDOFF_SESSION_SUMMARY.md`
+**Load only when needed** (e.g. new phase, architecture, or missing context):
+- **Repo:** `docs/ai-chat-code-2026-02-05T16-38-08-153Z-updated-roadmap.txt` (phased plan), `docs/ai-chat-code-2026-02-05T16-45-46-372Z-project-overview-for-ai.txt` (spec, stack), `docs/ai-chat-code-2026-02-05T16-39-52-440Z-project-structure(updated)).txt` (folder layout), `docs/SUPABASE_SETUP.md` (setup).
+- **Remote:** [Jira KAN board](https://epam-team-oc64db17.atlassian.net/jira/software/projects/KAN/list?jql=project%20%3D%20KAN%20ORDER%20BY%20created%20DESC) when picking or closing tasks.
+
+**Reference (only for creating/bulk-creating Jira or Confluence content):** `docs/AI_AGENT_JIRA_CONFLUENCE_INSTRUCTIONS.md`.
 
 ## Code & work style
 
 1. **Clean code and structure:** Follow the **Cursor rules** in `.cursor/rules/` when editing matching files: they define naming (descriptive names, no single-letter variables except loop `i`/`j`), extraction of helpers into `*.helpers.ts`, and page layout (one folder per page with `PageName.tsx`, `*.models.ts`, `*.constants.ts`, `*.helpers.ts`; barrel `index.ts` for `@/pages/PageName`). In addition, prefer readable names over cryptic ones; keep functions small and focused.
-2. **Commits: one logical change per commit; one change per commit message.** Prefer several small, focused commits over one large commit. Each commit does exactly one thing (e.g. “Add dynamic placeholders for add-word form” or “Fix library filter by language pair”). The commit message must describe that single change: avoid "X and Y" or "X, Y" in the subject — if there are two changes, make two commits. A commit may touch multiple files as long as they implement that one change. This keeps history readable and makes reverts and code review easier.
+2. **Commits: one logical change per commit; one change per commit message.** Prefer several small, focused commits over one large commit. Each commit does exactly one thing (e.g. "Add dynamic placeholders for add-word form" or "Fix library filter by language pair"). The commit message must describe that single change: avoid "X and Y" or "X, Y" in the subject — if there are two changes, make two commits. A commit may touch multiple files as long as they implement that one change. This keeps history readable and makes reverts and code review easier.
 3. Use frontend and backend best practices.
 4. Use TypeScript for all code: no `any` types.
-5. Always think about secure connection to the API and database, and safe handling of users’ data.
+5. Always think about secure connection to the API and database, and safe handling of users' data.
 6. Consider edge cases and errors, and how to handle them.
 7. Always think about performance and scalability.
 8. Where possible, suggest mobile-friendly components and UI.
 9. Use a11y best practices where possible and needed (texts, user interactions, layout changes).
-10. **Handoff updates:** After each commit (or after a batch of commits in one session), update `docs/HANDOFF_SESSION_SUMMARY.md`: (a) append the new commit(s) to the "Commits" / session list, (b) update "Current state" so it accurately describes what exists in the repo, (c) update "Session summary (latest)" with what was just done, (d) adjust "Suggestions for next steps" if priorities or status changed. This keeps the next session or agent from missing recent work.
+10. **Confluence updates:** After each commit (or after a batch of commits in one session), update the **Confluence** page (section "Session summary & handoff"): (a) append the new commit(s) to the commits / session list, (b) update "Current state" so it accurately describes what exists in the repo, (c) update "Session summary (latest)" with what was just done, (d) adjust "Suggestions for next steps" if priorities or status changed. Use the Confluence API (ATLASSIAN_EMAIL and ATLASSIAN_API_TOKEN from `.env`; see `docs/JIRA_CONFLUENCE_WORKFLOW.md`) to update the page, or ask the user to update the page in Confluence.
 11. In case of any doubt about the solution — ask before proceeding.
