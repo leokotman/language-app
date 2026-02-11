@@ -120,7 +120,7 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 
 ## 8. Create the core data tables (vocabulary, languages, user library)
 
-**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → *(optional)* **005** (step 9b) → **004** (step 10) → **006** (step 10b) → **007** (step 10c). Do not run 004 before 003 or 005.
+**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → *(optional)* **005** (step 9b) → *(optional)* **008** (step 9c) → **004** (step 10) → **006** (step 10b) → **007** (step 10c). Do not run 004 before 003 or 005.
 
 For language selection and vocabulary (Phase 1, Week 3):
 
@@ -162,6 +162,18 @@ For more app library data (e.g. for offline PWA), run the expanded seed after 00
 3. Paste and click **Run**.
 
 This adds 150 more aligned triples (900 rows). Source: `scripts/seed-triples-additional.json`. To regenerate: `node scripts/generate-seed-sql.mjs --additional`.
+
+---
+
+### 9c. (Optional) Phase 3 seed vocabulary
+
+For even more app library data (128 aligned triples, 768 rows), run after 005:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/008_seed_vocabulary_phase3.sql`** and copy its contents.
+3. Paste and click **Run**.
+
+Source: `scripts/seed-triples-phase3.json`. To regenerate: `node scripts/generate-seed-sql.mjs --phase3`.
 
 ---
 
