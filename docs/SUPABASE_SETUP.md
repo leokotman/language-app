@@ -120,7 +120,7 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 
 ## 8. Create the core data tables (vocabulary, languages, user library)
 
-**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → *(optional)* **005** (step 9b) → **004** (step 10). Do not run 004 before 003 or 005.
+**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → *(optional)* **005** (step 9b) → **004** (step 10) → **006** (step 10b) → **007** (step 10c). Do not run 004 before 003 or 005.
 
 For language selection and vocabulary (Phase 1, Week 3):
 
@@ -174,6 +174,32 @@ Run this **only after** 001, 002, 003 (and 005 if you use the expanded seed). Do
 3. Paste and click **Run**.
 
 This enables RLS on the **languages** table (with a read-only policy) and sets an immutable **search_path** on the `set_updated_at()` function.
+
+---
+
+## 10b. (Recommended) Performance fixes
+
+After 001, 002, and 004 are applied, run the performance migration to address Supabase linter suggestions (indexes, RLS init plan, multiple permissive policies):
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/006_performance_fixes.sql`** and copy its contents.
+3. Paste and click **Run**.
+
+This adds indexes on foreign keys, drops unused indexes, fixes RLS to use `(select auth.uid())` for better performance, and consolidates vocabulary SELECT policies.
+
+---
+
+## 10c. (Recommended) Query performance indexes
+
+To speed up the app’s vocabulary and library queries that appear in **Reports → Query performance**:
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/007_query_performance_indexes.sql`** and copy its contents.
+3. Paste and click **Run**.
+
+This adds composite indexes for: listing vocabulary by language pair + source (and ordering by word), listing all app vocabulary for offline prefetch, and listing the user’s library by `created_at` desc.
+
+**Note:** Many “long” queries in Query performance are **Supabase/PostgREST internals** (e.g. `pg_timezone_names`, dashboard schema queries, backups, `set_config` per request). Those cannot be optimized from your project; only the app’s own queries (vocabulary, user_vocabulary) are addressed by 006 and 007.
 
 ---
 
