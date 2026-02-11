@@ -72,7 +72,7 @@ Week 6: Testing & Polish
 
 Suggested (from implementation): Consider adding "Verification / dictionaries" — way for users
 to check spelling/meaning when adding words (e.g. curated word lists, optional dictionary API, or
-document as future improvement). See HANDOFF_SESSION_SUMMARY.md §8.
+document as future improvement). See docs/HANDOFF.md §5 (Suggestions for next steps).
 
 
 PHASE 3: Learning Engine (3-4 weeks)
