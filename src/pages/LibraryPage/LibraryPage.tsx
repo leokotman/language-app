@@ -462,24 +462,24 @@ export function LibraryPage() {
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2 }} data-testid="library-error">
               Failed to load your library. Try again.
             </Alert>
           )}
 
           {isLoading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} data-testid="library-loading">
               <CircularProgress size={24} />
               <Typography variant="body2">Loading…</Typography>
             </Box>
           ) : filteredItems.length === 0 ? (
-            <Typography color="text.secondary">
+            <Typography color="text.secondary" data-testid="library-empty">
               {libraryItems.length === 0
                 ? 'No words yet. Add your first word below.'
                 : 'No words match your search or filter.'}
             </Typography>
           ) : (
-            <List dense disablePadding sx={{ bgcolor: 'action.hover', borderRadius: 1 }}>
+            <List dense disablePadding sx={{ bgcolor: 'action.hover', borderRadius: 1 }} data-testid="library-list">
               {languageFilter === VIRTUAL_PAIR_RU_SR.key && filteredItems.length > 0 && (
                 <ListItem sx={{ bgcolor: 'action.selected', py: 0.5 }}>
                   <ListItemText

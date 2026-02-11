@@ -68,6 +68,11 @@ Use this for context when continuing work on the language app.
 30. feat(lang-005): docs: add offline debugging and summary guide (OFFLINE_DEBUGGING.md, OFFLINE_SUMMARY_AND_DEBUG.md).
 31. fix(lang-005): useCallback deps in Navbar for React Compiler (user not user?.id).
 
+### Commits (Week 6 E2E and polish — lang-009, this session)
+32. feat(lang-009): E2E tests for Library — unauthenticated redirect, authenticated add/edit/delete (optional E2E_TEST_EMAIL/E2E_TEST_PASSWORD).
+33. feat(lang-009): data-testid for loading/error/empty in Library and Dictionary.
+34. chore(lang-009): document E2E auth env in .env.example and README.
+
 ---
 
 ## 2. Issues we hit
@@ -97,6 +102,8 @@ Use this for context when continuing work on the language app.
 - **Offline auth**: Login, Signup, Forgot password show “You need an internet connection to sign in…” when offline or when the auth request fails with a network error (`isNetworkError`, `OFFLINE_AUTH_MESSAGE` in `lib/errors.ts`). You cannot sign in without network; returning users with a cached session can still use the app offline.
 - **Offline cache (PWA):** IndexedDB (`src/lib/offlineCache.ts`) caches app vocabulary, user languages, user library. When offline or on network error, API layer returns from cache so Dictionary and Library show data. `OfflinePrefetch` in Layout runs when user is logged in and online; Navbar “Offline” toggle ON (while online) runs full sync and shows “Ready for offline.” Vocabulary and user-languages hooks use `networkMode: 'always'` so queries run when offline and return from cache. Debug: `localStorage.setItem('language-app-debug-offline', '1')` then refresh to see `[offline]` logs. See `docs/OFFLINE_DEBUGGING.md` and `docs/OFFLINE_SUMMARY_AND_DEBUG.md`.
 - **Seed**: 003 = 82 triples (492 rows). 005 = 150 additional triples (900 rows); run after 003 for more offline data.
+- **E2E (Week 6):** Playwright specs: `e2e/home.spec.ts`, `e2e/library.spec.ts`. Library: unauthenticated redirect to login; authenticated flow (add word, list, edit, delete) runs when `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` are set. Run `npx playwright install` once; then `npm run test:e2e`. See README and `.env.example`.
+- **Loading/error/empty:** Library and Dictionary use `data-testid="library-loading"`, `library-error`, `library-empty`, `library-list`, `dictionary-loading`, `dictionary-error`, `dictionary-empty` for E2E and consistency.
 
 ---
 
@@ -180,15 +187,10 @@ Use this checklist to confirm the app works as expected (e.g. after setup or aft
 
 ## 7. Session summary (latest — today’s work)
 
-**Earlier (previous sessions):** Bidirectional pairs (6.5), virtual pair (6.6), commit style and AI instructions; Dictionary + MyMemory; offline mode toggle; error handling.
-
 **Done in this session (committed):**
-- **Offline PWA (lang-005):** IndexedDB cache (`offlineCache.ts`), offline debug logging (`offlineDebug.ts`), API layer reading from cache when offline (vocabulary, user languages), full sync (`offlineSync.ts`), hooks `networkMode: 'always'`, OfflinePrefetch in Layout, Navbar Offline toggle with sync on turn ON and snackbar, Dictionary using app vocabulary from cache and offline debug logs. Docs: `OFFLINE_DEBUGGING.md`, `OFFLINE_SUMMARY_AND_DEBUG.md`. Code style: Navbar event param `_event`, `SNACKBAR_AUTO_HIDE_MS` constant, descriptive catch comment in offlineDebug.
-- **fix(lang-005):** Navbar `handleOfflineToggle` useCallback deps aligned with React Compiler (use `user` not `user?.id` so inferred deps match).
+- **Week 6 E2E and polish (lang-009):** New branch `feat/lang-009-week6-e2e-and-polish`. E2E: `e2e/library.spec.ts` — unauthenticated user visiting `/library` redirects to login; authenticated flow (login → Settings add pair if needed → Library add word → list → edit → delete) when `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` are set. data-testid on Library and Dictionary for loading, error, empty, and list. Docs: `.env.example` and README note for E2E auth; handoff updated.
 
-**Current state (after this session):** Offline flow verified: login → Dictionary → search → go offline → change tab/direction still shows data from cache. Verification checklist in §5b.
-
-**Session complete.** Handoff updated; continue from “Suggestions for next steps” in the next session.
+**Current state (after this session):** E2E suite includes Home and Library (redirect + full CRUD when env set). Run `npx playwright install` then `npm run test:e2e`. Next: Phase 3 FSRS + study or more E2E coverage.
 
 ---
 
@@ -205,7 +207,7 @@ Use this checklist to confirm the app works as expected (e.g. after setup or aft
 ### Priority now
 3. **Expand seed:** Phase 3 seed (008, 128 triples) added; optional. PWA caches app shell; we cache only user data (personal library, user language pairs, future exercise results). Library works offline from this cache.
 
-4. **Week 6:** E2E for vocabulary flows, loading/error/empty states.
+4. **Week 6:** E2E for vocabulary flows, loading/error/empty states — **done (lang-009):** library.spec.ts (redirect + add/edit/delete with auth env), data-testid on Library and Dictionary.
 5. **Phase 3:** FSRS + study session, then exercise types.
 
 ### Other small improvements (unchanged)
@@ -213,4 +215,4 @@ Use this checklist to confirm the app works as expected (e.g. after setup or aft
 
 ---
 
-*Last updated: Seed phase3 (008), offline cache note (user data only). Next: Week 6 E2E or Phase 3 FSRS.*
+*Last updated: Week 6 E2E and polish (lang-009). Next: Phase 3 FSRS + study session.*

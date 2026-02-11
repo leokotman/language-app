@@ -8,7 +8,7 @@ A language learning PWA (React, TypeScript, Vite, MUI). Vocabulary, spaced repet
 2. Copy env file: `cp .env.example .env` and fill in your Supabase URL and anon key (when ready).
 3. Run dev server: `npm run dev`
 4. Run unit tests: `npm run test` or `npm run test:run`
-5. Run E2E tests: `npm run test:e2e` (starts dev server automatically)
+5. Run E2E tests: `npm run test:e2e` (starts dev server automatically; loads `.env` so `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` are used when set). Without those in `.env`, only unauthenticated tests run; with them, all tests including authenticated flows run.
 
 ## Tech
 
