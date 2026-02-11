@@ -2,6 +2,8 @@
 
 This file is the canonical handoff for the language app. Update it after each session with **Current state**, **Session summary (latest)**, and **Suggestions for next steps**.
 
+**Session start:** Create a branch from `main` (e.g. `feat/lang-011-…`). Use the next task number from §4 session summary or §6 Priority. Load this file and `docs/AI agent instructions.md` for context.
+
 ---
 
 ## 1. Project history (by week)
@@ -118,7 +120,7 @@ Recent work (from git, latest first):
 
 ## 6. Priority now
 
-1. Phase 3: Implement FSRS and study session flow.
+1. **Phase 3:** Implement FSRS and study session flow (next: `feat/lang-011-fsrs-and-study-session`).
 2. Default language pair and “study language” in Settings/Study.
 3. Validation (trim/max length) in add/edit word.
 4. “I’ve run the migration” button.

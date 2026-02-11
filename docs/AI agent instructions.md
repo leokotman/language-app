@@ -12,7 +12,7 @@ Follow this workflow so every feature/fix is traceable.
 
 ### 1. Branch naming and creation
 
-- **Create a new branch for each feature or fix.** Before creating a new branch, **check git status and branch history** to see which branch is the most recent (e.g. `git branch -v` or `git for-each-ref --sort=-committerdate refs/heads/`), then create the new branch **from that most recent branch**. Use `main` only when the user has merged the previous PR and pulled `main`, or when starting the first feature in a session.
+- **Create a new branch for each feature or fix.** Before creating a new branch, **check git status and branch history** (e.g. `git branch -v` or `git for-each-ref --sort=-committerdate refs/heads/`). Create the new branch **from `main`** when starting the first feature in a session (user has merged previous PR and pulled `main`). Otherwise create from the **most recent branch** and use the next task number.
 - **Branch name format is mandatory.** The format **must** include **project code** and **task number**; otherwise the commit-msg hook will not add the scope to commit messages and the log will show commits without the change type/scope (e.g. missing `(lang-001)`).
 
   **Required pattern:** `{type}/{project_code}-{task_number}{separator}{task-title}`
