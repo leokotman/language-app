@@ -9,6 +9,8 @@ Use this for the next debugging session. Enable debug logs in the browser consol
 ### Goal
 Dictionary and My Library should show data when the device is offline (or DevTools → Network → Offline), using data cached in IndexedDB.
 
+**What we cache (efficient):** We intentionally cache only **user-owned data** on the device: the user’s **personal library** (added words/phrases), **user language pairs**, and (in future) exercise results. The full app vocabulary is not cached by default so the device doesn’t store everything. The Library page reads from this cache when offline and already works without full-app sync.
+
 ### Data flow
 - **IndexedDB** (db name `language-app-offline`, store `cache`) holds:
   - `appVocabulary`: all app-library vocabulary rows (all directions: en-ru, ru-en, en-sr, sr-en, ru-sr, sr-ru).
