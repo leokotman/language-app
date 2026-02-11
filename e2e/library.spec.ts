@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { loginWithCredentials, hasE2EAuthEnv } from './helpers/auth'
 
 test.describe('Library (unauthenticated)', () => {
   test('redirects to login when visiting /library', async ({ page }) => {
@@ -9,16 +10,13 @@ test.describe('Library (unauthenticated)', () => {
 })
 
 test.describe('Library (vocabulary flows)', () => {
-  const hasAuth = !!process.env.E2E_TEST_EMAIL && !!process.env.E2E_TEST_PASSWORD
-
   test.beforeEach(async ({ page }) => {
-    test.skip(!hasAuth, 'E2E_TEST_EMAIL and E2E_TEST_PASSWORD must be set for authenticated E2E')
-    await page.goto('/login')
-    await page.getByLabel('Email').fill(process.env.E2E_TEST_EMAIL!)
-    await page.getByLabel('Password').fill(process.env.E2E_TEST_PASSWORD!)
-    await page.getByRole('button', { name: 'Sign in' }).click()
-    await expect(page).not.toHaveURL(/\/login/)
-    await expect(page.getByRole('banner').getByText('Language App')).toBeVisible()
+    test.skip(!hasE2EAuthEnv(), 'E2E_TEST_EMAIL and E2E_TEST_PASSWORD must be set for authenticated E2E')
+    await loginWithCredentials(
+      page,
+      process.env.E2E_TEST_EMAIL!,
+      process.env.E2E_TEST_PASSWORD!
+    )
   })
 
   test('add word, see in list, edit, delete', async ({ page }) => {
