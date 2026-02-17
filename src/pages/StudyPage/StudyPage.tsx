@@ -27,7 +27,6 @@ import { STUDY_RATING_LABELS, EXERCISE_TYPE_OPTIONS } from './StudyPage.constant
 import {
   isAnswerCorrect,
   buildMultipleChoiceOptions,
-  buildReverseMultipleChoiceOptions,
   assignExerciseTypes,
 } from './StudyPage.helpers'
 
@@ -115,9 +114,9 @@ export function StudyPage() {
           setFlashcardRevealed(false)
           const nextIndex = session.currentIndex + 1
           if (nextIndex >= session.cards.length) {
-            setSession(null)
+            setSession((prev) => (prev ? { ...prev, currentIndex: prev.cards.length } : null))
           } else {
-            setSession((prev) => prev ? { ...prev, currentIndex: nextIndex } : null)
+            setSession((prev) => (prev ? { ...prev, currentIndex: nextIndex } : null))
           }
         },
       }
@@ -135,11 +134,6 @@ export function StudyPage() {
     : null
   const multipleChoiceOptions = useMemo(
     () => (session && currentCard ? buildMultipleChoiceOptions(session.cards, currentCard) : []),
-    [session, currentCard]
-  )
-  const reverseMultipleChoiceOptions = useMemo(
-    () =>
-      session && currentCard ? buildReverseMultipleChoiceOptions(session.cards, currentCard) : [],
     [session, currentCard]
   )
 
@@ -292,7 +286,8 @@ export function StudyPage() {
               variant="contained"
               color={label === 'Again' ? 'error' : 'primary'}
               size="small"
-              disabled={updateFsrs.isPending}
+              disabled={false}
+              aria-busy={updateFsrs.isPending}
               onClick={() => handleRate(rating)}
             >
               {STUDY_RATING_LABELS[label]}
