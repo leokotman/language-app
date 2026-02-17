@@ -5,11 +5,13 @@ import {
   updateVocabulary,
   deleteVocabulary,
   listUserVocabulary,
+  listDueToday,
   addToUserLibrary,
   updateUserVocabulary,
   removeFromUserLibrary,
   addWordToLibrary,
 } from '@/api/vocabulary'
+import type { DueTodayFilters } from '@/api/vocabulary'
 import type {
   VocabularyInsert,
   VocabularyUpdate,
@@ -96,6 +98,29 @@ export function userVocabularyListQueryKey(userId: string) {
   return ['user-vocabulary', userId] as const
 }
 
+export function dueTodayQueryKey(userId: string, filters?: DueTodayFilters) {
+  return [
+    'due-today',
+    userId,
+    filters?.languageFrom ?? null,
+    filters?.languageTo ?? null,
+    filters?.pairKey ?? null,
+  ] as const
+}
+
+export function useDueToday(userId: string | undefined, filters?: DueTodayFilters) {
+  return useQuery({
+    queryKey: dueTodayQueryKey(userId ?? '', filters),
+    queryFn: async () => {
+      if (!userId) return []
+      const { data, error } = await listDueToday(userId, filters)
+      if (error) throw error
+      return data
+    },
+    enabled: !!userId,
+  })
+}
+
 export function useUserVocabularyList(userId: string | undefined) {
   return useQuery({
     queryKey: userVocabularyListQueryKey(userId ?? ''),
@@ -128,6 +153,7 @@ export function useUpdateUserVocabulary(userId: string) {
       updateUserVocabulary(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-vocabulary', userId] })
+      queryClient.invalidateQueries({ queryKey: ['due-today', userId] })
     },
   })
 }

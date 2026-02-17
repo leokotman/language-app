@@ -161,6 +161,61 @@ export async function getVocabularyById(id: string): Promise<{
 
 // ---------- user_vocabulary (personal library with FSRS) ----------
 
+/** End of today in UTC (23:59:59.999) as ISO string for "due today" queries. */
+function endOfTodayUtc(): string {
+  const d = new Date()
+  d.setUTCHours(23, 59, 59, 999)
+  return d.toISOString()
+}
+
+export type DueTodayFilters = {
+  languageFrom?: string
+  languageTo?: string
+  /** Pair key (e.g. en-ru, ru-sr): include both directions (from-to and to-from). */
+  pairKey?: 'en-ru' | 'en-sr' | 'ru-sr'
+}
+
+/** List user's cards due by end of today (for study session). Optional filter by language pair. */
+export async function listDueToday(
+  userId: string,
+  filters?: DueTodayFilters
+): Promise<{
+  data: (UserVocabularyRow & { vocabulary: VocabularyRow | null })[]
+  error: Error | null
+}> {
+  const endOfToday = endOfTodayUtc()
+  const { data, error } = await supabase
+    .from('user_vocabulary')
+    .select('*, vocabulary:vocabulary_id(*)')
+    .eq('user_id', userId)
+    .lte('due', endOfToday)
+    .order('due', { ascending: true })
+
+  if (error) return { data: [], error: error as Error }
+  const rows = (data ?? []) as (UserVocabularyRow & { vocabulary: VocabularyRow | null })[]
+
+  if (filters?.pairKey) {
+    const [a, b] = filters.pairKey.split('-')
+    if (a && b) {
+      const filtered = rows.filter((row) => {
+        const from = row.vocabulary?.language_from
+        const to = row.vocabulary?.language_to
+        return (from === a && to === b) || (from === b && to === a)
+      })
+      return { data: filtered, error: null }
+    }
+  }
+  if (filters?.languageFrom && filters?.languageTo) {
+    const filtered = rows.filter(
+      (row) =>
+        row.vocabulary?.language_from === filters.languageFrom &&
+        row.vocabulary?.language_to === filters.languageTo
+    )
+    return { data: filtered, error: null }
+  }
+  return { data: rows, error: null }
+}
+
 /** List user's personal library (user_vocabulary joined with vocabulary). When offline returns from cache immediately. */
 export async function listUserVocabulary(userId: string): Promise<{
   data: (UserVocabularyRow & { vocabulary: VocabularyRow | null })[]
