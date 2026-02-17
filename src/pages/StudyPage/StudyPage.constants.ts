@@ -8,6 +8,18 @@ export const STUDY_RATING_LABELS = {
 /** Exercise type labels and difficulty for UI. */
 export const EXERCISE_TYPE_OPTIONS = [
   {
+    type: 'flashcard' as const,
+    label: 'Flashcard (word → translation)',
+    difficulty: 'Easy',
+    description: 'See the word, reveal the translation, then rate yourself.',
+  },
+  {
+    type: 'reverse_flashcard' as const,
+    label: 'Reverse flashcard (translation → word)',
+    difficulty: 'Medium',
+    description: 'See the translation, reveal the word, then rate yourself.',
+  },
+  {
     type: 'typing' as const,
     label: 'Written (type the translation)',
     difficulty: 'Hard',
