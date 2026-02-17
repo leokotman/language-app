@@ -1,0 +1,54 @@
+# Update CHANGELOG.md when commits are pushed to main (e.g. after merging a PR).
+# No setup on GitHub needed: push this file to the repo and the workflow is active.
+# Merging a PR = push to main, so this runs after every PR merge.
+# Skips when the push was from this workflow (changelog commit) to avoid a loop.
+name: Update Changelog
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Do not run when the push was from this workflow (changelog update commit)
+    if: github.actor != 'github-actions[bot]' && github.event.head_commit.message != 'chore: update CHANGELOG [skip ci]'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get commit range
+        id: range
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.event.after }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "before=$BEFORE" >> $GITHUB_OUTPUT
+            echo "after=$AFTER" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate and append changelog entries
+        if: steps.range.outputs.skip != 'true'
+        run: |
+          node scripts/changelog-from-branch.mjs --append --range "${{ steps.range.outputs.before }}" "${{ steps.range.outputs.after }}"
+
+      - name: Check for changes
+        id: diff
+        if: steps.range.outputs.skip != 'true'
+        run: |
+          git diff --quiet docs/CHANGELOG.md && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push CHANGELOG
+        if: steps.range.outputs.skip != 'true' && steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/CHANGELOG.md
+          git commit -m "chore: update CHANGELOG [skip ci]"
+          git push
