@@ -213,12 +213,12 @@ export function StudyPage() {
           </FormControl>
         )}
         {dueLoading ? (
-          <Box display="flex" alignItems="center" gap={1} mt={2}>
+          <Box display="flex" alignItems="center" gap={1} mt={2} data-testid="study-due-loading">
             <CircularProgress size={20} />
             <Typography color="text.secondary">Loading due cards…</Typography>
           </Box>
         ) : (
-          <Box mt={2}>
+          <Box mt={2} data-testid="study-setup">
             <Typography sx={{ mb: 1 }}>
               <strong>{dueTodayCards.length}</strong> card{dueTodayCards.length !== 1 ? 's' : ''}{' '}
               due today
@@ -249,6 +249,7 @@ export function StudyPage() {
               onClick={handleStartSession}
               disabled={!canStart}
               sx={{ mt: 2 }}
+              data-testid="study-start-session"
             >
               Start session
             </Button>
@@ -260,7 +261,7 @@ export function StudyPage() {
 
   if (!currentCard) {
     return (
-      <Box>
+      <Box data-testid="study-session-complete">
         <Typography variant="h4">Session complete</Typography>
         <Typography color="text.secondary" sx={{ mt: 1 }}>
           You reviewed all {session.cards.length} cards. Great job!
@@ -303,7 +304,7 @@ export function StudyPage() {
   )
 
   return (
-    <Box>
+    <Box data-testid="study-card">
       <Typography variant="h4">Study</Typography>
       {progress && (
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
