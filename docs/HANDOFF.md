@@ -2,7 +2,7 @@
 
 This file is the canonical handoff for the language app. Update it after each session with **Current state**, **Session summary (latest)**, and **Suggestions for next steps**.
 
-**Session start:** Create a branch from `main` (e.g. `feat/lang-011-…`). Use the next task number from §4 session summary or §6 Priority. Load this file and `docs/AI agent instructions.md` for context.
+**Session start:** Create a branch from `main` (e.g. `feat/lang-012-…`). Use the next task number from §4 session summary or §6 Priority. Load this file and `docs/AI agent instructions.md` for context.
 
 ---
 
@@ -72,7 +72,7 @@ This file is the canonical handoff for the language app. Update it after each se
 - `src/components/common/` — ConfirmDialog, etc.
 - `src/components/features/` — auth (ProtectedRoute), offline (OfflinePrefetch).
 - `src/components/layout/` — Layout, Navbar.
-- `src/pages/` — HomePage, LibraryPage, DictionaryPage, SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (shell).
+- `src/pages/` — HomePage, LibraryPage, DictionaryPage, SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (flashcard, reverse flashcard, typing, multiple choice).
 - `src/api/` — languages, userLanguages, vocabulary, profiles.
 - `src/hooks/` — useAuth, useLanguages, useUserLanguages, useVocabulary.
 - `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport, fsrs.
@@ -86,6 +86,7 @@ This file is the canonical handoff for the language app. Update it after each se
 
 Recent work (from git, latest first):
 
+- lang-012: Study page — added flashcard (word→translation, reveal, rate) and reverse flashcard (translation→word, reveal, rate); four exercise types: flashcard, reverse_flashcard, typing, multiple_choice; helper buildReverseMultipleChoiceOptions for future use.
 - lang-011: FSRS + study session — src/lib/fsrs.ts (ts-fsrs: row↔Card, scheduleRating); API listDueToday(userId, filters?); hooks useDueToday, useUpdateUserVocabulary invalidates due-today; Study page: language pair, due count, start session, card → reveal → Again/Hard/Good/Easy, update SRS, next or complete. Unit tests for fsrs helper.
 - Doc revisions: agent instructions (branch-from-main clarity), HANDOFF session-start note and next task (lang-011).
 - Confluence/Jira removed; handoff moved to repo (`docs/HANDOFF.md`), docs updated.
@@ -108,7 +109,7 @@ Recent work (from git, latest first):
 *Not yet implemented; pick from here (and from §6 Priority) for the next feature.*
 
 - Phase 3: FSRS algorithm, “due today” query, study session flow (start, show card, reveal, rate, update SRS).
-- Phase 3: Flashcard, reverse flashcard, typing, multiple choice, listening (TTS); adaptive exercise selection; E2E for study session.
+- Phase 3: Listening (TTS), reverse multiple choice (translation→word pick); adaptive exercise selection; E2E for study session.
 - Default language pair: preselect when user has one pair; “study language” in Settings or Study page.
 - Validation: trim and max length on word/translation in add/edit (align with sanitize).
 - “I’ve run the migration” button to refetch after showing migration instructions.
@@ -122,7 +123,7 @@ Recent work (from git, latest first):
 
 ## 6. Priority now
 
-1. **Phase 3 (continued):** More exercise types (reverse flashcard, typing, multiple choice), E2E for study.
+1. **Phase 3 (continued):** E2E for study session; optional: reverse multiple choice (translation→word), TTS.
 2. Default language pair and “study language” in Settings/Study.
 3. Validation (trim/max length) in add/edit word.
 4. “I’ve run the migration” button.
