@@ -27,6 +27,7 @@ import { STUDY_RATING_LABELS, EXERCISE_TYPE_OPTIONS } from './StudyPage.constant
 import {
   isAnswerCorrect,
   buildMultipleChoiceOptions,
+  buildReverseMultipleChoiceOptions,
   assignExerciseTypes,
 } from './StudyPage.helpers'
 
@@ -62,9 +63,16 @@ export function StudyPage() {
   const updateFsrs = useUpdateUserVocabulary(userId ?? '')
 
   const [session, setSession] = useState<StudySessionState | null>(null)
-  const [enabledExerciseTypes, setEnabledExerciseTypes] = useState<ExerciseType[]>(['multiple_choice', 'typing'])
+  const [enabledExerciseTypes, setEnabledExerciseTypes] = useState<ExerciseType[]>([
+    'flashcard',
+    'reverse_flashcard',
+    'multiple_choice',
+    'typing',
+  ])
   const [typingInput, setTypingInput] = useState('')
   const [answered, setAnswered] = useState<{ correct: boolean; userAnswer?: string } | null>(null)
+  /** For flashcard / reverse_flashcard: true = revealed, show rating buttons. */
+  const [flashcardRevealed, setFlashcardRevealed] = useState(false)
 
   const isLoading = langsLoading
   const canStart =
@@ -90,6 +98,7 @@ export function StudyPage() {
     })
     setTypingInput('')
     setAnswered(null)
+    setFlashcardRevealed(false)
   }
 
   const handleRate = (rating: StudyRating) => {
@@ -103,6 +112,7 @@ export function StudyPage() {
         onSuccess: () => {
           setAnswered(null)
           setTypingInput('')
+          setFlashcardRevealed(false)
           const nextIndex = session.currentIndex + 1
           if (nextIndex >= session.cards.length) {
             setSession(null)
@@ -125,6 +135,11 @@ export function StudyPage() {
     : null
   const multipleChoiceOptions = useMemo(
     () => (session && currentCard ? buildMultipleChoiceOptions(session.cards, currentCard) : []),
+    [session, currentCard]
+  )
+  const reverseMultipleChoiceOptions = useMemo(
+    () =>
+      session && currentCard ? buildReverseMultipleChoiceOptions(session.cards, currentCard) : [],
     [session, currentCard]
   )
 
@@ -261,7 +276,10 @@ export function StudyPage() {
   const word = vocab?.word ?? '—'
   const translation = vocab?.translation ?? '—'
 
-  const showRatingButtons = answered !== null
+  const isFlashcardType =
+    currentExerciseType === 'flashcard' || currentExerciseType === 'reverse_flashcard'
+  const showRatingButtons =
+    answered !== null || (isFlashcardType && flashcardRevealed)
   const ratingButtons = (
     <Box display="flex" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
       {(Object.keys(STUDY_RATING_LABELS) as Array<keyof typeof STUDY_RATING_LABELS>).map(
@@ -290,18 +308,55 @@ export function StudyPage() {
       {progress && (
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
           Card {progress.current} of {progress.total}
+          {currentExerciseType === 'flashcard' && ' · Flashcard'}
+          {currentExerciseType === 'reverse_flashcard' && ' · Reverse flashcard'}
           {currentExerciseType === 'typing' && ' · Written'}
           {currentExerciseType === 'multiple_choice' && ' · Multiple choice'}
         </Typography>
       )}
       <MuiCard sx={{ mt: 3, maxWidth: 480 }}>
         <CardContent>
-          <Typography variant="h5" component="p" sx={{ mb: 2 }}>
-            {word}
-          </Typography>
+          {/* Flashcard: show word, then reveal translation on click */}
+          {currentExerciseType === 'flashcard' && (
+            <>
+              <Typography variant="h5" component="p" sx={{ mb: 2 }}>
+                {word}
+              </Typography>
+              {!flashcardRevealed ? (
+                <Button variant="contained" onClick={() => setFlashcardRevealed(true)}>
+                  Reveal translation
+                </Button>
+              ) : (
+                <Typography color="text.secondary" sx={{ mb: 1 }}>
+                  {translation}
+                </Typography>
+              )}
+            </>
+          )}
+
+          {/* Reverse flashcard: show translation, then reveal word on click */}
+          {currentExerciseType === 'reverse_flashcard' && (
+            <>
+              <Typography variant="h5" component="p" sx={{ mb: 2 }}>
+                {translation}
+              </Typography>
+              {!flashcardRevealed ? (
+                <Button variant="contained" onClick={() => setFlashcardRevealed(true)}>
+                  Reveal word
+                </Button>
+              ) : (
+                <Typography color="text.secondary" sx={{ mb: 1 }}>
+                  {word}
+                </Typography>
+              )}
+            </>
+          )}
 
           {!showRatingButtons && currentExerciseType === 'typing' && (
             <>
+              <Typography variant="h5" component="p" sx={{ mb: 2 }}>
+                {word}
+              </Typography>
               <TextField
                 fullWidth
                 label="Translation"
@@ -330,23 +385,29 @@ export function StudyPage() {
           )}
 
           {!showRatingButtons && currentExerciseType === 'multiple_choice' && (
-            <Box display="flex" flexDirection="column" gap={0.5}>
-              {multipleChoiceOptions.map((option) => (
-                <Button
-                  key={option}
-                  variant="outlined"
-                  onClick={() =>
-                    setAnswered({ correct: option === translation.trim(), userAnswer: option })
-                  }
-                  disabled={answered !== null}
-                >
-                  {option}
-                </Button>
-              ))}
-            </Box>
+            <>
+              <Typography variant="h5" component="p" sx={{ mb: 2 }}>
+                {word}
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={0.5}>
+                {multipleChoiceOptions.map((option) => (
+                  <Button
+                    key={option}
+                    variant="outlined"
+                    onClick={() =>
+                      setAnswered({ correct: option === translation.trim(), userAnswer: option })
+                    }
+                    disabled={answered !== null}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </Box>
+            </>
           )}
 
-          {showRatingButtons && answered !== null && (
+
+          {showRatingButtons && answered !== null && !isFlashcardType && (
             <>
               {answered.correct ? (
                 <Typography color="success.main" sx={{ mb: 1 }}>
@@ -362,6 +423,11 @@ export function StudyPage() {
                   )}
                 </Typography>
               )}
+              {ratingButtons}
+            </>
+          )}
+          {showRatingButtons && isFlashcardType && (
+            <>
               {ratingButtons}
             </>
           )}
