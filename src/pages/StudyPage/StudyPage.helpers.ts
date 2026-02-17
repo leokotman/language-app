@@ -52,13 +52,46 @@ export function pickDistractors(
   return shuffled.slice(0, count)
 }
 
-/** Build 4 options: correct + 3 distractors, shuffled (deterministic per card). */
+/** Build 4 options (translations): correct + 3 distractors, shuffled (deterministic per card). */
 export function buildMultipleChoiceOptions(
   cards: StudyCardItem[],
   currentCard: StudyCardItem
 ): string[] {
   const correct = currentCard.vocabulary?.translation?.trim() ?? '—'
   const distractors = pickDistractors(cards, currentCard, 3)
+  const options = [correct, ...distractors]
+  return shuffleWithSeed(options, currentCard.id)
+}
+
+/** Pick N distractors (wrong words) from other cards for reverse multiple choice. */
+function pickWordDistractors(
+  cards: StudyCardItem[],
+  currentCard: StudyCardItem,
+  count: number
+): string[] {
+  const correct = currentCard.vocabulary?.word?.trim() ?? ''
+  const others = cards
+    .filter((c) => c.id !== currentCard.id)
+    .map((c) => c.vocabulary?.word?.trim())
+    .filter((w): w is string => !!w && w !== correct)
+  const unique = Array.from(new Set(others))
+  if (unique.length <= count) return shuffleWithSeed(unique, currentCard.id)
+  const correctLen = correct.length
+  const bySimilarity = [...unique].sort(
+    (a, b) => Math.abs(a.length - correctLen) - Math.abs(b.length - correctLen)
+  )
+  const similar = bySimilarity.slice(0, count * 2)
+  const shuffled = shuffleWithSeed(similar, currentCard.id)
+  return shuffled.slice(0, count)
+}
+
+/** Build 4 options (words) for reverse multiple choice: correct + 3 distractors. */
+export function buildReverseMultipleChoiceOptions(
+  cards: StudyCardItem[],
+  currentCard: StudyCardItem
+): string[] {
+  const correct = currentCard.vocabulary?.word?.trim() ?? '—'
+  const distractors = pickWordDistractors(cards, currentCard, 3)
   const options = [correct, ...distractors]
   return shuffleWithSeed(options, currentCard.id)
 }
