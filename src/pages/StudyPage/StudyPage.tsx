@@ -27,7 +27,6 @@ import { STUDY_RATING_LABELS, EXERCISE_TYPE_OPTIONS } from './StudyPage.constant
 import {
   isAnswerCorrect,
   buildMultipleChoiceOptions,
-  buildReverseMultipleChoiceOptions,
   assignExerciseTypes,
 } from './StudyPage.helpers'
 
@@ -115,9 +114,9 @@ export function StudyPage() {
           setFlashcardRevealed(false)
           const nextIndex = session.currentIndex + 1
           if (nextIndex >= session.cards.length) {
-            setSession(null)
+            setSession((prev) => (prev ? { ...prev, currentIndex: prev.cards.length } : null))
           } else {
-            setSession((prev) => prev ? { ...prev, currentIndex: nextIndex } : null)
+            setSession((prev) => (prev ? { ...prev, currentIndex: nextIndex } : null))
           }
         },
       }
@@ -135,11 +134,6 @@ export function StudyPage() {
     : null
   const multipleChoiceOptions = useMemo(
     () => (session && currentCard ? buildMultipleChoiceOptions(session.cards, currentCard) : []),
-    [session, currentCard]
-  )
-  const reverseMultipleChoiceOptions = useMemo(
-    () =>
-      session && currentCard ? buildReverseMultipleChoiceOptions(session.cards, currentCard) : [],
     [session, currentCard]
   )
 
@@ -213,12 +207,12 @@ export function StudyPage() {
           </FormControl>
         )}
         {dueLoading ? (
-          <Box display="flex" alignItems="center" gap={1} mt={2}>
+          <Box display="flex" alignItems="center" gap={1} mt={2} data-testid="study-due-loading">
             <CircularProgress size={20} />
             <Typography color="text.secondary">Loading due cards…</Typography>
           </Box>
         ) : (
-          <Box mt={2}>
+          <Box mt={2} data-testid="study-setup">
             <Typography sx={{ mb: 1 }}>
               <strong>{dueTodayCards.length}</strong> card{dueTodayCards.length !== 1 ? 's' : ''}{' '}
               due today
@@ -249,6 +243,7 @@ export function StudyPage() {
               onClick={handleStartSession}
               disabled={!canStart}
               sx={{ mt: 2 }}
+              data-testid="study-start-session"
             >
               Start session
             </Button>
@@ -260,7 +255,7 @@ export function StudyPage() {
 
   if (!currentCard) {
     return (
-      <Box>
+      <Box data-testid="study-session-complete">
         <Typography variant="h4">Session complete</Typography>
         <Typography color="text.secondary" sx={{ mt: 1 }}>
           You reviewed all {session.cards.length} cards. Great job!
@@ -291,7 +286,8 @@ export function StudyPage() {
               variant="contained"
               color={label === 'Again' ? 'error' : 'primary'}
               size="small"
-              disabled={updateFsrs.isPending}
+              disabled={false}
+              aria-busy={updateFsrs.isPending}
               onClick={() => handleRate(rating)}
             >
               {STUDY_RATING_LABELS[label]}
@@ -303,7 +299,7 @@ export function StudyPage() {
   )
 
   return (
-    <Box>
+    <Box data-testid="study-card">
       <Typography variant="h4">Study</Typography>
       {progress && (
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
