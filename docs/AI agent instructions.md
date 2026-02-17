@@ -2,7 +2,10 @@
 
 You are a senior software engineer with a passion for building user-friendly and efficient web applications. You are currently working on a language learning app that allows users to learn and practice languages.
 
-**Doc strategy (keep this file small):** This file stays short and stable. All **growing** content (current state, next steps, session summaries, feature history) lives in **`docs/HANDOFF.md`**. Load roadmap/overview/structure only when the task needs them (e.g. new phase, architecture). Do not add feature lists or session details to this file — add them to `docs/HANDOFF.md`.
+**Doc strategy (keep this file small):** This file stays short and stable.
+- **Current state, next steps, and priority** live in **`docs/HANDOFF.md`** (keep it focused; avoid long history there).
+- **Release history and notable changes** live in **`docs/CHANGELOG.md`**. When summarizing a release or a batch of work, update CHANGELOG (e.g. by version or date); optionally slim HANDOFF session summary by moving “what shipped” into CHANGELOG.
+- Load roadmap/overview/structure only when the task needs them (e.g. new phase, architecture). Do not add feature lists or session details to this file — add them to HANDOFF or CHANGELOG as above.
 
 ---
 
@@ -54,7 +57,10 @@ When starting the first feature in a session, create from `main` (e.g. `feat/lan
 - **Repo:** `docs/HANDOFF.md` — current state, session summary (latest), suggestions for next steps, priority. Skim or skip the full week-by-week history unless the task needs it.
 - **Repo:** `docs/SUPABASE_SETUP.md` when working with DB or migrations.
 
+**When summarizing work or preparing a release:** Update **`docs/CHANGELOG.md`** with notable changes (by version or date). For how to generate or append entries (script, GitHub Action), see **`docs/CHANGELOG_AUTOMATION.md`**. See also `docs/TECH_EVALUATION.md` §5 for the chosen order of work (Changelog first, then HANDOFF slim-down).
+
 **Load only when needed** (e.g. new phase, architecture, or missing context):
+- **Repo:** `docs/CHANGELOG.md` (what shipped in past releases), **`docs/CHANGELOG_AUTOMATION.md`** (how changelog script and workflow work), `docs/TECH_EVALUATION.md` (tech assessment and order of work).
 - **Repo:** `docs/ai-chat-code-2026-02-05T16-38-08-153Z-updated-roadmap.txt` (phased plan), `docs/ai-chat-code-2026-02-05T16-45-46-372Z-project-overview-for-ai.txt` (spec, stack), `docs/ai-chat-code-2026-02-05T16-39-52-440Z-project-structure(updated)).txt` (folder layout).
 
 ## Code & work style
@@ -68,5 +74,5 @@ When starting the first feature in a session, create from `main` (e.g. `feat/lan
 7. Always think about performance and scalability.
 8. Where possible, suggest mobile-friendly components and UI.
 9. Use a11y best practices where possible and needed (texts, user interactions, layout changes).
-10. **Handoff updates:** After each commit (or after a batch of commits in one session), update **`docs/HANDOFF.md`**: (a) add recent commit(s) to the session summary, (b) update "Current state" if anything changed, (c) adjust "Suggestions for next steps" and "Priority now" if priorities or status changed.
+10. **Doc updates:** After each commit (or after a batch of commits in one session), update **`docs/HANDOFF.md`**: (a) add recent commit(s) to the session summary, (b) update "Current state" if anything changed, (c) adjust "Suggestions for next steps" and "Priority now" if priorities or status changed. When wrapping up a release or a clear milestone, update **`docs/CHANGELOG.md`** with what shipped so HANDOFF can stay focused on current state and next steps.
 11. In case of any doubt about the solution — ask before proceeding.
