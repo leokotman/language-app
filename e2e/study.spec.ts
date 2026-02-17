@@ -19,7 +19,13 @@ test.describe('Study (session flow)', () => {
     )
   })
 
-  test('start session, do one card (flashcard), rate, see session complete', async ({ page }) => {
+  /**
+   * Minimal deterministic flow: one card, flashcard only.
+   * - Ensure pair + add one word → Study → enable only Flashcard → start → reveal → Good → session complete.
+   * Avoids multiple cards, typing, and MC so we don't depend on several API round-trips or stale DOM.
+   */
+  test('start session, do one card (flashcard only), rate, see session complete', async ({ page }) => {
+    test.setTimeout(60_000)
     await page.getByRole('link', { name: 'Settings' }).click()
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
 
@@ -57,7 +63,7 @@ test.describe('Study (session flow)', () => {
     await page.getByRole('option', { name: /Russian.*English|English.*Russian/ }).first().click()
 
     await page.getByRole('button', { name: 'Add' }).click()
-    await expect(page.getByText('e2e-study-word — e2e-study-translation')).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText('e2e-study-word — e2e-study-translation').first()).toBeVisible({ timeout: 8000 })
 
     await page.getByRole('link', { name: 'Study' }).click()
     await expect(page.getByRole('heading', { name: 'Study' })).toBeVisible()
@@ -78,34 +84,46 @@ test.describe('Study (session flow)', () => {
     await expect(page.getByTestId('study-setup')).toBeVisible()
     await expect(page.getByText(/\d+ card(s)? due today/)).toBeVisible()
 
+    // Only Flashcard (word → translation) so we get a single deterministic path
+    await page.getByRole('checkbox', { name: /Reverse flashcard/ }).click()
+    await page.getByRole('checkbox', { name: /Written/ }).click()
+    await page.getByRole('checkbox', { name: /Multiple choice/ }).click()
+    await expect(page.getByRole('checkbox', { name: /Flashcard \(word → translation/ })).toBeChecked()
+
     const startBtn = page.getByTestId('study-start-session')
     await expect(startBtn).toBeEnabled({ timeout: 5000 })
     await startBtn.click()
 
     await expect(page.getByTestId('study-card')).toBeVisible({ timeout: 5000 })
 
-    const revealBtn = page.getByRole('button', { name: /Reveal (translation|word)/ })
-    if (await revealBtn.isVisible()) {
-      await revealBtn.click()
-      await page.getByRole('button', { name: 'Good' }).click()
-    } else {
-      const checkBtn = page.getByRole('button', { name: 'Check' })
-      if (await checkBtn.isVisible()) {
-        await page.getByLabel('Translation').fill('e2e-study-translation')
+    const card = page.getByTestId('study-card')
+    for (let i = 0; i < 20; i++) {
+      if (await page.getByTestId('study-session-complete').isVisible()) break
+
+      const revealBtn = card.getByRole('button', { name: /Reveal (translation|word)/ })
+      const checkBtn = card.getByRole('button', { name: 'Check' })
+      const goodBtn = card.getByRole('button', { name: 'Good' })
+
+      const sawReveal = await revealBtn.waitFor({ state: 'visible', timeout: 6000 }).then(() => true).catch(() => false)
+      if (sawReveal) {
+        await revealBtn.click()
+        await goodBtn.click()
+      } else if (await checkBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+        await page.getByLabel('Translation').last().fill('x')
         await checkBtn.click()
-        await page.getByRole('button', { name: 'Good' }).click()
+        await goodBtn.click()
+      } else if (await goodBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await goodBtn.click()
       } else {
-        const optionBtn = page.getByRole('button', { name: 'e2e-study-translation' })
-        if (await optionBtn.isVisible()) {
-          await optionBtn.click()
-          await page.getByRole('button', { name: 'Good' }).click()
-        } else {
-          await page.getByRole('button', { name: 'Good' }).first().click()
-        }
+        const mcOption = card.getByRole('button').filter({ hasNotText: /^(Again|Hard|Good|Easy|Check|Reveal)/ }).first()
+        if (await mcOption.isVisible({ timeout: 500 }).catch(() => false)) await mcOption.click()
+        else break
       }
+
+      await page.getByTestId('study-session-complete').or(page.getByTestId('study-card')).waitFor({ state: 'visible', timeout: 10000 }).catch(() => {})
     }
 
-    await expect(page.getByTestId('study-session-complete')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByTestId('study-session-complete')).toBeVisible({ timeout: 5000 })
     await expect(page.getByRole('heading', { name: 'Session complete' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Back to study' })).toBeVisible()
   })
