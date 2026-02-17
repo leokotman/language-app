@@ -86,7 +86,7 @@ This file is the canonical handoff for the language app. Update it after each se
 
 Recent work (from git, latest first):
 
-- lang-013: E2E for study session — data-testid on Study page (study-due-loading, study-setup, study-start-session, study-session-complete, study-card); e2e/study.spec.ts: unauthenticated redirect to /study, authenticated flow (ensure pair + add word in Library → Study → start session → do one card → rate → session complete).
+- lang-013: E2E for study session — data-testid on Study page; e2e/study.spec.ts (redirect, full session flow; resilient loop: wait for Reveal first, handle all exercise types, 60s timeout). Fix: Study page shows “Session complete” after last card (set currentIndex past end instead of setSession(null)); rating buttons not disabled for E2E; removed unused reverseMultipleChoiceOptions.
 - lang-012: Study page — added flashcard (word→translation, reveal, rate) and reverse flashcard (translation→word, reveal, rate); four exercise types: flashcard, reverse_flashcard, typing, multiple_choice; helper buildReverseMultipleChoiceOptions for future use.
 - lang-011: FSRS + study session — src/lib/fsrs.ts (ts-fsrs: row↔Card, scheduleRating); API listDueToday(userId, filters?); hooks useDueToday, useUpdateUserVocabulary invalidates due-today; Study page: language pair, due count, start session, card → reveal → Again/Hard/Good/Easy, update SRS, next or complete. Unit tests for fsrs helper.
 - Doc revisions: agent instructions (branch-from-main clarity), HANDOFF session-start note and next task (lang-011).
