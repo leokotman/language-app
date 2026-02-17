@@ -2,7 +2,7 @@
 
 This file is the canonical handoff for the language app. Update it after each session with **Current state**, **Session summary (latest)**, and **Suggestions for next steps**.
 
-**Session start:** Create a branch from `main` (e.g. `feat/lang-012-…`). Use the next task number from §4 session summary or §6 Priority. Load this file and `docs/AI agent instructions.md` for context.
+**Session start:** Create a branch from `main` (e.g. `feat/lang-014-…`). Use the next task number from §4 session summary or §6 Priority. Load this file and `docs/AI agent instructions.md` for context.
 
 ---
 
@@ -63,7 +63,7 @@ This file is the canonical handoff for the language app. Update it after each se
 - **Dictionary:** One tab — lookup (MyMemory en↔ru, en↔sr), browse app library, add to my library; offline from cache when synced.
 - **Offline:** Navbar toggle; IndexedDB cache; OfflinePrefetch; sync on “Offline” ON.
 - **Migrations:** Run 001 → 002 → 003 → (optional 005, 008) → 004 → 006 → 007 (see `SUPABASE_SETUP.md`).
-- **E2E:** Playwright; run `npx playwright install` then `npm run test:e2e`.
+- **E2E:** Playwright; run `npx playwright install` then `npm run test:e2e`. Specs: home, library, study (redirect + full session flow: add word → start session → do card → rate → session complete).
 
 ---
 
@@ -78,7 +78,7 @@ This file is the canonical handoff for the language app. Update it after each se
 - `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport, fsrs.
 - `src/stores/` — authStore, offlineModeStore.
 - `docs/supabase-migrations/` — 001–008.
-- `e2e/` — home.spec.ts, library.spec.ts, helpers/auth.ts.
+- `e2e/` — home.spec.ts, library.spec.ts, study.spec.ts, helpers/auth.ts.
 
 ---
 
@@ -86,11 +86,12 @@ This file is the canonical handoff for the language app. Update it after each se
 
 Recent work (from git, latest first):
 
+- lang-013: E2E for study session — data-testid on Study page (study-due-loading, study-setup, study-start-session, study-session-complete, study-card); e2e/study.spec.ts: unauthenticated redirect to /study, authenticated flow (ensure pair + add word in Library → Study → start session → do one card → rate → session complete).
 - lang-012: Study page — added flashcard (word→translation, reveal, rate) and reverse flashcard (translation→word, reveal, rate); four exercise types: flashcard, reverse_flashcard, typing, multiple_choice; helper buildReverseMultipleChoiceOptions for future use.
 - lang-011: FSRS + study session — src/lib/fsrs.ts (ts-fsrs: row↔Card, scheduleRating); API listDueToday(userId, filters?); hooks useDueToday, useUpdateUserVocabulary invalidates due-today; Study page: language pair, due count, start session, card → reveal → Again/Hard/Good/Easy, update SRS, next or complete. Unit tests for fsrs helper.
 - Doc revisions: agent instructions (branch-from-main clarity), HANDOFF session-start note and next task (lang-011).
 - Confluence/Jira removed; handoff moved to repo (`docs/HANDOFF.md`), docs updated.
-- E2E (lang-009): Playwright — home + library specs; unauthenticated redirect; authenticated add/edit/delete; data-testid for loading/error/empty; E2E auth helper and `.env` (E2E_TEST_EMAIL, E2E_TEST_PASSWORD).
+- E2E (lang-009, lang-013): Playwright — home, library, study specs; unauthenticated redirect; authenticated add/edit/delete (library), full study session (study); data-testid for loading/error/empty and study states; E2E auth helper and `.env` (E2E_TEST_EMAIL, E2E_TEST_PASSWORD).
 - Performance (lang-007): query and table updates for Supabase performance.
 - Phase 3 seed (lang-008): migration 008, 128 triples.
 - Dictionary offline (lang-006): persist lookups in IndexedDB; use lookup cache when offline; debounce/perf fixes; migration 001 idempotent.
@@ -109,7 +110,7 @@ Recent work (from git, latest first):
 *Not yet implemented; pick from here (and from §6 Priority) for the next feature.*
 
 - Phase 3: FSRS algorithm, “due today” query, study session flow (start, show card, reveal, rate, update SRS).
-- Phase 3: Listening (TTS), reverse multiple choice (translation→word pick); adaptive exercise selection; E2E for study session.
+- Phase 3: Listening (TTS), reverse multiple choice (translation→word pick) UI; adaptive exercise selection.
 - Default language pair: preselect when user has one pair; “study language” in Settings or Study page.
 - Validation: trim and max length on word/translation in add/edit (align with sanitize).
 - “I’ve run the migration” button to refetch after showing migration instructions.
@@ -123,7 +124,7 @@ Recent work (from git, latest first):
 
 ## 6. Priority now
 
-1. **Phase 3 (continued):** E2E for study session; optional: reverse multiple choice (translation→word), TTS.
+1. **Phase 3 (continued):** Reverse multiple choice (translation→word) UI; TTS (listening).
 2. Default language pair and “study language” in Settings/Study.
 3. Validation (trim/max length) in add/edit word.
 4. “I’ve run the migration” button.
