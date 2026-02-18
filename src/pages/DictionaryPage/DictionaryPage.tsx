@@ -1,33 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import {
-  Typography,
-  Box,
-  TextField,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Button,
-  IconButton,
-  CircularProgress,
-  Alert,
-} from '@mui/material'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import {
-  clampAndStripControlChars,
-  MAX_SEARCH_LENGTH,
-  sanitizeWord,
-  sanitizeTranslation,
-  sanitizeSearch,
-} from '@/lib/sanitize'
+import { Typography } from '@mui/material'
+import { sanitizeWord, sanitizeTranslation, sanitizeSearch } from '@/lib/sanitize'
 import { useAuthStore } from '@/stores/authStore'
 import { useOfflineModeStore } from '@/stores/offlineModeStore'
 import {
@@ -39,10 +12,9 @@ import {
 import { lookup, getLookupCache, type DictionaryEntry } from '@/lib/dictionary'
 import type { VocabularyRow } from '@/types/database'
 import type { ResultItem } from './DictionaryPage.models'
-import { DEBOUNCE_MS, DIRECTION_OPTIONS } from './DictionaryPage.constants'
+import { DEBOUNCE_MS, STORE_FILTER_DEBOUNCE_MS, DIRECTION_OPTIONS } from './DictionaryPage.constants'
 import { offlineLog, dictPerfLog } from '@/lib/offlineDebug'
-
-const STORE_FILTER_DEBOUNCE_MS = 100
+import { DictionaryLookupBar, DictionaryResultsList } from './components'
 
 export function DictionaryPage() {
   const userId = useAuthStore((state) => state.user?.id) ?? ''
@@ -56,7 +28,6 @@ export function DictionaryPage() {
 
   const renderCountRef = useRef(0)
   renderCountRef.current += 1
-
   const storeResultsLengthRef = useRef(0)
 
   dictPerfLog('render', {
@@ -68,7 +39,10 @@ export function DictionaryPage() {
   })
 
   useEffect(() => {
-    dictPerfLog('effect: search→searchForFilter scheduled', { search, delayMs: STORE_FILTER_DEBOUNCE_MS })
+    dictPerfLog('effect: search→searchForFilter scheduled', {
+      search,
+      delayMs: STORE_FILTER_DEBOUNCE_MS,
+    })
     const t = setTimeout(() => {
       dictPerfLog('effect: searchForFilter updated (timeout fired)', { from: search })
       setSearchForFilter(search)
@@ -122,13 +96,23 @@ export function DictionaryPage() {
       targetToSourceLen: listTargetToSource.length,
     })
     return combined
-  }, [direction, languageSource, languageTarget, appVocabularySourceToTarget.data, appVocabularyTargetToSource.data])
+  }, [
+    direction,
+    languageSource,
+    languageTarget,
+    appVocabularySourceToTarget.data,
+    appVocabularyTargetToSource.data,
+  ])
 
   const storeResults = useMemo((): ResultItem[] => {
     const start = typeof performance !== 'undefined' ? performance.now() : 0
     const searchQuery = sanitizeSearch(searchForFilter)
     if (!searchQuery) {
-      dictPerfLog('storeResults useMemo ran', { ms: '0', matchedLen: 0, reason: 'empty searchForFilter' })
+      dictPerfLog('storeResults useMemo ran', {
+        ms: '0',
+        matchedLen: 0,
+        reason: 'empty searchForFilter',
+      })
       return []
     }
     const searchLower = searchQuery.toLowerCase()
@@ -138,7 +122,11 @@ export function DictionaryPage() {
         row.translation.toLowerCase().includes(searchLower)
     )
     const ms = typeof performance !== 'undefined' ? (performance.now() - start).toFixed(2) : '?'
-    dictPerfLog('storeResults useMemo ran', { ms, appVocabLen: appVocabulary.length, matchedLen: matched.length })
+    dictPerfLog('storeResults useMemo ran', {
+      ms,
+      appVocabLen: appVocabulary.length,
+      matchedLen: matched.length,
+    })
     return matched.map((row) => ({
       source: 'store' as const,
       vocabularyId: row.id,
@@ -194,7 +182,8 @@ export function DictionaryPage() {
         setApiError(null)
         return
       }
-      const isOfflineNow = offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
+      const isOfflineNow =
+        offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
       if (isOfflineNow && search.trim()) {
         getLookupCache(
           translationDirection.from,
@@ -219,7 +208,8 @@ export function DictionaryPage() {
   }, [search, runApiLookup, offlineMode, translationDirection.from, translationDirection.to])
 
   const hasStoreResults = storeResults.length > 0
-  const isOffline = offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
+  const isOffline =
+    offlineMode || (typeof navigator !== 'undefined' && !navigator.onLine)
   const apiSupported = true
 
   useEffect(() => {
@@ -272,158 +262,29 @@ export function DictionaryPage() {
         you're online, we can also search the web for more.
       </Typography>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Search (e.g. hello, привет)…"
-          value={search}
-          onChange={(event) =>
-            setSearch(clampAndStripControlChars(event.target.value, MAX_SEARCH_LENGTH))
-          }
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ minWidth: 260 }}
-        />
-        <FormControl size="small" sx={{ minWidth: 240 }}>
-          <InputLabel id="dict-direction">Direction</InputLabel>
-          <Select
-            labelId="dict-direction"
-            value={direction}
-            label="Direction"
-            onChange={(event) => setDirection(event.target.value)}
-          >
-            {DIRECTION_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
+      <DictionaryLookupBar
+        search={search}
+        direction={direction}
+        onSearchChange={setSearch}
+        onDirectionChange={setDirection}
+      />
 
-      {isOffline && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {hasStoreResults
-            ? "You're offline. Showing words from your library and the app dictionary."
-            : "You're offline. Connect to the internet to search for more words."}
-        </Alert>
-      )}
-
-      {apiError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setApiError(null)} data-testid="dictionary-error">
-          {apiError}
-        </Alert>
-      )}
-
-      {apiLoading && !hasStoreResults && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }} data-testid="dictionary-loading">
-          <CircularProgress size={24} />
-          <Typography variant="body2">Searching…</Typography>
-        </Box>
-      )}
-
-      {!apiLoading &&
-        search.trim() &&
-        combinedResults.length === 0 &&
-        !hasStoreResults &&
-        (isOffline || !apiSupported) && (
-          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }} data-testid="dictionary-empty">
-            {isOffline
-              ? 'Connect to the internet to look up this word.'
-              : 'No results found. Try another word or direction.'}
-          </Typography>
-        )}
-
-      {!apiLoading &&
-        search.trim() &&
-        combinedResults.length === 0 &&
-        hasStoreResults === false &&
-        apiSupported &&
-        !isOffline &&
-        !apiError && (
-          <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }} data-testid="dictionary-empty">
-            No translation found. Try another word.
-          </Typography>
-        )}
-
-      {combinedResults.length > 0 && (
-        <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1 }}>
-          {combinedResults.map((item, index) => {
-            if (item.source === 'store') {
-              const inLibrary = userVocabularyIds.has(item.vocabularyId)
-              return (
-                <ListItem key={`store-${item.vocabularyId}`} divider>
-                  <ListItemText
-                    primary={`${item.word} — ${item.translation}`}
-                    secondary={`${item.from} → ${item.to}`}
-                  />
-                  <ListItemSecondaryAction>
-                    {inLibrary ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircleIcon color="success" fontSize="small" />
-                        <Typography variant="body2" color="text.secondary">
-                          In library
-                        </Typography>
-                      </Box>
-                    ) : (
-                      <IconButton
-                        aria-label="Add to library"
-                        onClick={() => handleAddFromStore(item.vocabularyId)}
-                        disabled={addToLibraryMutation.isPending}
-                        color="primary"
-                      >
-                        <AddCircleOutlineIcon />
-                      </IconButton>
-                    )}
-                  </ListItemSecondaryAction>
-                </ListItem>
-              )
-            }
-            const { entry } = item
-            const inLibrary = isItemInLibrary(item)
-            return (
-              <ListItem key={`api-${entry.word}-${entry.translation}-${index}`} divider>
-                <ListItemText
-                  primary={`${entry.word} — ${entry.translation}`}
-                  secondary={`${entry.language_from} → ${entry.language_to}`}
-                />
-                <ListItemSecondaryAction>
-                  {inLibrary ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <CheckCircleIcon color="success" fontSize="small" />
-                      <Typography variant="body2" color="text.secondary">
-                        In library
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<AddIcon />}
-                      onClick={() => handleAddFromApi(entry)}
-                      disabled={!userId || addWordMutation.isPending}
-                    >
-                      {addWordMutation.isPending ? 'Adding…' : 'Add to library'}
-                    </Button>
-                  )}
-                </ListItemSecondaryAction>
-              </ListItem>
-            )
-          })}
-        </List>
-      )}
-
-      {!search.trim() && !apiLoading && (
-        <Typography color="text.secondary" variant="body2">
-          Enter a word and choose a direction. Results from your saved words appear first; when
-          you're online, we'll also search for more.
-        </Typography>
-      )}
+      <DictionaryResultsList
+        results={combinedResults}
+        isOffline={isOffline}
+        hasStoreResults={hasStoreResults}
+        apiLoading={apiLoading}
+        apiError={apiError}
+        searchTrimmed={!!search.trim()}
+        apiSupported={apiSupported}
+        isItemInLibrary={isItemInLibrary}
+        onAddFromStore={handleAddFromStore}
+        onAddFromApi={handleAddFromApi}
+        onDismissError={() => setApiError(null)}
+        addToLibraryPending={addToLibraryMutation.isPending}
+        addWordPending={addWordMutation.isPending}
+        userId={userId}
+      />
     </>
   )
 }
