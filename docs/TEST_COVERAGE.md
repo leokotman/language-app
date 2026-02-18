@@ -7,10 +7,13 @@ npm run coverage
 ```
 
 - Runs all unit tests (Vitest) with the **v8** coverage provider.
-- **Terminal:** summary table and text-summary.
+- **Terminal:** full coverage table (with colors) plus a **summary** with each metric: percentage and `(covered/total)` per category (Statements, Branches, Functions, Lines).
 - **Artifacts:** `coverage/` (HTML report, `coverage/coverage-final.json`). The `coverage/` directory is gitignored.
 
-Configuration: `vite.config.ts` → `test.coverage` (include `src/**/*.{ts,tsx}`, exclude tests, `main.tsx`, types).
+Configuration: `vite.config.ts` → `test.coverage` (include, exclude, **target %** and reporter).
+
+- **Target percentage:** `COVERAGE_TARGET_PCT = 70` in `vite.config.ts`. The coverage run prints a **Target** block after the summary: each metric shows current `pct% (covered/total) out of 70%` and, if below target, `— need N more` (how many more covered items to reach 70%).
+- **Enforcing the target:** Uncomment `coverage.thresholds` in `vite.config.ts` (statements, branches, functions, lines set to `COVERAGE_TARGET_PCT`) to make `npm run coverage` fail when coverage is below target (e.g. in CI). Default is commented so the run passes while you work toward the goal.
 
 ---
 
@@ -18,10 +21,10 @@ Configuration: `vite.config.ts` → `test.coverage` (include `src/**/*.{ts,tsx}`
 
 | Metric     | Current | Target (see below) |
 |-----------|---------|---------------------|
-| Statements| ~23.5%  | 70–80%              |
-| Branches  | ~17.4%  | 70–80%              |
-| Functions | ~19%    | 70–80%              |
-| Lines     | ~23.3%  | 70–80%              |
+| Statements| ~24.4%  | 70–80%              |
+| Branches  | ~18.3%  | 70–80%              |
+| Functions | ~19.9%  | 70–80%              |
+| Lines     | ~24.2%  | 70–80%              |
 
 **Well-covered areas:** `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts` (high); `LibraryPage.helpers`, `StudyPage.helpers` (partial); `ConfirmDialog`, `stores/authStore`, `theme`, `Layout`, `ProtectedRoute`, `OfflinePrefetch` (partial). **Gaps:** API layer, hooks, most page components and Study subcomponents.
 

@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+/** Target coverage percentage (statements, branches, functions, lines). Used in thresholds and target reporter. */
+const COVERAGE_TARGET_PCT = 70
+
 // https://vite.dev/config/
 export default defineConfig(() => {
   // PWA: minify and workbox mode kept false/'development' until workbox-build/terser
@@ -50,7 +53,13 @@ export default defineConfig(() => {
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'text-summary', 'html', 'json'],
+      reporter: [
+        'text',
+        'text-summary',
+        'html',
+        'json',
+        [path.resolve(__dirname, 'scripts/coverage-target-reporter.cjs'), { target: COVERAGE_TARGET_PCT }],
+      ],
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'node_modules/',
@@ -60,6 +69,13 @@ export default defineConfig(() => {
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
       ],
+      // Uncomment to fail the run when coverage is below target (e.g. in CI):
+      // thresholds: {
+      //   statements: COVERAGE_TARGET_PCT,
+      //   branches: COVERAGE_TARGET_PCT,
+      //   functions: COVERAGE_TARGET_PCT,
+      //   lines: COVERAGE_TARGET_PCT,
+      // },
     },
   },
   }
