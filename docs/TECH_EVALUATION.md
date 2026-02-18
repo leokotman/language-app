@@ -1,4 +1,5 @@
-Language App — Tech Manager Evaluation
+Language App — Tech Manager Evaluation (one-time assessment; reference for order of work and gaps.)
+
 1. Phase of development & completion
 Where you are: Late Phase 2 / solid Phase 3 of the original roadmap.
 Area	Status	Notes

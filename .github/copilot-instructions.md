@@ -1,8 +1,8 @@
 # Copilot instructions — language learning app
 
-Onboarding for a coding agent seeing this repo for the first time. Goals: reduce PR rejections (build/lint/behavior), minimize failed bash commands, and cut exploration (grep/find/search). **Limitation:** instructions are not task-specific; max ~2 pages.
+**For GitHub Copilot.** Cursor users: use `docs/AI agent instructions.md` and `.cursor/` (rules, commands). Onboarding for any agent: reduce PR rejections, minimize failed commands, cut exploration. Max ~2 pages; not task-specific.
 
-**Trust these instructions.** Only search the repo when the information here is incomplete or found to be wrong.
+**Trust these instructions.** Search the repo only when this is incomplete or wrong.
 
 ---
 
@@ -41,7 +41,7 @@ Onboarding for a coding agent seeing this repo for the first time. Goals: reduce
 - **Data/API:** `src/api/` (Supabase calls: `vocabulary.ts`, `userLanguages.ts`, `profiles.ts`, etc.). `src/hooks/` wrap API with TanStack Query (e.g. `useVocabulary.ts`, `useUserLanguages.ts`, `useAuth.ts`). `src/stores/` (Zustand): `authStore.ts`, `offlineModeStore.ts`.
 - **Utilities:** `src/lib/` (e.g. `supabase.ts`, `errors.ts`, `sanitize.ts`, `dictionary.ts`, `offlineCache.ts`, `offlineSync.ts`). Types: `src/types/database.ts`, `src/types/index.ts`.
 - **Config:** Lint `eslint.config.js`; TypeScript `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`; Vite + PWA + Vitest in `vite.config.ts`; path alias `@` → `src/`.
-- **Docs:** `docs/` — `HANDOFF.md` (current state, commits, next steps), `AI agent instructions.md` (git workflow), `SUPABASE_SETUP.md`, plus DICTIONARY_PLAN, OFFLINE_DEBUGGING, etc. **Cursor rules:** `.cursor/rules/*.mdc` (naming, helpers, page layout, clean code).
+- **Docs:** `docs/README.md` (index). `HANDOFF.md`, `AI agent instructions.md`, `SUPABASE_SETUP.md`, `OFFLINE.md`, `DICTIONARY_PLAN.md`, etc. **Cursor:** `.cursor/rules/*.mdc`, `.cursor/commands/create-new-feature.md`.
 
 ---
 
