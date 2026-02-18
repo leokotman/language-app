@@ -126,3 +126,13 @@ export function speakWord(text: string, langCode: string): void {
   window.speechSynthesis.cancel()
   window.speechSynthesis.speak(utterance)
 }
+
+/** Play a recording blob via an Audio element; revokes the object URL when done. */
+export function playRecordingBlob(blob: Blob): void {
+  if (typeof window === 'undefined') return
+  const url = URL.createObjectURL(blob)
+  const audio = new Audio(url)
+  audio.onended = () => URL.revokeObjectURL(url)
+  audio.onerror = () => URL.revokeObjectURL(url)
+  audio.play().catch(() => URL.revokeObjectURL(url))
+}

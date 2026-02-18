@@ -115,9 +115,17 @@ test.describe('Study (session flow)', () => {
       } else if (await goodBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
         await goodBtn.click()
       } else {
-        const mcOption = card.getByRole('button').filter({ hasNotText: /^(Again|Hard|Good|Easy|Check|Reveal|Play word)/ }).first()
-        if (await mcOption.isVisible({ timeout: 500 }).catch(() => false)) await mcOption.click()
-        else break
+        const recordBtn = card.getByTestId('study-speaking-record')
+        const stopBtn = card.getByTestId('study-speaking-stop')
+        if (await recordBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+          await recordBtn.click()
+        } else if (await stopBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+          await stopBtn.click()
+        } else {
+          const mcOption = card.getByRole('button').filter({ hasNotText: /^(Again|Hard|Good|Easy|Check|Reveal|Play word|Record|Stop|Play back)/ }).first()
+          if (await mcOption.isVisible({ timeout: 500 }).catch(() => false)) await mcOption.click()
+          else break
+        }
       }
 
       await page.getByTestId('study-session-complete').or(page.getByTestId('study-card')).waitFor({ state: 'visible', timeout: 10000 }).catch(() => {})

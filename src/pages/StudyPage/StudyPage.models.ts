@@ -3,7 +3,7 @@ import type { VocabularyRow } from '@/types/database'
 
 export type StudyCardItem = UserVocabularyRow & { vocabulary: VocabularyRow | null }
 
-/** Exercise form: flashcard, reverse flashcard, typing, multiple choice, reverse multiple choice (translation→word), listening (TTS). */
+/** Exercise form: flashcard, reverse flashcard, typing, multiple choice, reverse multiple choice, listening (TTS), speaking (record → play back → self-rate). */
 export type ExerciseType =
   | 'flashcard'
   | 'reverse_flashcard'
@@ -11,6 +11,7 @@ export type ExerciseType =
   | 'multiple_choice'
   | 'reverse_multiple_choice'
   | 'listening'
+  | 'speaking'
 
 export type StudySessionState = {
   cards: StudyCardItem[]

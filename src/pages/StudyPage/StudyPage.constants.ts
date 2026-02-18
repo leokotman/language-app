@@ -43,4 +43,10 @@ export const EXERCISE_TYPE_OPTIONS = [
     difficulty: 'Medium',
     description: 'Hear the word, pick the correct translation from 4 options.',
   },
+  {
+    type: 'speaking' as const,
+    label: 'Speaking (record & play back)',
+    difficulty: 'Medium',
+    description: 'See or hear the word, record yourself saying it, play back, then rate yourself.',
+  },
 ] as const
