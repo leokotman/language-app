@@ -14,6 +14,8 @@ export function useAudioRecorder() {
   const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
 
+  // Empty deps: we only read refs and call setState. Refs are stable; setState from useState
+  // is stable. So [] keeps callback identity stable for consumers (e.g. memoized children).
   const startRecording = useCallback(async () => {
     setError(null)
     setRecordingBlob(null)
