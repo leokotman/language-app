@@ -20,6 +20,9 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Vitest coverage
+coverage/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

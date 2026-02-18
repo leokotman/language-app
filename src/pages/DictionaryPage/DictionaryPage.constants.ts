@@ -1,4 +1,5 @@
 export const DEBOUNCE_MS = 400
+export const STORE_FILTER_DEBOUNCE_MS = 100
 
 export const DIRECTION_OPTIONS: {
   value: string
