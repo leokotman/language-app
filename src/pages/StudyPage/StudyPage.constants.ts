@@ -27,8 +27,20 @@ export const EXERCISE_TYPE_OPTIONS = [
   },
   {
     type: 'multiple_choice' as const,
-    label: 'Multiple choice',
+    label: 'Multiple choice (word → translation)',
     difficulty: 'Easy (word) / Medium (phrase)',
     description: 'See the word or phrase, pick the correct translation from 4 options.',
+  },
+  {
+    type: 'reverse_multiple_choice' as const,
+    label: 'Reverse multiple choice (translation → word)',
+    difficulty: 'Medium',
+    description: 'See the translation, pick the correct word from 4 options.',
+  },
+  {
+    type: 'listening' as const,
+    label: 'Listening (TTS)',
+    difficulty: 'Medium',
+    description: 'Hear the word, pick the correct translation from 4 options.',
   },
 ] as const
