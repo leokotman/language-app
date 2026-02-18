@@ -6,6 +6,15 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
+- **lang-016:** add test coverage config, script, and docs
+- **lang-016:** test: add unit tests for importExport, LibraryPage.helpers, StudyPage.helpers, ConfirmDialog
+- **lang-016:** refactor: split LibraryPage and DictionaryPage into subcomponents
+- **lang-016:** add coverage target %, custom reporter, and unit tests for errors, auth, theme, ProtectedRoute
+- Merge pull request #21 from leokotman/chore/lang-016-coverage-refactor
+
+
+### Changed
+
 - **hooks:** document useCallback empty deps in useAudioRecorder
 - **study:** add EXERCISE_TYPE_SUBTITLES for card header
 - **study:** add StudyPage layout components (SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete)
