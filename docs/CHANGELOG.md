@@ -4,6 +4,16 @@ All notable changes to the Language App are documented here. The format is based
 
 ## [Unreleased]
 
+### Changed
+
+- **hooks:** document useCallback empty deps in useAudioRecorder
+- **study:** add EXERCISE_TYPE_SUBTITLES for card header
+- **study:** add StudyPage layout components (SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete)
+- **study:** add StudyPage card block components and index
+- **study:** refactor StudyPage to use subcomponents, condition constants, and memoized handlers
+- Merge pull request #20 from leokotman/chore/refactor-study-page
+
+
 ### Added
 
 - **lang-015:** feat(study): add speaking exercise with record, play back, and self-rate
