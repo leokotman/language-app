@@ -4,6 +4,12 @@ All notable changes to the Language App are documented here. The format is based
 
 ## [Unreleased]
 
+### Changed
+
+- **lang-014:** slim and consolidate docs and cursor instructions
+- Merge pull request #17 from leokotman/chore/lang-014-docs-slim-and-consolidate
+
+
 ### Added
 
 - **lang-013:** add data-testid to Study page for E2E
