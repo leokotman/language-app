@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
+  createAppError,
+  createAppErrorAsError,
   getAuthErrorMessage,
   isNetworkError,
   isSupabaseTableMissingError,
   logError,
+  ErrorCode,
 } from '@/lib/errors'
 
 describe('logError', () => {
@@ -39,17 +42,39 @@ describe('getAuthErrorMessage', () => {
   })
 })
 
+describe('createAppError', () => {
+  it('returns shape with code, message, recoverable, userAction', () => {
+    const err = createAppError(ErrorCode.AUTH_INVALID_CREDENTIALS, 'Bad login', false, 'Retry')
+    expect(err.code).toBe(ErrorCode.AUTH_INVALID_CREDENTIALS)
+    expect(err.message).toBe('Bad login')
+    expect(err.recoverable).toBe(false)
+    expect(err.userAction).toBe('Retry')
+  })
+})
+
+describe('createAppErrorAsError', () => {
+  it('returns Error-like with code and message', () => {
+    const err = createAppErrorAsError(ErrorCode.NETWORK_ERROR, 'Offline')
+    expect(err).toBeInstanceOf(Error)
+    expect(err.message).toBe('Offline')
+    expect(err.code).toBe(ErrorCode.NETWORK_ERROR)
+  })
+})
+
 describe('isSupabaseTableMissingError', () => {
-  it('returns true for "does not exist" message', () => {
+  it('returns true for "does not exist" or "relation" message', () => {
     expect(isSupabaseTableMissingError({ message: 'relation "user_languages" does not exist' })).toBe(true)
+    expect(isSupabaseTableMissingError({ message: 'relation xyz missing' })).toBe(true)
   })
 
-  it('returns true for PostgreSQL 42P01 code', () => {
+  it('returns true for 42P01 or PGRST301 code', () => {
     expect(isSupabaseTableMissingError({ message: 'x', code: '42P01' })).toBe(true)
+    expect(isSupabaseTableMissingError({ message: 'x', code: 'PGRST301' })).toBe(true)
   })
 
-  it('returns false for generic error', () => {
+  it('returns false for generic error or non-string message', () => {
     expect(isSupabaseTableMissingError({ message: 'Network failure' })).toBe(false)
+    expect(isSupabaseTableMissingError({ message: 123 })).toBe(false)
   })
 
   it('returns false for null/undefined', () => {

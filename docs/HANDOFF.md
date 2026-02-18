@@ -23,13 +23,14 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 - `src/components/common/` — ConfirmDialog, etc.
 - `src/components/features/` — auth (ProtectedRoute), offline (OfflinePrefetch).
 - `src/components/layout/` — Layout, Navbar.
-- `src/pages/` — HomePage, LibraryPage, DictionaryPage, SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (flashcard, reverse flashcard, typing, multiple choice, reverse multiple choice, listening, speaking).
+- `src/pages/` — HomePage, LibraryPage (subcomponents: AddWordForm, ImportExportBar, LibraryFilterBar, LibraryList, EditWordDialog; `LibraryPage.helpers`, `LibraryPage.models`), DictionaryPage (subcomponents: DictionaryLookupBar, DictionaryResultsList; `DictionaryPage.constants`, `DictionaryPage.models`), SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (subcomponents in `StudyPage/components/`: SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete, card blocks, RatingButtons; `StudyPage.constants`, `StudyPage.helpers`, `StudyPage.models`).
 - `src/api/` — languages, userLanguages, vocabulary, profiles.
 - `src/hooks/` — useAuth, useLanguages, useUserLanguages, useVocabulary, useAudioRecorder.
 - `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport, fsrs.
 - `src/stores/` — authStore, offlineModeStore.
 - `docs/supabase-migrations/` — 001–008.
 - `e2e/` — home.spec.ts, library.spec.ts, study.spec.ts, helpers/auth.ts.
+- **Docs:** `docs/REFACTORING_OPPORTUNITIES.md` (chore: where to split components, utils, types); `docs/TEST_COVERAGE.md` (coverage command, current table, target 70–80%).
 
 ---
 
@@ -37,6 +38,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
+- chore (refactor): Study page — split into layout components (SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete), card block components (FlashcardBlock, ReverseFlashcardBlock, TypingBlock, MultipleChoiceBlock, ReverseMultipleChoiceBlock, ListeningBlock, SpeakingBlock, AnswerFeedbackBlock, RatingButtons), condition constants (EXERCISE_TYPE_SUBTITLES), memoized handlers; helpers and types in StudyPage.helpers / StudyPage.models; components index.
 - lang-015: Phase 4 speech (recording only). New exercise type **speaking**: see/hear word → Record → Stop → Play back → self-rate (Again/Hard/Good/Easy). useAudioRecorder hook (getUserMedia + MediaRecorder), playRecordingBlob helper; StudyPage speaking UI and E2E handling (Record/Stop in loop).
 - lang-014: Phase 3 — reverse multiple choice (translation→word pick) and listening (TTS). New exercise types: reverse_multiple_choice (show translation, pick word from 4 options; buildReverseMultipleChoiceOptions), listening (Play word via Web Speech API, pick translation from 4 options; speakWord helper with language_from). StudyPage: new options in EXERCISE_TYPE_OPTIONS, UI blocks and correct-answer display; E2E excludes "Play word" from option click.
 - lang-013: E2E for study session — data-testid on Study page; e2e/study.spec.ts (redirect, full session flow; resilient loop: wait for Reveal first, handle all exercise types, 60s timeout). Fix: Study page shows “Session complete” after last card (set currentIndex past end instead of setSession(null)); rating buttons not disabled for E2E; removed unused reverseMultipleChoiceOptions.
@@ -62,6 +64,8 @@ Recent work (from git, latest first):
 
 *Not yet implemented; pick from here (and from §6 Priority) for the next feature.*
 
+- **Chore:** Refactor LibraryPage / DictionaryPage (subcomponents, helpers) — see `docs/REFACTORING_OPPORTUNITIES.md`.
+- **Chore:** Increase unit test coverage toward 70–80% — run `npm run coverage`, see `docs/TEST_COVERAGE.md`.
 - Phase 3: FSRS algorithm, “due today” query, study session flow (start, show card, reveal, rate, update SRS).
 - Phase 3: Adaptive exercise selection (e.g. weight by difficulty).
 - Default language pair: preselect when user has one pair; “study language” in Settings or Study page.

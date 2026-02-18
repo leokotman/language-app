@@ -27,4 +27,11 @@ describe('authStore', () => {
     expect(useAuthStore.getState().user).toBeNull()
     expect(useAuthStore.getState().session).toBeNull()
   })
+
+  it('setLoading updates loading state', () => {
+    useAuthStore.getState().setLoading(true)
+    expect(useAuthStore.getState().loading).toBe(true)
+    useAuthStore.getState().setLoading(false)
+    expect(useAuthStore.getState().loading).toBe(false)
+  })
 })
