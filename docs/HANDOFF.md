@@ -23,7 +23,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 - `src/components/common/` — ConfirmDialog, etc.
 - `src/components/features/` — auth (ProtectedRoute), offline (OfflinePrefetch).
 - `src/components/layout/` — Layout, Navbar.
-- `src/pages/` — HomePage, LibraryPage, DictionaryPage, SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (subcomponents in `StudyPage/components/`: SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete, card blocks, RatingButtons; `StudyPage.constants`, `StudyPage.helpers`, `StudyPage.models`).
+- `src/pages/` — HomePage, LibraryPage (subcomponents: AddWordForm, ImportExportBar, LibraryFilterBar, LibraryList, EditWordDialog; `LibraryPage.helpers`, `LibraryPage.models`), DictionaryPage (subcomponents: DictionaryLookupBar, DictionaryResultsList; `DictionaryPage.constants`, `DictionaryPage.models`), SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (subcomponents in `StudyPage/components/`: SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete, card blocks, RatingButtons; `StudyPage.constants`, `StudyPage.helpers`, `StudyPage.models`).
 - `src/api/` — languages, userLanguages, vocabulary, profiles.
 - `src/hooks/` — useAuth, useLanguages, useUserLanguages, useVocabulary, useAudioRecorder.
 - `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport, fsrs.

@@ -56,9 +56,9 @@ Chore list for cleaner code, aligned with the **Study page** refactor: subcompon
 
 ## 5. Order of work
 
-1. **LibraryPage** — largest file; splitting it gives the biggest maintainability win and matches the Study pattern.
-2. **DictionaryPage** — next by size; extract lookup + results list and optional hook/helpers.
+1. ~~**LibraryPage**~~ — **Done (lang-016):** AddWordForm, LibraryFilterBar, LibraryList, EditWordDialog, ImportExportBar in `LibraryPage/components/`.
+2. ~~**DictionaryPage**~~ — **Done (lang-016):** DictionaryLookupBar, DictionaryResultsList in `DictionaryPage/components/`; `STORE_FILTER_DEBOUNCE_MS` moved to `DictionaryPage.constants`.
 3. **SettingsPage / Navbar** — optional, when touching those areas.
-4. **Shared types/utils** — refactor as you touch each page (e.g. when adding Library subcomponents, ensure no duplicate types in components).
+4. **Shared types/utils** — refactor as you touch each page.
 
 After refactors, update **Project structure** in `docs/HANDOFF.md` and add a short entry to `docs/CHANGELOG.md`.

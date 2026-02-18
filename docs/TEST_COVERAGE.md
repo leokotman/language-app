@@ -18,12 +18,12 @@ Configuration: `vite.config.ts` → `test.coverage` (include `src/**/*.{ts,tsx}`
 
 | Metric     | Current | Target (see below) |
 |-----------|---------|---------------------|
-| Statements| 11.6%   | 70–80%              |
-| Branches  | 7.96%   | 70–80%              |
-| Functions | 9.77%   | 70–80%              |
-| Lines     | 11.74%  | 70–80%              |
+| Statements| ~23.5%  | 70–80%              |
+| Branches  | ~17.4%  | 70–80%              |
+| Functions | ~19%    | 70–80%              |
+| Lines     | ~23.3%  | 70–80%              |
 
-**Well-covered areas:** `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts` (high); `stores/authStore`, `theme`, `Layout`, `ProtectedRoute`, `OfflinePrefetch` (partial). **Gaps:** API layer, hooks, most pages and Study subcomponents.
+**Well-covered areas:** `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts` (high); `LibraryPage.helpers`, `StudyPage.helpers` (partial); `ConfirmDialog`, `stores/authStore`, `theme`, `Layout`, `ProtectedRoute`, `OfflinePrefetch` (partial). **Gaps:** API layer, hooks, most page components and Study subcomponents.
 
 Re-run `npm run coverage` and open `coverage/index.html` for an up-to-date per-file breakdown.
 

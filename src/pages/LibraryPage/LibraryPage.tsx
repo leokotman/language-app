@@ -1,35 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import {
-  Typography,
-  Box,
-  TextField,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  IconButton,
-  CircularProgress,
-  Alert,
-  Link,
-  Button,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import DownloadIcon from '@mui/icons-material/Download'
-import UploadIcon from '@mui/icons-material/Upload'
+import { Typography, Box, Paper, Alert, Link } from '@mui/material'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserLanguages } from '@/hooks/useUserLanguages'
 import {
@@ -40,20 +11,9 @@ import {
 } from '@/hooks/useVocabulary'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { isSupabaseTableMissingError } from '@/lib/errors'
-import {
-  sanitizeWord,
-  sanitizeTranslation,
-  sanitizeSearch,
-  clampAndStripControlChars,
-  MAX_WORD_LENGTH,
-  MAX_TRANSLATION_LENGTH,
-  MAX_SEARCH_LENGTH,
-} from '@/lib/sanitize'
-import {
-  VIRTUAL_PAIR_RU_SR,
-  LANGUAGE_PLACEHOLDERS,
-  getBidirectionalKey,
-} from '@/types'
+import { sanitizeWord, sanitizeTranslation, sanitizeSearch } from '@/lib/sanitize'
+import { getBidirectionalKey, LANGUAGE_PLACEHOLDERS } from '@/types'
+import { VIRTUAL_PAIR_RU_SR } from '@/types'
 import { exportToCsv, exportToJson, type LibraryExportRow } from '@/lib/importExport'
 import type { LibraryItem, LibraryEditingItem } from './LibraryPage.models'
 import {
@@ -64,6 +24,13 @@ import {
   buildBidirectionalFilterOptions,
   buildDirectionOptionsForPair,
 } from './LibraryPage.helpers'
+import {
+  AddWordForm,
+  ImportExportBar,
+  LibraryFilterBar,
+  LibraryList,
+  EditWordDialog,
+} from './components'
 
 export function LibraryPage() {
   const user = useAuthStore((state) => state.user)
@@ -308,291 +275,73 @@ export function LibraryPage() {
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
               Add word
             </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
-              <TextField
-                size="small"
-                label="Word"
-                placeholder={addFormPlaceholders.word}
-                value={addWord}
-                onChange={(event) =>
-                  setAddWord(clampAndStripControlChars(event.target.value, MAX_WORD_LENGTH))
-                }
-                sx={{ minWidth: 160 }}
-              />
-              <TextField
-                size="small"
-                label="Translation"
-                placeholder={addFormPlaceholders.translation}
-                value={addTranslation}
-                onChange={(event) =>
-                  setAddTranslation(
-                    clampAndStripControlChars(event.target.value, MAX_TRANSLATION_LENGTH)
-                  )
-                }
-                sx={{ minWidth: 160 }}
-              />
-              <FormControl size="small" sx={{ minWidth: 200 }}>
-                <InputLabel id="add-lang-pair">Language pair</InputLabel>
-                <Select
-                  labelId="add-lang-pair"
-                  value={addPairKey}
-                  label="Language pair"
-                  onChange={(event) => setAddPairKey(event.target.value)}
-                >
-                  {addFormPairOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: 200 }}>
-                <InputLabel id="add-direction">Direction</InputLabel>
-                <Select
-                  labelId="add-direction"
-                  value={addDirection}
-                  label="Direction"
-                  onChange={(event) => setAddDirection(event.target.value)}
-                >
-                  {directionOptionsForPair.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleAddWord}
-                disabled={
-                  addMutation.isPending ||
-                  !addWord.trim() ||
-                  !addTranslation.trim() ||
-                  !addDirection
-                }
-              >
-                {addMutation.isPending ? 'Adding…' : 'Add'}
-              </Button>
-            </Box>
-            {addMutation.isError && (
-              <Typography color="error" variant="body2" sx={{ mt: 1 }}>
-                Could not add word. Try again.
-              </Typography>
-            )}
+            <AddWordForm
+              word={addWord}
+              translation={addTranslation}
+              pairKey={addPairKey}
+              direction={addDirection}
+              pairOptions={addFormPairOptions}
+              directionOptions={directionOptionsForPair}
+              placeholders={addFormPlaceholders}
+              onWordChange={setAddWord}
+              onTranslationChange={setAddTranslation}
+              onPairKeyChange={setAddPairKey}
+              onDirectionChange={setAddDirection}
+              onAdd={handleAddWord}
+              isPending={addMutation.isPending}
+              hasError={addMutation.isError}
+            />
           </Paper>
 
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
               Import / Export
             </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-              <Button
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportCsv}
-                disabled={exportRows.length === 0}
-              >
-                Export CSV
-              </Button>
-              <Button
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportJson}
-                disabled={exportRows.length === 0}
-              >
-                Export JSON
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.json"
-                style={{ display: 'none' }}
-                onChange={handleImportFile}
-              />
-              <Button
-                size="small"
-                startIcon={<UploadIcon />}
-                onClick={handleImportClick}
-                disabled={isImporting}
-              >
-                {isImporting ? 'Importing…' : 'Import'}
-              </Button>
-              {importMessage && (
-                <Typography variant="body2" color="text.secondary">
-                  {importMessage}
-                </Typography>
-              )}
-            </Box>
+            <ImportExportBar
+              exportRowCount={exportRows.length}
+              onExportCsv={handleExportCsv}
+              onExportJson={handleExportJson}
+              fileInputRef={fileInputRef}
+              onImportClick={handleImportClick}
+              onImportFileChange={handleImportFile}
+              isImporting={isImporting}
+              importMessage={importMessage}
+            />
           </Paper>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-            <TextField
-              size="small"
-              placeholder="Search word or translation…"
-              value={search}
-              onChange={(event) =>
-                setSearch(clampAndStripControlChars(event.target.value, MAX_SEARCH_LENGTH))
-              }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ minWidth: 220 }}
+            <LibraryFilterBar
+              search={search}
+              languageFilter={languageFilter}
+              filterOptions={filterOptions}
+              onSearchChange={setSearch}
+              onLanguageFilterChange={setLanguageFilter}
             />
-            <FormControl size="small" sx={{ minWidth: 260 }}>
-              <InputLabel id="library-lang-filter">Language pair</InputLabel>
-              <Select
-                labelId="library-lang-filter"
-                value={languageFilter}
-                label="Language pair"
-                onChange={(event) => setLanguageFilter(event.target.value)}
-              >
-                <MenuItem value="">All</MenuItem>
-                {filterOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
           </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }} data-testid="library-error">
-              Failed to load your library. Try again.
-            </Alert>
-          )}
+          <LibraryList
+            items={filteredItems}
+            languageFilter={languageFilter}
+            onEdit={setEditingItem}
+            onDelete={setDeleteVocabularyId}
+            isLoading={isLoading}
+            totalCount={libraryItems.length}
+            error={!!error}
+          />
 
-          {isLoading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }} data-testid="library-loading">
-              <CircularProgress size={24} />
-              <Typography variant="body2">Loading…</Typography>
-            </Box>
-          ) : filteredItems.length === 0 ? (
-            <Typography color="text.secondary" data-testid="library-empty">
-              {libraryItems.length === 0
-                ? 'No words yet. Add your first word below.'
-                : 'No words match your search or filter.'}
-            </Typography>
-          ) : (
-            <List dense disablePadding sx={{ bgcolor: 'action.hover', borderRadius: 1 }} data-testid="library-list">
-              {languageFilter === VIRTUAL_PAIR_RU_SR.key && filteredItems.length > 0 && (
-                <ListItem sx={{ bgcolor: 'action.selected', py: 0.5 }}>
-                  <ListItemText
-                    secondary={VIRTUAL_PAIR_RU_SR.label + ': direct Russian↔Serbian words only.'}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItem>
-              )}
-              {filteredItems.map((item) => {
-                const vocabulary = item.vocabulary
-                const label = vocabulary
-                  ? (getBidirectionalKey(vocabulary.language_from, vocabulary.language_to) ===
-                    VIRTUAL_PAIR_RU_SR.key
-                      ? VIRTUAL_PAIR_RU_SR.directionLabels[
-                          `${vocabulary.language_from}-${vocabulary.language_to}` as keyof typeof VIRTUAL_PAIR_RU_SR.directionLabels
-                        ]
-                      : getLanguagePairLabel(vocabulary.language_from, vocabulary.language_to))
-                  : 'Unknown'
-                const secondary =
-                  languageFilter === VIRTUAL_PAIR_RU_SR.key &&
-                  vocabulary &&
-                  getBidirectionalKey(vocabulary.language_from, vocabulary.language_to) !==
-                    VIRTUAL_PAIR_RU_SR.key
-                    ? `${label} (via English)`
-                    : label
-                return (
-                  <ListItem key={item.id} divider>
-                    <ListItemText
-                      primary={vocabulary ? `${vocabulary.word} — ${vocabulary.translation}` : '—'}
-                      secondary={secondary}
-                    />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        aria-label="Edit"
-                        onClick={() =>
-                          vocabulary &&
-                          setEditingItem({
-                            vocabulary_id: item.vocabulary_id,
-                            word: vocabulary.word,
-                            translation: vocabulary.translation,
-                          })
-                        }
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        edge="end"
-                        aria-label="Delete"
-                        onClick={() => setDeleteVocabularyId(item.vocabulary_id)}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                )
-              })}
-            </List>
-          )}
-
-          <Dialog open={!!editingItem} onClose={() => setEditingItem(null)}>
-            <DialogTitle>Edit word</DialogTitle>
-            <DialogContent>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1, minWidth: 320 }}>
-                <TextField
-                  autoFocus
-                  label="Word"
-                  value={editingItem?.word ?? ''}
-                  onChange={(event) =>
-                    setEditingItem((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            word: clampAndStripControlChars(event.target.value, MAX_WORD_LENGTH),
-                          }
-                        : null
-                    )
-                  }
-                />
-                <TextField
-                  label="Translation"
-                  value={editingItem?.translation ?? ''}
-                  onChange={(event) =>
-                    setEditingItem((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            translation: clampAndStripControlChars(
-                              event.target.value,
-                              MAX_TRANSLATION_LENGTH
-                            ),
-                          }
-                        : null
-                    )
-                  }
-                />
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setEditingItem(null)}>Cancel</Button>
-              <Button
-                variant="contained"
-                onClick={handleSaveEdit}
-                disabled={
-                  !editingItem?.word.trim() ||
-                  !editingItem?.translation.trim() ||
-                  updateMutation.isPending
-                }
-              >
-                {updateMutation.isPending ? 'Saving…' : 'Save'}
-              </Button>
-            </DialogActions>
-          </Dialog>
+          <EditWordDialog
+            open={!!editingItem}
+            editingItem={editingItem}
+            onClose={() => setEditingItem(null)}
+            onWordChange={(word) =>
+              setEditingItem((prev) => (prev ? { ...prev, word } : null))
+            }
+            onTranslationChange={(translation) =>
+              setEditingItem((prev) => (prev ? { ...prev, translation } : null))
+            }
+            onSave={handleSaveEdit}
+            isPending={updateMutation.isPending}
+          />
 
           <ConfirmDialog
             open={!!deleteVocabularyId}
