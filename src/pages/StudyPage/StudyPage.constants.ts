@@ -50,3 +50,15 @@ export const EXERCISE_TYPE_OPTIONS = [
     description: 'See or hear the word, record yourself saying it, play back, then rate yourself.',
   },
 ] as const
+
+/** Subtitle text per exercise type for the card header. */
+export const EXERCISE_TYPE_SUBTITLES: Record<(typeof EXERCISE_TYPE_OPTIONS)[number]['type'], string> =
+  {
+    flashcard: 'Flashcard',
+    reverse_flashcard: 'Reverse flashcard',
+    typing: 'Written',
+    multiple_choice: 'Multiple choice',
+    reverse_multiple_choice: 'Reverse multiple choice',
+    listening: 'Listening',
+    speaking: 'Speaking',
+  }
