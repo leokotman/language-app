@@ -24,12 +24,14 @@ import { getBidirectionalKey } from '@/types'
 import { BIDIRECTIONAL_PAIRS, VIRTUAL_PAIR_RU_SR } from '@/types'
 import type { StudyCardItem, StudySessionState, ExerciseType } from './StudyPage.models'
 import { STUDY_RATING_LABELS, EXERCISE_TYPE_OPTIONS } from './StudyPage.constants'
+import { useAudioRecorder } from '@/hooks/useAudioRecorder'
 import {
   isAnswerCorrect,
   buildMultipleChoiceOptions,
   buildReverseMultipleChoiceOptions,
   assignExerciseTypes,
   speakWord,
+  playRecordingBlob,
 } from './StudyPage.helpers'
 
 export function StudyPage() {
@@ -71,11 +73,20 @@ export function StudyPage() {
     'reverse_multiple_choice',
     'typing',
     'listening',
+    'speaking',
   ])
   const [typingInput, setTypingInput] = useState('')
   const [answered, setAnswered] = useState<{ correct: boolean; userAnswer?: string } | null>(null)
   /** For flashcard / reverse_flashcard: true = revealed, show rating buttons. */
   const [flashcardRevealed, setFlashcardRevealed] = useState(false)
+  const {
+    recordingBlob,
+    isRecording,
+    error: recordingError,
+    startRecording,
+    stopRecording,
+    clearRecording,
+  } = useAudioRecorder()
 
   const isLoading = langsLoading
   const canStart =
@@ -102,6 +113,7 @@ export function StudyPage() {
     setTypingInput('')
     setAnswered(null)
     setFlashcardRevealed(false)
+    clearRecording()
   }
 
   const handleRate = (rating: StudyRating) => {
@@ -116,6 +128,7 @@ export function StudyPage() {
           setAnswered(null)
           setTypingInput('')
           setFlashcardRevealed(false)
+          clearRecording()
           const nextIndex = session.currentIndex + 1
           if (nextIndex >= session.cards.length) {
             setSession((prev) => (prev ? { ...prev, currentIndex: prev.cards.length } : null))
@@ -284,8 +297,10 @@ export function StudyPage() {
 
   const isFlashcardType =
     currentExerciseType === 'flashcard' || currentExerciseType === 'reverse_flashcard'
+  const isSpeakingReady =
+    currentExerciseType === 'speaking' && recordingBlob !== null && !isRecording
   const showRatingButtons =
-    answered !== null || (isFlashcardType && flashcardRevealed)
+    answered !== null || (isFlashcardType && flashcardRevealed) || isSpeakingReady
   const ratingButtons = (
     <Box display="flex" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
       {(Object.keys(STUDY_RATING_LABELS) as Array<keyof typeof STUDY_RATING_LABELS>).map(
@@ -321,6 +336,7 @@ export function StudyPage() {
           {currentExerciseType === 'multiple_choice' && ' · Multiple choice'}
           {currentExerciseType === 'reverse_multiple_choice' && ' · Reverse multiple choice'}
           {currentExerciseType === 'listening' && ' · Listening'}
+          {currentExerciseType === 'speaking' && ' · Speaking'}
         </Typography>
       )}
       <MuiCard sx={{ mt: 3, maxWidth: 480 }}>
@@ -475,6 +491,66 @@ export function StudyPage() {
             </>
           )}
 
+          {!showRatingButtons && currentExerciseType === 'speaking' && (
+            <>
+              <Typography variant="h5" component="p" sx={{ mb: 1 }}>
+                {word}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Say the word, then record yourself. Play back to check, then rate.
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                aria-label="Play word"
+                startIcon={<span aria-hidden>🔊</span>}
+                onClick={() => {
+                  const lang =
+                    currentCard.vocabulary?.language_from ?? selectedPair?.key?.split('-')[0] ?? 'en'
+                  speakWord(word, lang)
+                }}
+                sx={{ mr: 1, mb: 1 }}
+              >
+                Play word
+              </Button>
+              <Box display="flex" flexWrap="wrap" gap={1} sx={{ mb: 1 }}>
+                {!isRecording ? (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={startRecording}
+                    data-testid="study-speaking-record"
+                  >
+                    Record
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={stopRecording}
+                    data-testid="study-speaking-stop"
+                  >
+                    Stop
+                  </Button>
+                )}
+                {recordingBlob && !isRecording && (
+                  <Button
+                    variant="outlined"
+                    onClick={() => playRecordingBlob(recordingBlob)}
+                    data-testid="study-speaking-playback"
+                  >
+                    Play back
+                  </Button>
+                )}
+              </Box>
+              {recordingError && (
+                <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                  {recordingError}
+                </Typography>
+              )}
+            </>
+          )}
+
           {showRatingButtons && answered !== null && !isFlashcardType && (
             <>
               {answered.correct ? (
@@ -495,7 +571,7 @@ export function StudyPage() {
               {ratingButtons}
             </>
           )}
-          {showRatingButtons && isFlashcardType && (
+          {showRatingButtons && (isFlashcardType || currentExerciseType === 'speaking') && (
             <>
               {ratingButtons}
             </>
