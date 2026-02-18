@@ -4,6 +4,16 @@ All notable changes to the Language App are documented here. The format is based
 
 ## [Unreleased]
 
+### Added
+
+- **lang-014:** feat(study): add reverse multiple choice and listening (TTS) exercise types
+- **lang-014:** docs: update HANDOFF for lang-014 (session summary, priority)
+
+### Changed
+
+- Merge pull request #18 from leokotman/feat/lang-014-reverse-multiple-choice-tts
+
+
 ### Changed
 
 - **lang-014:** slim and consolidate docs and cursor instructions
