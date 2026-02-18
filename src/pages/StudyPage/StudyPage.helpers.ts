@@ -109,3 +109,20 @@ export function assignExerciseTypes(
   }
   return result
 }
+
+/** Map app language code to BCP 47 for SpeechSynthesis. */
+const LANG_TO_BCP47: Record<string, string> = {
+  en: 'en',
+  ru: 'ru',
+  sr: 'sr',
+}
+
+/** Speak text using the Web Speech API (TTS). Lang code: en, ru, sr. */
+export function speakWord(text: string, langCode: string): void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = LANG_TO_BCP47[langCode] ?? langCode
+  utterance.rate = 0.9
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utterance)
+}

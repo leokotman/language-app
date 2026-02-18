@@ -115,7 +115,7 @@ test.describe('Study (session flow)', () => {
       } else if (await goodBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
         await goodBtn.click()
       } else {
-        const mcOption = card.getByRole('button').filter({ hasNotText: /^(Again|Hard|Good|Easy|Check|Reveal)/ }).first()
+        const mcOption = card.getByRole('button').filter({ hasNotText: /^(Again|Hard|Good|Easy|Check|Reveal|Play word)/ }).first()
         if (await mcOption.isVisible({ timeout: 500 }).catch(() => false)) await mcOption.click()
         else break
       }

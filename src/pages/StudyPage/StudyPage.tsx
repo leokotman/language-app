@@ -27,7 +27,9 @@ import { STUDY_RATING_LABELS, EXERCISE_TYPE_OPTIONS } from './StudyPage.constant
 import {
   isAnswerCorrect,
   buildMultipleChoiceOptions,
+  buildReverseMultipleChoiceOptions,
   assignExerciseTypes,
+  speakWord,
 } from './StudyPage.helpers'
 
 export function StudyPage() {
@@ -66,7 +68,9 @@ export function StudyPage() {
     'flashcard',
     'reverse_flashcard',
     'multiple_choice',
+    'reverse_multiple_choice',
     'typing',
+    'listening',
   ])
   const [typingInput, setTypingInput] = useState('')
   const [answered, setAnswered] = useState<{ correct: boolean; userAnswer?: string } | null>(null)
@@ -134,6 +138,13 @@ export function StudyPage() {
     : null
   const multipleChoiceOptions = useMemo(
     () => (session && currentCard ? buildMultipleChoiceOptions(session.cards, currentCard) : []),
+    [session, currentCard]
+  )
+  const reverseMultipleChoiceOptions = useMemo(
+    () =>
+      session && currentCard
+        ? buildReverseMultipleChoiceOptions(session.cards, currentCard)
+        : [],
     [session, currentCard]
   )
 
@@ -308,6 +319,8 @@ export function StudyPage() {
           {currentExerciseType === 'reverse_flashcard' && ' · Reverse flashcard'}
           {currentExerciseType === 'typing' && ' · Written'}
           {currentExerciseType === 'multiple_choice' && ' · Multiple choice'}
+          {currentExerciseType === 'reverse_multiple_choice' && ' · Reverse multiple choice'}
+          {currentExerciseType === 'listening' && ' · Listening'}
         </Typography>
       )}
       <MuiCard sx={{ mt: 3, maxWidth: 480 }}>
@@ -402,6 +415,65 @@ export function StudyPage() {
             </>
           )}
 
+          {!showRatingButtons && currentExerciseType === 'reverse_multiple_choice' && (
+            <>
+              <Typography variant="h5" component="p" sx={{ mb: 2 }}>
+                {translation}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Pick the correct word
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={0.5}>
+                {reverseMultipleChoiceOptions.map((option) => (
+                  <Button
+                    key={option}
+                    variant="outlined"
+                    onClick={() =>
+                      setAnswered({ correct: option === word.trim(), userAnswer: option })
+                    }
+                    disabled={answered !== null}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </Box>
+            </>
+          )}
+
+          {!showRatingButtons && currentExerciseType === 'listening' && (
+            <>
+              <Button
+                variant="contained"
+                aria-label="Play word"
+                startIcon={<span aria-hidden>🔊</span>}
+                onClick={() => {
+                  const lang =
+                    currentCard.vocabulary?.language_from ?? selectedPair?.key?.split('-')[0] ?? 'en'
+                  speakWord(word, lang)
+                }}
+                sx={{ mb: 2 }}
+              >
+                Play word
+              </Button>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Pick the correct translation
+              </Typography>
+              <Box display="flex" flexDirection="column" gap={0.5}>
+                {multipleChoiceOptions.map((option) => (
+                  <Button
+                    key={option}
+                    variant="outlined"
+                    onClick={() =>
+                      setAnswered({ correct: option === translation.trim(), userAnswer: option })
+                    }
+                    disabled={answered !== null}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </Box>
+            </>
+          )}
 
           {showRatingButtons && answered !== null && !isFlashcardType && (
             <>
@@ -414,7 +486,8 @@ export function StudyPage() {
                   Wrong.{' '}
                   {answered.userAnswer && (
                     <Typography component="span" color="text.secondary">
-                      Correct: {translation}
+                      Correct:{' '}
+                      {currentExerciseType === 'reverse_multiple_choice' ? word : translation}
                     </Typography>
                   )}
                 </Typography>
