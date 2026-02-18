@@ -6,6 +6,17 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Added
 
+- **lang-015:** feat(study): add speaking exercise with record, play back, and self-rate
+- **lang-015:** docs: update HANDOFF for lang-015 (speaking recording, next STT)
+
+### Changed
+
+- **lang-015:** add SPEECH_PLAN doc, reference in AI instructions; fix package.json indent
+- Merge pull request #19 from leokotman/feat/lang-015-speaking-recording
+
+
+### Added
+
 - **lang-014:** feat(study): add reverse multiple choice and listening (TTS) exercise types
 - **lang-014:** docs: update HANDOFF for lang-014 (session summary, priority)
 
