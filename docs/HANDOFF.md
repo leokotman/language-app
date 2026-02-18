@@ -23,9 +23,9 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 - `src/components/common/` — ConfirmDialog, etc.
 - `src/components/features/` — auth (ProtectedRoute), offline (OfflinePrefetch).
 - `src/components/layout/` — Layout, Navbar.
-- `src/pages/` — HomePage, LibraryPage, DictionaryPage, SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (flashcard, reverse flashcard, typing, multiple choice).
+- `src/pages/` — HomePage, LibraryPage, DictionaryPage, SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (flashcard, reverse flashcard, typing, multiple choice, reverse multiple choice, listening, speaking).
 - `src/api/` — languages, userLanguages, vocabulary, profiles.
-- `src/hooks/` — useAuth, useLanguages, useUserLanguages, useVocabulary.
+- `src/hooks/` — useAuth, useLanguages, useUserLanguages, useVocabulary, useAudioRecorder.
 - `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport, fsrs.
 - `src/stores/` — authStore, offlineModeStore.
 - `docs/supabase-migrations/` — 001–008.
@@ -37,6 +37,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
+- lang-015: Phase 4 speech (recording only). New exercise type **speaking**: see/hear word → Record → Stop → Play back → self-rate (Again/Hard/Good/Easy). useAudioRecorder hook (getUserMedia + MediaRecorder), playRecordingBlob helper; StudyPage speaking UI and E2E handling (Record/Stop in loop).
 - lang-014: Phase 3 — reverse multiple choice (translation→word pick) and listening (TTS). New exercise types: reverse_multiple_choice (show translation, pick word from 4 options; buildReverseMultipleChoiceOptions), listening (Play word via Web Speech API, pick translation from 4 options; speakWord helper with language_from). StudyPage: new options in EXERCISE_TYPE_OPTIONS, UI blocks and correct-answer display; E2E excludes "Play word" from option click.
 - lang-013: E2E for study session — data-testid on Study page; e2e/study.spec.ts (redirect, full session flow; resilient loop: wait for Reveal first, handle all exercise types, 60s timeout). Fix: Study page shows “Session complete” after last card (set currentIndex past end instead of setSession(null)); rating buttons not disabled for E2E; removed unused reverseMultipleChoiceOptions.
 - lang-012: Study page — added flashcard (word→translation, reveal, rate) and reverse flashcard (translation→word, reveal, rate); four exercise types: flashcard, reverse_flashcard, typing, multiple_choice; helper buildReverseMultipleChoiceOptions for future use.
@@ -67,7 +68,7 @@ Recent work (from git, latest first):
 - Validation: trim and max length on word/translation in add/edit (align with sanitize).
 - “I’ve run the migration” button to refetch after showing migration instructions.
 - Categories or notes on vocabulary (schema migration + UI).
-- Phase 4+: Speech integration, pronunciation practice.
+- Phase 4 – Speech: recording + comparison. See **`docs/SPEECH_PLAN.md`** (recording → STT compare; pronunciation assessment omitted — no free-tier-friendly option).
 - Phase 5+: Progress dashboard, stats, streaks, XP, achievements.
 - Phase 6+: AI features (mnemonics, pronunciation tips).
 - Phase 7: Full E2E suite, performance, Lighthouse, deploy to production.
@@ -79,4 +80,5 @@ Recent work (from git, latest first):
 1. Default language pair and "study language" in Settings/Study.
 2. Validation (trim/max length) in add/edit word.
 3. “I’ve run the migration” button.
-4. Categories or notes on vocabulary (optional).
+4. **Phase 4 speech (next):** STT comparison for speaking (browser SpeechRecognition or free-tier API) — see `docs/SPEECH_PLAN.md`. Recording + self-rate done (lang-015).
+5. Categories or notes on vocabulary (optional).
