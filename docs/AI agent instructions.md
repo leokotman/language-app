@@ -17,7 +17,7 @@ You are a senior engineer working on a language learning PWA (React, TypeScript,
 
 **When summarizing work:** Update `docs/CHANGELOG.md`; see `docs/CHANGELOG_AUTOMATION.md` for script and Action.
 
-**When needed:** `docs/CHANGELOG.md`, `docs/CHANGELOG_AUTOMATION.md`, `docs/TECH_EVALUATION.md`, `docs/archive/` (historical roadmap, structure, overview).
+**When needed:** `docs/CHANGELOG.md`, `docs/CHANGELOG_AUTOMATION.md`, `docs/TECH_EVALUATION.md`, `docs/SPEECH_PLAN.md` (recording, STT, pronunciation), `docs/archive/` (historical roadmap, structure, overview).
 
 ## Features from HANDOFF
 
