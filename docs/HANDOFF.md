@@ -37,6 +37,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
+- lang-014: Phase 3 — reverse multiple choice (translation→word pick) and listening (TTS). New exercise types: reverse_multiple_choice (show translation, pick word from 4 options; buildReverseMultipleChoiceOptions), listening (Play word via Web Speech API, pick translation from 4 options; speakWord helper with language_from). StudyPage: new options in EXERCISE_TYPE_OPTIONS, UI blocks and correct-answer display; E2E excludes "Play word" from option click.
 - lang-013: E2E for study session — data-testid on Study page; e2e/study.spec.ts (redirect, full session flow; resilient loop: wait for Reveal first, handle all exercise types, 60s timeout). Fix: Study page shows “Session complete” after last card (set currentIndex past end instead of setSession(null)); rating buttons not disabled for E2E; removed unused reverseMultipleChoiceOptions.
 - lang-012: Study page — added flashcard (word→translation, reveal, rate) and reverse flashcard (translation→word, reveal, rate); four exercise types: flashcard, reverse_flashcard, typing, multiple_choice; helper buildReverseMultipleChoiceOptions for future use.
 - lang-011: FSRS + study session — src/lib/fsrs.ts (ts-fsrs: row↔Card, scheduleRating); API listDueToday(userId, filters?); hooks useDueToday, useUpdateUserVocabulary invalidates due-today; Study page: language pair, due count, start session, card → reveal → Again/Hard/Good/Easy, update SRS, next or complete. Unit tests for fsrs helper.
@@ -61,7 +62,7 @@ Recent work (from git, latest first):
 *Not yet implemented; pick from here (and from §6 Priority) for the next feature.*
 
 - Phase 3: FSRS algorithm, “due today” query, study session flow (start, show card, reveal, rate, update SRS).
-- Phase 3: Listening (TTS), reverse multiple choice (translation→word pick) UI; adaptive exercise selection.
+- Phase 3: Adaptive exercise selection (e.g. weight by difficulty).
 - Default language pair: preselect when user has one pair; “study language” in Settings or Study page.
 - Validation: trim and max length on word/translation in add/edit (align with sanitize).
 - “I’ve run the migration” button to refetch after showing migration instructions.
@@ -75,8 +76,7 @@ Recent work (from git, latest first):
 
 ## 5. Priority now
 
-1. **Phase 3 (continued):** Reverse multiple choice (translation→word) UI; TTS (listening).
-2. Default language pair and “study language” in Settings/Study.
-3. Validation (trim/max length) in add/edit word.
-4. “I’ve run the migration” button.
-5. Categories or notes on vocabulary (optional).
+1. Default language pair and "study language" in Settings/Study.
+2. Validation (trim/max length) in add/edit word.
+3. “I’ve run the migration” button.
+4. Categories or notes on vocabulary (optional).
