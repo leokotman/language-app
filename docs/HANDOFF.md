@@ -1,61 +1,12 @@
-# Language Learning App — Project History & Handoff
+# Language Learning App — Handoff
 
-This file is the canonical handoff for the language app. Update it after each session with **Current state**, **Session summary (latest)**, and **Suggestions for next steps**.
+Update after each session: **Current state**, **Session summary**, **Suggestions / Priority**. Full history: `git log --oneline -40` or `docs/CHANGELOG.md`.
 
-**Session start:** Create a branch from `main` (e.g. `feat/lang-014-…`). Use the next task number from §4 session summary or §6 Priority. Load this file and `docs/AI agent instructions.md` for context.
-
----
-
-## 1. Project history (by week)
-
-### Week 1 — Project setup (Feb 5, 2026)
-
-1. Initialized Vite + React + TypeScript project.
-2. Configured MUI theme with light/dark mode.
-3. Set up project structure (src/, components/, lib/, pages/, etc.).
-4. Configured PWA plugin (vite-plugin-pwa).
-5. Set up Supabase client and environment variables.
-6. Set up Vitest for unit testing.
-7. Created basic layout (AppBar, navigation, routes).
-
-**Constraints:** Free-tier services only; React + TypeScript + MUI (no Tailwind).
-
-### Week 2 — Authentication (Feb 5, 2026)
-
-1. Implemented Supabase Auth: email/password signup, login, forgot password.
-2. Auth state management with Zustand store and useAuth hook.
-3. Protected routes and Navbar auth UI.
-4. User profile creation (migration 001, auto-create on signup).
-5. Unit tests for errors and auth store.
-6. Fix: login on first attempt; docs for customizing signup email.
-
-### Week 3 — Core data layer (Feb 6, 2026)
-
-1. Database schema: migration 002 — tables `languages`, `user_languages`, `vocabulary`, `user_vocabulary` with RLS.
-2. Typed Supabase client; API and hooks; TanStack Query.
-3. Settings: language pair selection (EN↔RU, EN↔SR Latin only).
-4. Single-step addWordToLibrary; handle 404 when migration 002 not run.
-
-### Week 4 — Personal library (Feb 6, 2026)
-
-1. Library page: list, search, filter by language pair; add/edit/delete with ConfirmDialog.
-2. Bidirectional pairs; virtual pair Russian ↔ Serbian (via English).
-3. Layout: sticky navbar, full-height main.
-
-### Week 5 — App library, seed, dictionary, import/export (Feb 6–9, 2026)
-
-1. Seed data: migrations 003, 005, optional 008; App Library; Dictionary (MyMemory, one tab with app library).
-2. Library import/export CSV and JSON; Supabase RLS/docs; code quality refactor.
-
-### Week 6 — Input sanitization, offline, errors, E2E (Feb 6–11, 2026)
-
-1. Input sanitization (OWASP); offline mode toggle; error handling.
-2. Offline PWA: IndexedDB cache, OfflinePrefetch, Navbar toggle, dictionary offline.
-3. Performance (lang-007); E2E: Playwright (home, library), data-testid, E2E auth helper.
+**Session start:** Branch from `main` (e.g. `feat/lang-014-…`). Next task number from §3 or §5. Load this file and `docs/AI agent instructions.md`.
 
 ---
 
-## 2. Current state
+## 1. Current state
 
 - **Auth:** Login, signup, forgot password, protected routes, profiles (migration 001).
 - **Settings:** Language pairs (add/remove with confirmation); requires migration 002.
@@ -67,7 +18,7 @@ This file is the canonical handoff for the language app. Update it after each se
 
 ---
 
-## 3. Project structure (reference)
+## 2. Project structure
 
 - `src/components/common/` — ConfirmDialog, etc.
 - `src/components/features/` — auth (ProtectedRoute), offline (OfflinePrefetch).
@@ -82,7 +33,7 @@ This file is the canonical handoff for the language app. Update it after each se
 
 ---
 
-## 4. Session summary (latest — today’s work)
+## 3. Session summary (latest)
 
 Recent work (from git, latest first):
 
@@ -105,7 +56,7 @@ Recent work (from git, latest first):
 
 ---
 
-## 5. Suggestions for next steps
+## 4. Suggestions for next steps
 
 *Not yet implemented; pick from here (and from §6 Priority) for the next feature.*
 
@@ -122,7 +73,7 @@ Recent work (from git, latest first):
 
 ---
 
-## 6. Priority now
+## 5. Priority now
 
 1. **Phase 3 (continued):** Reverse multiple choice (translation→word) UI; TTS (listening).
 2. Default language pair and “study language” in Settings/Study.
