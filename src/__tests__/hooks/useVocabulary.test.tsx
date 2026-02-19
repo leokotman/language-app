@@ -138,6 +138,13 @@ describe("dueTodayQueryKey", () => {
       null,
       "en-ru",
     ]);
+    expect(
+      dueTodayQueryKey("u1", {
+        languageFrom: "en",
+        languageTo: "ru",
+        pairKey: "en-ru",
+      }),
+    ).toEqual(["due-today", "u1", "en", "ru", "en-ru"]);
   });
 });
 
