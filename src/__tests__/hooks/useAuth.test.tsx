@@ -58,6 +58,29 @@ describe("useAuth", () => {
     });
   });
 
+  it("updates store when onAuthStateChange callback is invoked with session", async () => {
+    let authStateCallback: ((_e: string, s: Session | null) => void) | null =
+      null;
+    mockOnAuthStateChange.mockImplementation(
+      (cb: (e: string, s: unknown) => void) => {
+        authStateCallback = cb as (e: string, s: Session | null) => void;
+        return { data: { subscription: { unsubscribe: vi.fn() } } };
+      },
+    );
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+    renderHook(() => useAuth());
+    await waitFor(() => {
+      expect(authStateCallback).not.toBeNull();
+    });
+    const user = { id: "u2", email: "b@c.com" };
+    const session = { access_token: "y", user } as Session;
+    act(() => {
+      authStateCallback!("SIGNED_IN", session);
+    });
+    expect(useAuthStore.getState().user).toEqual(user);
+    expect(useAuthStore.getState().session).toEqual(session);
+  });
+
   it("on getSession reject calls logError and sets auth to null", async () => {
     const err = new Error("session failed");
     mockGetSession.mockRejectedValue(err);
@@ -88,6 +111,24 @@ describe("useAuth", () => {
     expect(logError).toHaveBeenCalledWith("useAuth.signOut", expect.any(Error));
     expect(useAuthStore.getState().user).toBeNull();
     expect(useAuthStore.getState().session).toBeNull();
+  });
+
+  it("does not set loading when store already has session on init", async () => {
+    const session = {
+      access_token: "x",
+      user: { id: "u1", email: "a@b.com" },
+    } as Session;
+    useAuthStore.setState({
+      user: session.user as User,
+      session,
+      loading: false,
+    });
+    mockGetSession.mockResolvedValue({ data: { session } });
+    renderHook(() => useAuth());
+    await waitFor(() => {
+      expect(useAuthStore.getState().session).toEqual(session);
+    });
+    expect(useAuthStore.getState().loading).toBe(false);
   });
 
   it("does not call setAuth when getSession rejects after unmount", async () => {

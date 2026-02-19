@@ -75,4 +75,23 @@ describe("offlineModeStore", () => {
     useOfflineModeStore.getState().setOfflineMode(true);
     expect(useOfflineModeStore.getState().offlineMode).toBe(true);
   });
+
+  it("initializes offlineMode to true when localStorage returns 'true'", async () => {
+    vi.resetModules();
+    Object.defineProperty(globalThis, "localStorage", {
+      value: {
+        getItem: () => "true",
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+      writable: true,
+    });
+    const { useOfflineModeStore: store } =
+      await import("@/stores/offlineModeStore");
+    expect(store.getState().offlineMode).toBe(true);
+    Object.defineProperty(globalThis, "localStorage", {
+      value: originalLocalStorage,
+      writable: true,
+    });
+  });
 });

@@ -124,6 +124,10 @@ describe("LibraryPage.helpers", () => {
       expect(options).toHaveLength(2);
       expect(options.map((o) => o.value).sort()).toEqual(["ru-sr", "sr-ru"]);
     });
+    it("returns empty array when pair key has no hyphen", () => {
+      const getLabel = () => "";
+      expect(buildDirectionOptionsForPair("en", getLabel)).toEqual([]);
+    });
   });
 
   describe("processLibraryImport", () => {

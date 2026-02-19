@@ -149,6 +149,33 @@ describe("StudyPage.helpers", () => {
         writable: true,
       });
     });
+
+    it("calls speechSynthesis.speak when available", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      class MockUtterance {
+        lang = "";
+        rate = 1;
+        text: string;
+        constructor(text: string) {
+          this.text = text;
+        }
+      }
+      Object.defineProperty(window, "speechSynthesis", {
+        value: { speak, cancel },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: MockUtterance,
+        writable: true,
+      });
+      speakWord("hello", "ru");
+      expect(cancel).toHaveBeenCalled();
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.lang).toBe("ru");
+      expect(utterance.rate).toBe(0.9);
+    });
   });
 
   describe("playRecordingBlob", () => {

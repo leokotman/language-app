@@ -101,6 +101,29 @@ describe("LoginPage", () => {
     });
   });
 
+  it("shows offline message when navigator is offline before submit", async () => {
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: false },
+      writable: true,
+    });
+    renderLoginPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(document.querySelector('input[type="password"]')!, {
+      target: { value: "password1" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Sign in" }));
+    expect(
+      await screen.findByText("You are offline. Please connect and try again."),
+    ).toBeInTheDocument();
+    expect(mockSignIn).not.toHaveBeenCalled();
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: true },
+      writable: true,
+    });
+  });
+
   it("shows error when sign in fails", async () => {
     mockSignIn.mockResolvedValue({
       data: { session: null },

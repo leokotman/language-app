@@ -98,6 +98,18 @@ describe("importExport", () => {
       expect(result.rows[0].translation).toBe("привет");
       expect(result.errors).toHaveLength(0);
     });
+    it("parses CSV with quoted fields containing comma and escaped quotes", async () => {
+      const csv =
+        'word,translation,language_from,language_to\n"hello, world","say ""hi""",en,ru';
+      const file = createFile(csv, "lib.csv", "text/csv");
+      const result = await parseLibraryFile(file);
+      expect(result.rows).toHaveLength(1);
+      expect(result.rows[0].word).toBe("hello, world");
+      expect(result.rows[0].translation).toBe('say "hi"');
+      expect(result.rows[0].language_from).toBe("en");
+      expect(result.rows[0].language_to).toBe("ru");
+      expect(result.errors).toHaveLength(0);
+    });
     it("returns errors for invalid JSON", async () => {
       const file = createFile("not json", "x.json", "application/json");
       const result = await parseLibraryFile(file);

@@ -120,6 +120,28 @@ describe("useVocabularyList", () => {
     expect(r1.current.isFetching).toBe(false);
     expect(vocabularyApi.listVocabulary).not.toHaveBeenCalled();
   });
+
+  it("throws when listVocabulary returns error", async () => {
+    const apiError = new Error("fetch failed");
+    vi.mocked(vocabularyApi.listVocabulary).mockResolvedValue({
+      data: null as unknown as Awaited<
+        ReturnType<typeof vocabularyApi.listVocabulary>
+      >["data"],
+      error: apiError,
+    });
+    const { result } = renderHook(
+      () =>
+        useVocabularyList({
+          languageFrom: "en",
+          languageTo: "ru",
+        }),
+      { wrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+    expect(result.current.error).toBe(apiError);
+  });
 });
 
 describe("dueTodayQueryKey", () => {
@@ -174,6 +196,41 @@ describe("useDueToday", () => {
     expect(result.current.isFetching).toBe(false);
     expect(vocabularyApi.listDueToday).not.toHaveBeenCalled();
   });
+
+  it("calls listDueToday with filters when provided", async () => {
+    const { result } = renderHook(
+      () =>
+        useDueToday("user-1", {
+          languageFrom: "en",
+          languageTo: "ru",
+          pairKey: "en-ru",
+        }),
+      { wrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(vocabularyApi.listDueToday).toHaveBeenCalledWith("user-1", {
+      languageFrom: "en",
+      languageTo: "ru",
+      pairKey: "en-ru",
+    });
+  });
+
+  it("throws when listDueToday returns error", async () => {
+    const apiError = new Error("due today failed");
+    vi.mocked(vocabularyApi.listDueToday).mockResolvedValue({
+      data: null as unknown as Awaited<
+        ReturnType<typeof vocabularyApi.listDueToday>
+      >["data"],
+      error: apiError,
+    });
+    const { result } = renderHook(() => useDueToday("user-1"), { wrapper });
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+    expect(result.current.error).toBe(apiError);
+  });
 });
 
 describe("userVocabularyListQueryKey", () => {
@@ -200,6 +257,23 @@ describe("useUserVocabularyList", () => {
     });
     expect(result.current.data).toEqual([]);
     expect(vocabularyApi.listUserVocabulary).toHaveBeenCalledWith("user-1");
+  });
+
+  it("throws when listUserVocabulary returns error", async () => {
+    const apiError = new Error("list failed");
+    vi.mocked(vocabularyApi.listUserVocabulary).mockResolvedValue({
+      data: null as unknown as Awaited<
+        ReturnType<typeof vocabularyApi.listUserVocabulary>
+      >["data"],
+      error: apiError,
+    });
+    const { result } = renderHook(() => useUserVocabularyList("user-1"), {
+      wrapper,
+    });
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+    expect(result.current.error).toBe(apiError);
   });
 });
 

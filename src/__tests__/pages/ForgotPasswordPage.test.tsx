@@ -81,6 +81,26 @@ describe("ForgotPasswordPage", () => {
     });
   });
 
+  it("shows offline message when navigator is offline before submit", async () => {
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: false },
+      writable: true,
+    });
+    renderForgotPasswordPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Send reset link" }));
+    expect(
+      await screen.findByText("You are offline. Please connect and try again."),
+    ).toBeInTheDocument();
+    expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: true },
+      writable: true,
+    });
+  });
+
   it("shows error when reset fails", async () => {
     mockResetPasswordForEmail.mockResolvedValue({
       error: { message: "Invalid email" },
