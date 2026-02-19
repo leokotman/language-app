@@ -17,7 +17,6 @@ All notable changes to the Language App are documented here. The format is based
 - **lang-016:** add coverage target %, custom reporter, and unit tests for errors, auth, theme, ProtectedRoute
 - Merge pull request #21 from leokotman/chore/lang-016-coverage-refactor
 
-
 ### Changed
 
 - **hooks:** document useCallback empty deps in useAudioRecorder
@@ -26,7 +25,6 @@ All notable changes to the Language App are documented here. The format is based
 - **study:** add StudyPage card block components and index
 - **study:** refactor StudyPage to use subcomponents, condition constants, and memoized handlers
 - Merge pull request #20 from leokotman/chore/refactor-study-page
-
 
 ### Added
 
@@ -38,7 +36,6 @@ All notable changes to the Language App are documented here. The format is based
 - **lang-015:** add SPEECH_PLAN doc, reference in AI instructions; fix package.json indent
 - Merge pull request #19 from leokotman/feat/lang-015-speaking-recording
 
-
 ### Added
 
 - **lang-014:** feat(study): add reverse multiple choice and listening (TTS) exercise types
@@ -48,12 +45,10 @@ All notable changes to the Language App are documented here. The format is based
 
 - Merge pull request #18 from leokotman/feat/lang-014-reverse-multiple-choice-tts
 
-
 ### Changed
 
 - **lang-014:** slim and consolidate docs and cursor instructions
 - Merge pull request #17 from leokotman/chore/lang-014-docs-slim-and-consolidate
-
 
 ### Added
 
@@ -71,10 +66,8 @@ All notable changes to the Language App are documented here. The format is based
 
 - Merge pull request #16 from leokotman/feat/lang-013-e2e-study-session
 
-
 ### Fixed
 
 - github action
-
 
 (Entries are added here by the changelog script or the GitHub Action on merge to `main`.)

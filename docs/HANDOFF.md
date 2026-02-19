@@ -62,7 +62,7 @@ Recent work (from git, latest first):
 
 ## 4. Suggestions for next steps
 
-*Not yet implemented; pick from here (and from §6 Priority) for the next feature.*
+_Not yet implemented; pick from here (and from §6 Priority) for the next feature._
 
 - **Chore:** Refactor LibraryPage / DictionaryPage (subcomponents, helpers) — see `docs/REFACTORING_OPPORTUNITIES.md`.
 - **Chore:** Increase unit test coverage toward 70–80% — run `npm run coverage`, see `docs/TEST_COVERAGE.md`.

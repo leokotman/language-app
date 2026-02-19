@@ -29,14 +29,14 @@ Example: `("love", "любовь", "ljubav")`.
 
 The `vocabulary` table has rows with `(word, translation, language_from, language_to, source)`. For each triple we insert **six rows** (all directions for the three pairs):
 
-| word    | translation | language_from | language_to | source |
-|---------|-------------|---------------|-------------|--------|
-| love    | любовь      | en            | ru          | app    |
-| любовь  | love        | ru            | en          | app    |
-| love    | ljubav      | en            | sr          | app    |
-| ljubav  | love        | sr            | en          | app    |
-| любовь  | ljubav      | ru            | sr          | app    |
-| ljubav  | любовь      | sr            | ru          | app    |
+| word   | translation | language_from | language_to | source |
+| ------ | ----------- | ------------- | ----------- | ------ |
+| love   | любовь      | en            | ru          | app    |
+| любовь | love        | ru            | en          | app    |
+| love   | ljubav      | en            | sr          | app    |
+| ljubav | love        | sr            | en          | app    |
+| любовь | ljubav      | ru            | sr          | app    |
+| ljubav | любовь      | sr            | ru          | app    |
 
 So:
 
@@ -60,7 +60,7 @@ When the user looks up a word (e.g. in the Dictionary or any translation feature
 1. **First** search in the data we already have in the **store** (app library + user’s personal library).
 2. **If found** → use that; no API call.
 3. **If not found** and we have **internet** and **Offline mode is off** → call the external API (e.g. MyMemory).
-4. **If not found** and either **no internet** or **Offline mode is on** (PWA offline) → do **not** call the API; show a clear message, e.g. *"We need an internet connection to translate this word."*
+4. **If not found** and either **no internet** or **Offline mode is on** (PWA offline) → do **not** call the API; show a clear message, e.g. _"We need an internet connection to translate this word."_
 
 So: **store-first**, then API only when online and not in Offline mode; otherwise show the offline message.
 
@@ -75,12 +75,12 @@ So: **store-first**, then API only when online and not in Offline mode; otherwis
 
 ### Flow (summary)
 
-| Store has result? | Online? | Offline mode? | Action |
-|-------------------|--------|----------------|--------|
-| Yes               | any    | any            | Return store result (no API) |
-| No                | Yes    | Off            | Call API |
-| No                | No     | any            | Show: "We need an internet connection to translate this word." |
-| No                | any    | On             | Show: "We need an internet connection to translate this word." (or "Turn off Offline mode to look up this word.") |
+| Store has result? | Online? | Offline mode? | Action                                                                                                            |
+| ----------------- | ------- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Yes               | any     | any           | Return store result (no API)                                                                                      |
+| No                | Yes     | Off           | Call API                                                                                                          |
+| No                | No      | any           | Show: "We need an internet connection to translate this word."                                                    |
+| No                | any     | On            | Show: "We need an internet connection to translate this word." (or "Turn off Offline mode to look up this word.") |
 
 ### Where this applies
 
@@ -93,11 +93,11 @@ So: **store-first**, then API only when online and not in Offline mode; otherwis
 - **Offline detection:** Use `navigator.onLine` and/or network errors; when offline, skip API and show the message.
 - **Offline mode toggle:** Already exists; when on, skip API and show the message even if navigator.onLine is true.
 - **Message copy:** Can be one of:
-  - *"We need an internet connection to translate this word."*
-  - *"This word wasn’t found in your library. Turn off Offline mode or connect to the internet to look it up."*
+  - _"We need an internet connection to translate this word."_
+  - _"This word wasn’t found in your library. Turn off Offline mode or connect to the internet to look it up."_
 
 Use the same logic for both “no connection” and “Offline mode on” so behavior is consistent (no API, show message).
 
 ---
 
-*Last updated: design decision before Week 5 seed + app library implementation.*
+_Last updated: design decision before Week 5 seed + app library implementation._

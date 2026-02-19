@@ -1,5 +1,13 @@
-import { Typography, Card, CardContent, Box, List, ListItem, ListItemText } from '@mui/material'
-import { PLACEHOLDER_WORDS } from './HomePage.constants'
+import {
+  Typography,
+  Card,
+  CardContent,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
+import { PLACEHOLDER_WORDS } from "./HomePage.constants";
 
 export function HomePage() {
   return (
@@ -7,7 +15,7 @@ export function HomePage() {
       <Typography variant="h4" gutterBottom>
         Home
       </Typography>
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
         <Card sx={{ minWidth: 160 }}>
           <CardContent>word 1</CardContent>
         </Card>
@@ -29,5 +37,5 @@ export function HomePage() {
         ))}
       </List>
     </>
-  )
+  );
 }

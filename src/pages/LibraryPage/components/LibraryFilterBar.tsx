@@ -1,14 +1,21 @@
-import { FormControl, InputLabel, InputAdornment, MenuItem, Select, TextField } from '@mui/material'
-import SearchIcon from '@mui/icons-material/Search'
-import { MAX_SEARCH_LENGTH, clampAndStripControlChars } from '@/lib/sanitize'
+import {
+  FormControl,
+  InputLabel,
+  InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import { MAX_SEARCH_LENGTH, clampAndStripControlChars } from "@/lib/sanitize";
 
 export type LibraryFilterBarProps = {
-  search: string
-  languageFilter: string
-  filterOptions: { value: string; label: string }[]
-  onSearchChange: (value: string) => void
-  onLanguageFilterChange: (value: string) => void
-}
+  search: string;
+  languageFilter: string;
+  filterOptions: { value: string; label: string }[];
+  onSearchChange: (value: string) => void;
+  onLanguageFilterChange: (value: string) => void;
+};
 
 export function LibraryFilterBar({
   search,
@@ -23,7 +30,11 @@ export function LibraryFilterBar({
         size="small"
         placeholder="Search word or translation…"
         value={search}
-        onChange={(e) => onSearchChange(clampAndStripControlChars(e.target.value, MAX_SEARCH_LENGTH))}
+        onChange={(e) =>
+          onSearchChange(
+            clampAndStripControlChars(e.target.value, MAX_SEARCH_LENGTH),
+          )
+        }
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -50,5 +61,5 @@ export function LibraryFilterBar({
         </Select>
       </FormControl>
     </>
-  )
+  );
 }

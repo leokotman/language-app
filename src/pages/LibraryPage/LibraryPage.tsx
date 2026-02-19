@@ -1,21 +1,29 @@
-import { useMemo, useState, useEffect, useRef } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
-import { Typography, Box, Paper, Alert, Link } from '@mui/material'
-import { useAuthStore } from '@/stores/authStore'
-import { useUserLanguages } from '@/hooks/useUserLanguages'
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import { Typography, Box, Paper, Alert, Link } from "@mui/material";
+import { useAuthStore } from "@/stores/authStore";
+import { useUserLanguages } from "@/hooks/useUserLanguages";
 import {
   useUserVocabularyList,
   useAddWordToLibrary,
   useUpdateVocabulary,
   useDeleteVocabulary,
-} from '@/hooks/useVocabulary'
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { isSupabaseTableMissingError } from '@/lib/errors'
-import { sanitizeWord, sanitizeTranslation, sanitizeSearch } from '@/lib/sanitize'
-import { getBidirectionalKey, LANGUAGE_PLACEHOLDERS } from '@/types'
-import { VIRTUAL_PAIR_RU_SR } from '@/types'
-import { exportToCsv, exportToJson, type LibraryExportRow } from '@/lib/importExport'
-import type { LibraryItem, LibraryEditingItem } from './LibraryPage.models'
+} from "@/hooks/useVocabulary";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { isSupabaseTableMissingError } from "@/lib/errors";
+import {
+  sanitizeWord,
+  sanitizeTranslation,
+  sanitizeSearch,
+} from "@/lib/sanitize";
+import { getBidirectionalKey, LANGUAGE_PLACEHOLDERS } from "@/types";
+import { VIRTUAL_PAIR_RU_SR } from "@/types";
+import {
+  exportToCsv,
+  exportToJson,
+  type LibraryExportRow,
+} from "@/lib/importExport";
+import type { LibraryItem, LibraryEditingItem } from "./LibraryPage.models";
 import {
   getLanguagePairLabel,
   processLibraryImport,
@@ -23,121 +31,153 @@ import {
   downloadBlob,
   buildBidirectionalFilterOptions,
   buildDirectionOptionsForPair,
-} from './LibraryPage.helpers'
+} from "./LibraryPage.helpers";
 import {
   AddWordForm,
   ImportExportBar,
   LibraryFilterBar,
   LibraryList,
   EditWordDialog,
-} from './components'
+} from "./components";
 
 export function LibraryPage() {
-  const user = useAuthStore((state) => state.user)
-  const userId = user?.id
-  const [search, setSearch] = useState('')
-  const [languageFilter, setLanguageFilter] = useState<string>('')
-  const [addWord, setAddWord] = useState('')
-  const [addTranslation, setAddTranslation] = useState('')
-  const [addPairKey, setAddPairKey] = useState('')
-  const [addDirection, setAddDirection] = useState('')
-  const [editingItem, setEditingItem] = useState<LibraryEditingItem | null>(null)
-  const [deleteVocabularyId, setDeleteVocabularyId] = useState<string | null>(null)
-  const [importMessage, setImportMessage] = useState<string | null>(null)
-  const [isImporting, setIsImporting] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
+  const [search, setSearch] = useState("");
+  const [languageFilter, setLanguageFilter] = useState<string>("");
+  const [addWord, setAddWord] = useState("");
+  const [addTranslation, setAddTranslation] = useState("");
+  const [addPairKey, setAddPairKey] = useState("");
+  const [addDirection, setAddDirection] = useState("");
+  const [editingItem, setEditingItem] = useState<LibraryEditingItem | null>(
+    null,
+  );
+  const [deleteVocabularyId, setDeleteVocabularyId] = useState<string | null>(
+    null,
+  );
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: userLangs, isLoading: langsLoading, error: userLangsError } = useUserLanguages(userId)
-  const { data: libraryItems = [], isLoading: listLoading, error } = useUserVocabularyList(userId)
+  const {
+    data: userLangs,
+    isLoading: langsLoading,
+    error: userLangsError,
+  } = useUserLanguages(userId);
+  const {
+    data: libraryItems = [],
+    isLoading: listLoading,
+    error,
+  } = useUserVocabularyList(userId);
 
   const isMigrationMissing =
-    isSupabaseTableMissingError(userLangsError) || isSupabaseTableMissingError(error)
-  const addMutation = useAddWordToLibrary(userId ?? '')
-  const updateMutation = useUpdateVocabulary(userId ?? '')
-  const deleteMutation = useDeleteVocabulary(userId ?? '')
+    isSupabaseTableMissingError(userLangsError) ||
+    isSupabaseTableMissingError(error);
+  const addMutation = useAddWordToLibrary(userId ?? "");
+  const updateMutation = useUpdateVocabulary(userId ?? "");
+  const deleteMutation = useDeleteVocabulary(userId ?? "");
 
   const bidirectionalKeysFromUser = useMemo(() => {
-    const keySet = new Set<string>()
-    ;(userLangs ?? []).forEach((userLang) =>
-      keySet.add(getBidirectionalKey(userLang.native_code, userLang.learning_code))
-    )
-    return Array.from(keySet)
-  }, [userLangs])
+    const keySet = new Set<string>();
+    (userLangs ?? []).forEach((userLang) =>
+      keySet.add(
+        getBidirectionalKey(userLang.native_code, userLang.learning_code),
+      ),
+    );
+    return Array.from(keySet);
+  }, [userLangs]);
 
   const hasVirtualPair =
-    bidirectionalKeysFromUser.includes('en-ru') && bidirectionalKeysFromUser.includes('en-sr')
+    bidirectionalKeysFromUser.includes("en-ru") &&
+    bidirectionalKeysFromUser.includes("en-sr");
 
   const filterOptions = useMemo(
-    () => buildBidirectionalFilterOptions(bidirectionalKeysFromUser, hasVirtualPair),
-    [bidirectionalKeysFromUser, hasVirtualPair]
-  )
+    () =>
+      buildBidirectionalFilterOptions(
+        bidirectionalKeysFromUser,
+        hasVirtualPair,
+      ),
+    [bidirectionalKeysFromUser, hasVirtualPair],
+  );
 
   const addFormPairOptions = useMemo(
-    () => buildBidirectionalFilterOptions(bidirectionalKeysFromUser, hasVirtualPair),
-    [bidirectionalKeysFromUser, hasVirtualPair]
-  )
+    () =>
+      buildBidirectionalFilterOptions(
+        bidirectionalKeysFromUser,
+        hasVirtualPair,
+      ),
+    [bidirectionalKeysFromUser, hasVirtualPair],
+  );
 
   const directionOptionsForPair = useMemo(
     () => buildDirectionOptionsForPair(addPairKey, getLanguagePairLabel),
-    [addPairKey]
-  )
+    [addPairKey],
+  );
 
   const addFormPlaceholders = useMemo(() => {
-    if (!addDirection) return { word: 'e.g. …', translation: 'e.g. …' }
-    const [languageFrom, languageTo] = addDirection.split('-')
+    if (!addDirection) return { word: "e.g. …", translation: "e.g. …" };
+    const [languageFrom, languageTo] = addDirection.split("-");
     return {
       word: LANGUAGE_PLACEHOLDERS[languageFrom] ?? `e.g. (${languageFrom})`,
       translation: LANGUAGE_PLACEHOLDERS[languageTo] ?? `e.g. (${languageTo})`,
-    }
-  }, [addDirection])
+    };
+  }, [addDirection]);
 
   useEffect(() => {
     if (addFormPairOptions.length > 0 && !addPairKey) {
-      setAddPairKey(addFormPairOptions[0].value)
+      setAddPairKey(addFormPairOptions[0].value);
     }
-  }, [addFormPairOptions, addPairKey])
+  }, [addFormPairOptions, addPairKey]);
 
   useEffect(() => {
     if (directionOptionsForPair.length > 0) {
       const isCurrentDirectionValid = directionOptionsForPair.some(
-        (directionOption) => directionOption.value === addDirection
-      )
-      if (!isCurrentDirectionValid) setAddDirection(directionOptionsForPair[0].value)
+        (directionOption) => directionOption.value === addDirection,
+      );
+      if (!isCurrentDirectionValid)
+        setAddDirection(directionOptionsForPair[0].value);
     }
-  }, [directionOptionsForPair, addDirection])
+  }, [directionOptionsForPair, addDirection]);
 
   const handleAddWord = () => {
-    const word = sanitizeWord(addWord)
-    const translation = sanitizeTranslation(addTranslation)
-    if (!userId || !addDirection || !word || !translation) return
-    const [languageFrom, languageTo] = addDirection.split('-')
+    const word = sanitizeWord(addWord);
+    const translation = sanitizeTranslation(addTranslation);
+    if (!userId || !addDirection || !word || !translation) return;
+    const [languageFrom, languageTo] = addDirection.split("-");
     addMutation.mutate(
-      { word, translation, language_from: languageFrom, language_to: languageTo },
+      {
+        word,
+        translation,
+        language_from: languageFrom,
+        language_to: languageTo,
+      },
       {
         onSuccess: () => {
-          setAddWord('')
-          setAddTranslation('')
+          setAddWord("");
+          setAddTranslation("");
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   const handleSaveEdit = () => {
-    if (!editingItem) return
-    const word = sanitizeWord(editingItem.word)
-    const translation = sanitizeTranslation(editingItem.translation)
-    if (!word || !translation) return
+    if (!editingItem) return;
+    const word = sanitizeWord(editingItem.word);
+    const translation = sanitizeTranslation(editingItem.translation);
+    if (!word || !translation) return;
     updateMutation.mutate(
       { id: editingItem.vocabulary_id, updates: { word, translation } },
-      { onSuccess: () => setEditingItem(null) }
-    )
-  }
+      { onSuccess: () => setEditingItem(null) },
+    );
+  };
 
   const handleConfirmDelete = () => {
     if (deleteVocabularyId) {
-      deleteMutation.mutate(deleteVocabularyId, { onSuccess: () => setDeleteVocabularyId(null) })
+      deleteMutation.mutate(deleteVocabularyId, {
+        onSuccess: () => setDeleteVocabularyId(null),
+      });
     }
-  }
+  };
 
   const exportRows = useMemo((): LibraryExportRow[] => {
     return (libraryItems as LibraryItem[])
@@ -147,43 +187,45 @@ export function LibraryPage() {
         translation: item.vocabulary!.translation,
         language_from: item.vocabulary!.language_from,
         language_to: item.vocabulary!.language_to,
-      }))
-  }, [libraryItems])
+      }));
+  }, [libraryItems]);
 
   const existingLibraryKey = useMemo(() => {
-    const keySet = new Set<string>()
+    const keySet = new Set<string>();
     for (const item of libraryItems as LibraryItem[]) {
-      const vocabulary = item.vocabulary
+      const vocabulary = item.vocabulary;
       if (vocabulary) {
         keySet.add(
-          `${vocabulary.word.toLowerCase()}|${vocabulary.translation.toLowerCase()}|${vocabulary.language_from}|${vocabulary.language_to}`
-        )
+          `${vocabulary.word.toLowerCase()}|${vocabulary.translation.toLowerCase()}|${vocabulary.language_from}|${vocabulary.language_to}`,
+        );
       }
     }
-    return keySet
-  }, [libraryItems])
+    return keySet;
+  }, [libraryItems]);
 
   const handleExportCsv = () => {
-    const csv = exportToCsv(exportRows)
-    downloadBlob(csv, 'text/csv;charset=utf-8', 'library.csv')
-  }
+    const csv = exportToCsv(exportRows);
+    downloadBlob(csv, "text/csv;charset=utf-8", "library.csv");
+  };
 
   const handleExportJson = () => {
-    const json = exportToJson(exportRows)
-    downloadBlob(json, 'application/json', 'library.json')
-  }
+    const json = exportToJson(exportRows);
+    downloadBlob(json, "application/json", "library.json");
+  };
 
   const handleImportClick = () => {
-    setImportMessage(null)
-    fileInputRef.current?.click()
-  }
+    setImportMessage(null);
+    fileInputRef.current?.click();
+  };
 
-  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file || !userId) return
-    setIsImporting(true)
-    setImportMessage(null)
+  const handleImportFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !userId) return;
+    setIsImporting(true);
+    setImportMessage(null);
     try {
       const result = await processLibraryImport(file, {
         addWordAsync: (row) =>
@@ -194,57 +236,62 @@ export function LibraryPage() {
             language_to: row.language_to,
           }),
         existingKeys: existingLibraryKey,
-      })
-      setImportMessage(buildLibraryImportMessage(result))
+      });
+      setImportMessage(buildLibraryImportMessage(result));
     } catch (err) {
       setImportMessage(
         err instanceof Error
           ? err.message
-          : 'Could not read file. Use CSV or JSON with word, translation, language_from, language_to.'
-      )
+          : "Could not read file. Use CSV or JSON with word, translation, language_from, language_to.",
+      );
     } finally {
-      setIsImporting(false)
+      setIsImporting(false);
     }
-  }
+  };
 
   const filteredItems = useMemo(() => {
-    let items = libraryItems as LibraryItem[]
-    const searchQuery = sanitizeSearch(search)
+    let items = libraryItems as LibraryItem[];
+    const searchQuery = sanitizeSearch(search);
     if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase()
+      const searchLower = searchQuery.toLowerCase();
       items = items.filter((item) => {
-        const vocabulary = item.vocabulary
-        if (!vocabulary) return false
+        const vocabulary = item.vocabulary;
+        if (!vocabulary) return false;
         return (
           vocabulary.word.toLowerCase().includes(searchLower) ||
           vocabulary.translation.toLowerCase().includes(searchLower)
-        )
-      })
+        );
+      });
     }
     if (languageFilter) {
       if (languageFilter === VIRTUAL_PAIR_RU_SR.key) {
         items = items.filter((item) => {
-          const vocabulary = item.vocabulary
-          if (!vocabulary) return false
-          const fromTo = [vocabulary.language_from, vocabulary.language_to].sort().join('-')
-          return fromTo === 'ru-sr'
-        })
+          const vocabulary = item.vocabulary;
+          if (!vocabulary) return false;
+          const fromTo = [vocabulary.language_from, vocabulary.language_to]
+            .sort()
+            .join("-");
+          return fromTo === "ru-sr";
+        });
       } else {
-        const [filterSourceLang, filterTargetLang] = languageFilter.split('-')
+        const [filterSourceLang, filterTargetLang] = languageFilter.split("-");
         items = items.filter((item) => {
-          const vocabulary = item.vocabulary
-          if (!vocabulary) return false
-          const pairKey = getBidirectionalKey(vocabulary.language_from, vocabulary.language_to)
-          return pairKey === `${filterSourceLang}-${filterTargetLang}`
-        })
+          const vocabulary = item.vocabulary;
+          if (!vocabulary) return false;
+          const pairKey = getBidirectionalKey(
+            vocabulary.language_from,
+            vocabulary.language_to,
+          );
+          return pairKey === `${filterSourceLang}-${filterTargetLang}`;
+        });
       }
     }
-    return items
-  }, [libraryItems, search, languageFilter])
+    return items;
+  }, [libraryItems, search, languageFilter]);
 
-  const isLoading = langsLoading || listLoading
+  const isLoading = langsLoading || listLoading;
 
-  if (!userId) return null
+  if (!userId) return null;
 
   return (
     <>
@@ -255,16 +302,17 @@ export function LibraryPage() {
 
       {isMigrationMissing && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          We couldn&apos;t load your library. Please refresh the page or try again later.
+          We couldn&apos;t load your library. Please refresh the page or try
+          again later.
         </Alert>
       )}
 
       {!isMigrationMissing && !userLangs?.length && !langsLoading && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Add at least one language pair in{' '}
+          Add at least one language pair in{" "}
           <Link component={RouterLink} to="/settings">
             Settings
-          </Link>{' '}
+          </Link>{" "}
           to start building your library.
         </Alert>
       )}
@@ -272,7 +320,11 @@ export function LibraryPage() {
       {!isMigrationMissing && (userLangs?.length ?? 0) > 0 && (
         <>
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{ mb: 1 }}
+            >
               Add word
             </Typography>
             <AddWordForm
@@ -294,7 +346,11 @@ export function LibraryPage() {
           </Paper>
 
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{ mb: 1 }}
+            >
               Import / Export
             </Typography>
             <ImportExportBar
@@ -309,7 +365,7 @@ export function LibraryPage() {
             />
           </Paper>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
             <LibraryFilterBar
               search={search}
               languageFilter={languageFilter}
@@ -357,5 +413,5 @@ export function LibraryPage() {
         </>
       )}
     </>
-  )
+  );
 }

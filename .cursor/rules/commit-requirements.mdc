@@ -1,0 +1,20 @@
+---
+description: Pre-commit requirements — format, lint, and tests
+alwaysApply: true
+---
+
+# Before committing new or updated functionality
+
+Before committing any new or changed functionality, you **must**:
+
+1. **Format and lint**
+   - Run the formatter (Prettier): `npm run format`
+   - Run the linter (ESLint): `npm run lint`
+   - Fix any reported issues.
+
+2. **Tests**
+   - Add or update tests for the changed or new behavior.
+   - Run tests: `npm run test:run` (or `npm run test` for watch mode).
+   - Ensure they pass.
+
+Do not skip these steps. If the user asks to commit, run format and lint first, then confirm tests exist and pass, then commit.

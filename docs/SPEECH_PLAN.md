@@ -42,15 +42,15 @@ Two main approaches:
 
 ### Free tier / cost (pronunciation assessment)
 
-| Option | Free tier? | Notes |
-|--------|-----------|--------|
-| **Azure Speech (pronunciation assessment)** | **Yes — F0 tier:** 5 free audio hours/month for Speech-to-Text; pronunciation assessment uses the same STT billing, so it’s included in that 5 hours. After that, paid. |
-| **Google Cloud Speech-to-Text** | 60 free minutes/month for STT; no dedicated pronunciation assessment in the API. |
-| **OpenAI Whisper API** | No free tier; pay per minute. |
-| **thefluent.me, SpeechSuper, Language Confidence** | Free **trials** only (e.g. 7 days, or “test for free”); no ongoing free tier. |
-| **Browser SpeechRecognition** | Free, client-side; STT only (no pronunciation score). Good for “correct word?” comparison. |
+| Option                                             | Free tier?                                                                                                                                                              | Notes |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **Azure Speech (pronunciation assessment)**        | **Yes — F0 tier:** 5 free audio hours/month for Speech-to-Text; pronunciation assessment uses the same STT billing, so it’s included in that 5 hours. After that, paid. |
+| **Google Cloud Speech-to-Text**                    | 60 free minutes/month for STT; no dedicated pronunciation assessment in the API.                                                                                        |
+| **OpenAI Whisper API**                             | No free tier; pay per minute.                                                                                                                                           |
+| **thefluent.me, SpeechSuper, Language Confidence** | Free **trials** only (e.g. 7 days, or “test for free”); no ongoing free tier.                                                                                           |
+| **Browser SpeechRecognition**                      | Free, client-side; STT only (no pronunciation score). Good for “correct word?” comparison.                                                                              |
 
-**Conclusion:** Pronunciation assessment *can* be done on a free tier only with **Azure F0** (5 hours/month). To keep the app free-tier-only and avoid adding Azure (or hitting the 5‑hour limit), we **omit the pronunciation-assessment step** and stick to: (1) recording + self-rate, (2) optional STT comparison (e.g. browser SpeechRecognition or a free STT tier) for “did you say the right word?”.
+**Conclusion:** Pronunciation assessment _can_ be done on a free tier only with **Azure F0** (5 hours/month). To keep the app free-tier-only and avoid adding Azure (or hitting the 5‑hour limit), we **omit the pronunciation-assessment step** and stick to: (1) recording + self-rate, (2) optional STT comparison (e.g. browser SpeechRecognition or a free STT tier) for “did you say the right word?”.
 
 ### C) Recommended path (no pronunciation API)
 
@@ -68,11 +68,11 @@ Two main approaches:
 
 ## Summary
 
-| Question | Answer |
-|----------|--------|
-| 1) Implement listening + recording? | **Yes.** Add recording (getUserMedia + MediaRecorder) and a speaking/pronunciation flow (hear or see word → record → optional compare → rate). |
+| Question                            | Answer                                                                                                                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1) Implement listening + recording? | **Yes.** Add recording (getUserMedia + MediaRecorder) and a speaking/pronunciation flow (hear or see word → record → optional compare → rate).                                                                |
 | 2) Compare user audio vs reference? | **Yes, in stages:** (1) Recording + self-rate only; (2) STT → compare text to expected word (correct word?). Pronunciation assessment **omitted** (no free-tier-friendly option; Azure F0 = 5 hr/month only). |
-| STT vs pronunciation API? | **STT** = correct word check (free via browser SpeechRecognition or free-tier APIs). **Pronunciation API** = quality/fluency; only Azure F0 is free-tier (5 hr/mo); we omit it to keep the app simple. |
+| STT vs pronunciation API?           | **STT** = correct word check (free via browser SpeechRecognition or free-tier APIs). **Pronunciation API** = quality/fluency; only Azure F0 is free-tier (5 hr/mo); we omit it to keep the app simple.        |
 
 ---
 

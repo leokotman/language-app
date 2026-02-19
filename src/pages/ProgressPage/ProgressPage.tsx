@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material'
+import { Typography } from "@mui/material";
 
 export function ProgressPage() {
   return (
@@ -8,5 +8,5 @@ export function ProgressPage() {
         Stats, streaks and achievements will go here.
       </Typography>
     </>
-  )
+  );
 }

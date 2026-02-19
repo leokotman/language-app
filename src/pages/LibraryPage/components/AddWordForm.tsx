@@ -1,23 +1,36 @@
-import { Box, Button, FormControl, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import { MAX_WORD_LENGTH, MAX_TRANSLATION_LENGTH, clampAndStripControlChars } from '@/lib/sanitize'
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import {
+  MAX_WORD_LENGTH,
+  MAX_TRANSLATION_LENGTH,
+  clampAndStripControlChars,
+} from "@/lib/sanitize";
 
 export type AddWordFormProps = {
-  word: string
-  translation: string
-  pairKey: string
-  direction: string
-  pairOptions: { value: string; label: string }[]
-  directionOptions: { value: string; label: string }[]
-  placeholders: { word: string; translation: string }
-  onWordChange: (value: string) => void
-  onTranslationChange: (value: string) => void
-  onPairKeyChange: (value: string) => void
-  onDirectionChange: (value: string) => void
-  onAdd: () => void
-  isPending: boolean
-  hasError: boolean
-}
+  word: string;
+  translation: string;
+  pairKey: string;
+  direction: string;
+  pairOptions: { value: string; label: string }[];
+  directionOptions: { value: string; label: string }[];
+  placeholders: { word: string; translation: string };
+  onWordChange: (value: string) => void;
+  onTranslationChange: (value: string) => void;
+  onPairKeyChange: (value: string) => void;
+  onDirectionChange: (value: string) => void;
+  onAdd: () => void;
+  isPending: boolean;
+  hasError: boolean;
+};
 
 export function AddWordForm({
   word,
@@ -36,13 +49,24 @@ export function AddWordForm({
   hasError,
 }: AddWordFormProps) {
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 2,
+        alignItems: "flex-start",
+      }}
+    >
       <TextField
         size="small"
         label="Word"
         placeholder={placeholders.word}
         value={word}
-        onChange={(e) => onWordChange(clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH))}
+        onChange={(e) =>
+          onWordChange(
+            clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH),
+          )
+        }
         sx={{ minWidth: 160 }}
       />
       <TextField
@@ -51,7 +75,9 @@ export function AddWordForm({
         placeholder={placeholders.translation}
         value={translation}
         onChange={(e) =>
-          onTranslationChange(clampAndStripControlChars(e.target.value, MAX_TRANSLATION_LENGTH))
+          onTranslationChange(
+            clampAndStripControlChars(e.target.value, MAX_TRANSLATION_LENGTH),
+          )
         }
         sx={{ minWidth: 160 }}
       />
@@ -89,15 +115,17 @@ export function AddWordForm({
         variant="contained"
         startIcon={<AddIcon />}
         onClick={onAdd}
-        disabled={isPending || !word.trim() || !translation.trim() || !direction}
+        disabled={
+          isPending || !word.trim() || !translation.trim() || !direction
+        }
       >
-        {isPending ? 'Adding…' : 'Add'}
+        {isPending ? "Adding…" : "Add"}
       </Button>
       {hasError && (
-        <Typography color="error" variant="body2" sx={{ mt: 1, width: '100%' }}>
+        <Typography color="error" variant="body2" sx={{ mt: 1, width: "100%" }}>
           Could not add word. Try again.
         </Typography>
       )}
     </Box>
-  )
+  );
 }

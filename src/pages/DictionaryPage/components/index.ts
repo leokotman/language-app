@@ -1,2 +1,2 @@
-export { DictionaryLookupBar } from './DictionaryLookupBar'
-export { DictionaryResultsList } from './DictionaryResultsList'
+export { DictionaryLookupBar } from "./DictionaryLookupBar";
+export { DictionaryResultsList } from "./DictionaryResultsList";

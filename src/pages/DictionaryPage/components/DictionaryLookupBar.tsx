@@ -1,14 +1,22 @@
-import { Box, FormControl, InputAdornment, InputLabel, MenuItem, Select, TextField } from '@mui/material'
-import SearchIcon from '@mui/icons-material/Search'
-import { MAX_SEARCH_LENGTH, clampAndStripControlChars } from '@/lib/sanitize'
-import { DIRECTION_OPTIONS } from '../DictionaryPage.constants'
+import {
+  Box,
+  FormControl,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import { MAX_SEARCH_LENGTH, clampAndStripControlChars } from "@/lib/sanitize";
+import { DIRECTION_OPTIONS } from "../DictionaryPage.constants";
 
 export type DictionaryLookupBarProps = {
-  search: string
-  direction: string
-  onSearchChange: (value: string) => void
-  onDirectionChange: (value: string) => void
-}
+  search: string;
+  direction: string;
+  onSearchChange: (value: string) => void;
+  onDirectionChange: (value: string) => void;
+};
 
 export function DictionaryLookupBar({
   search,
@@ -17,13 +25,15 @@ export function DictionaryLookupBar({
   onDirectionChange,
 }: DictionaryLookupBarProps) {
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
       <TextField
         size="small"
         placeholder="Search (e.g. hello, привет)…"
         value={search}
         onChange={(event) =>
-          onSearchChange(clampAndStripControlChars(event.target.value, MAX_SEARCH_LENGTH))
+          onSearchChange(
+            clampAndStripControlChars(event.target.value, MAX_SEARCH_LENGTH),
+          )
         }
         InputProps={{
           startAdornment: (
@@ -50,5 +60,5 @@ export function DictionaryLookupBar({
         </Select>
       </FormControl>
     </Box>
-  )
+  );
 }
