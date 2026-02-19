@@ -5,29 +5,29 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-} from '@mui/material'
+} from "@mui/material";
 
 interface ConfirmDialogProps {
-  open: boolean
-  title: string
-  message: string
-  confirmLabel?: string
-  cancelLabel?: string
-  onConfirm: () => void
-  onCancel: () => void
-  confirmColor?: 'primary' | 'error' | 'warning'
-  loading?: boolean
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmColor?: "primary" | "error" | "warning";
+  loading?: boolean;
 }
 
 export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
   onConfirm,
   onCancel,
-  confirmColor = 'primary',
+  confirmColor = "primary",
   loading = false,
 }: ConfirmDialogProps) {
   return (
@@ -40,10 +40,15 @@ export function ConfirmDialog({
         <Button onClick={onCancel} disabled={loading}>
           {cancelLabel}
         </Button>
-        <Button variant="contained" color={confirmColor} onClick={onConfirm} disabled={loading}>
-          {loading ? '…' : confirmLabel}
+        <Button
+          variant="contained"
+          color={confirmColor}
+          onClick={onConfirm}
+          disabled={loading}
+        >
+          {loading ? "…" : confirmLabel}
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }

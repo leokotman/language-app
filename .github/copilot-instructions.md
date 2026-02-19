@@ -18,14 +18,14 @@
 
 **Precondition:** Always run `npm install` before building.
 
-| Step      | Command           | Notes |
-|----------|-------------------|--------|
-| Bootstrap| `npm install`     | Required once per clone / after dependency changes. |
-| Build    | `npm run build`   | Runs `tsc -b` then `vite build`. **Must pass** before PR. Produces `dist/` and PWA assets (`dist/sw.js`, workbox). Build time ~5–10 s. |
-| Dev      | `npm run dev`     | Vite dev server (e.g. http://localhost:5173). No build step needed if deps are installed. |
-| Lint     | `npm run lint`    | ESLint. **Fix all lint errors in files you change.** Config: `eslint.config.js`. |
+| Step       | Command            | Notes                                                                                                                                                                                                                                    |
+| ---------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bootstrap  | `npm install`      | Required once per clone / after dependency changes.                                                                                                                                                                                      |
+| Build      | `npm run build`    | Runs `tsc -b` then `vite build`. **Must pass** before PR. Produces `dist/` and PWA assets (`dist/sw.js`, workbox). Build time ~5–10 s.                                                                                                   |
+| Dev        | `npm run dev`      | Vite dev server (e.g. http://localhost:5173). No build step needed if deps are installed.                                                                                                                                                |
+| Lint       | `npm run lint`     | ESLint. **Fix all lint errors in files you change.** Config: `eslint.config.js`.                                                                                                                                                         |
 | Unit tests | `npm run test:run` | Vitest. Config in `vite.config.ts` (test section). Setup: `src/__tests__/setup.ts`. Tests under `src/**/*.{test,spec}.{ts,tsx}`. Some tests need providers (QueryClient, Router) or localStorage mocks — fix failures in code you touch. |
-| E2E      | `npm run test:e2e`| Playwright. Starts dev server if needed. Config: `playwright.config.ts`; specs in `e2e/`. |
+| E2E        | `npm run test:e2e` | Playwright. Starts dev server if needed. Config: `playwright.config.ts`; specs in `e2e/`.                                                                                                                                                |
 
 **Validation before check-in:** Run `npm run build` and `npm run lint`. Run `npm run test:run` and fix any failing tests in areas you changed. There is no CI in `.github/workflows/`; local build/lint/test are the gates.
 

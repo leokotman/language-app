@@ -1,9 +1,22 @@
-import { useState } from 'react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { Box, TextField, Button, Typography, Link, Alert, Paper } from '@mui/material'
-import { supabase } from '@/lib/supabase'
-import { upsertProfile } from '@/api/profiles'
-import { getAuthErrorMessage, isNetworkError, logError, OFFLINE_AUTH_MESSAGE } from '@/lib/errors'
+import { useState } from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Link,
+  Alert,
+  Paper,
+} from "@mui/material";
+import { supabase } from "@/lib/supabase";
+import { upsertProfile } from "@/api/profiles";
+import {
+  getAuthErrorMessage,
+  isNetworkError,
+  logError,
+  OFFLINE_AUTH_MESSAGE,
+} from "@/lib/errors";
 import {
   sanitizeEmail,
   sanitizePassword,
@@ -11,57 +24,64 @@ import {
   MIN_PASSWORD_LENGTH,
   MAX_EMAIL_LENGTH,
   MAX_PASSWORD_LENGTH,
-} from '@/lib/sanitize'
+} from "@/lib/sanitize";
 
 export function SignupPage() {
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setError(null)
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      setError(OFFLINE_AUTH_MESSAGE)
-      return
+    event.preventDefault();
+    setError(null);
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setError(OFFLINE_AUTH_MESSAGE);
+      return;
     }
-    const safeEmail = sanitizeEmail(email)
-    const safePassword = sanitizePassword(password)
+    const safeEmail = sanitizeEmail(email);
+    const safePassword = sanitizePassword(password);
     if (safePassword !== sanitizePassword(confirmPassword)) {
-      setError('Passwords do not match.')
-      return
+      setError("Passwords do not match.");
+      return;
     }
     if (safePassword.length < MIN_PASSWORD_LENGTH) {
-      setError('Password must be at least 6 characters.')
-      return
+      setError("Password must be at least 6 characters.");
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
       const { data, error: authError } = await supabase.auth.signUp({
         email: safeEmail,
         password: safePassword,
-      })
+      });
       if (authError) {
-        setError(getAuthErrorMessage(authError))
-        return
+        setError(getAuthErrorMessage(authError));
+        return;
       }
       if (data.user) {
-        await upsertProfile({ id: data.user.id, email: data.user.email ?? undefined })
+        await upsertProfile({
+          id: data.user.id,
+          email: data.user.email ?? undefined,
+        });
       }
-      navigate('/', { replace: true })
+      navigate("/", { replace: true });
     } catch (err) {
-      logError('SignupPage.handleSubmit', err)
-      setError(isNetworkError(err) ? OFFLINE_AUTH_MESSAGE : 'Something went wrong. Please try again.')
+      logError("SignupPage.handleSubmit", err);
+      setError(
+        isNetworkError(err)
+          ? OFFLINE_AUTH_MESSAGE
+          : "Something went wrong. Please try again.",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4 }}>
+    <Box sx={{ maxWidth: 400, mx: "auto", mt: 4 }}>
       <Typography variant="h4" gutterBottom>
         Sign up
       </Typography>
@@ -79,7 +99,9 @@ export function SignupPage() {
           autoComplete="email"
           value={email}
           onChange={(event) =>
-            setEmail(clampAndStripControlChars(event.target.value, MAX_EMAIL_LENGTH))
+            setEmail(
+              clampAndStripControlChars(event.target.value, MAX_EMAIL_LENGTH),
+            )
           }
           sx={{ mb: 2 }}
         />
@@ -91,7 +113,12 @@ export function SignupPage() {
           autoComplete="new-password"
           value={password}
           onChange={(event) =>
-            setPassword(clampAndStripControlChars(event.target.value, MAX_PASSWORD_LENGTH))
+            setPassword(
+              clampAndStripControlChars(
+                event.target.value,
+                MAX_PASSWORD_LENGTH,
+              ),
+            )
           }
           helperText="At least 6 characters"
           sx={{ mb: 2 }}
@@ -105,18 +132,27 @@ export function SignupPage() {
           value={confirmPassword}
           onChange={(event) =>
             setConfirmPassword(
-              clampAndStripControlChars(event.target.value, MAX_PASSWORD_LENGTH)
+              clampAndStripControlChars(
+                event.target.value,
+                MAX_PASSWORD_LENGTH,
+              ),
             )
           }
           sx={{ mb: 2 }}
         />
-        <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mb: 2 }}>
-          {loading ? 'Creating account…' : 'Sign up'}
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={loading}
+          sx={{ mb: 2 }}
+        >
+          {loading ? "Creating account…" : "Sign up"}
         </Button>
         <Link component={RouterLink} to="/login" variant="body2">
           Already have an account? Sign in
         </Link>
       </Paper>
     </Box>
-  )
+  );
 }

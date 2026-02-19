@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from "react";
 import {
   Typography,
   Box,
@@ -14,80 +14,91 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-} from '@mui/material'
-import DeleteIcon from '@mui/icons-material/Delete'
-import { useAuthStore } from '@/stores/authStore'
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useAuthStore } from "@/stores/authStore";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import {
   useUserLanguages,
   useAddBidirectionalPair,
   useRemoveUserLanguagesByIds,
-} from '@/hooks/useUserLanguages'
-import { isSupabaseTableMissingError } from '@/lib/errors'
+} from "@/hooks/useUserLanguages";
+import { isSupabaseTableMissingError } from "@/lib/errors";
 import {
   BIDIRECTIONAL_PAIRS,
   VIRTUAL_PAIR_RU_SR,
   getBidirectionalKey,
-} from '@/types'
-import type { BidirectionalPairWithIds } from './SettingsPage.models'
+} from "@/types";
+import type { BidirectionalPairWithIds } from "./SettingsPage.models";
 
 export function SettingsPage() {
-  const user = useAuthStore((state) => state.user)
-  const userId = user?.id
-  const { data: userLangs, isLoading, error } = useUserLanguages(userId)
-  const addMutation = useAddBidirectionalPair()
-  const removeMutation = useRemoveUserLanguagesByIds(userId ?? '')
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
+  const { data: userLangs, isLoading, error } = useUserLanguages(userId);
+  const addMutation = useAddBidirectionalPair();
+  const removeMutation = useRemoveUserLanguagesByIds(userId ?? "");
 
-  const [selectedPairKey, setSelectedPairKey] = useState<string>(BIDIRECTIONAL_PAIRS[0]?.key ?? '')
-  const [removePairKey, setRemovePairKey] = useState<string | null>(null)
+  const [selectedPairKey, setSelectedPairKey] = useState<string>(
+    BIDIRECTIONAL_PAIRS[0]?.key ?? "",
+  );
+  const [removePairKey, setRemovePairKey] = useState<string | null>(null);
 
   const bidirectionalPairsWithIds = useMemo(() => {
     const list = (userLangs ?? []).reduce<BidirectionalPairWithIds[]>(
       (accumulator, userLang) => {
-        const key = getBidirectionalKey(userLang.native_code, userLang.learning_code)
-        const existingPair = accumulator.find((pair) => pair.key === key)
+        const key = getBidirectionalKey(
+          userLang.native_code,
+          userLang.learning_code,
+        );
+        const existingPair = accumulator.find((pair) => pair.key === key);
         const label =
-          BIDIRECTIONAL_PAIRS.find((pair) => pair.key === key)?.label ?? `${key} ↔`
+          BIDIRECTIONAL_PAIRS.find((pair) => pair.key === key)?.label ??
+          `${key} ↔`;
         if (existingPair) {
-          existingPair.ids.push(userLang.id)
+          existingPair.ids.push(userLang.id);
         } else {
-          accumulator.push({ key, label, ids: [userLang.id] })
+          accumulator.push({ key, label, ids: [userLang.id] });
         }
-        return accumulator
+        return accumulator;
       },
-      []
-    )
-    return list
-  }, [userLangs])
+      [],
+    );
+    return list;
+  }, [userLangs]);
 
   const availableBidirectionalPairs = BIDIRECTIONAL_PAIRS.filter(
-    (pair) => !bidirectionalPairsWithIds.some((existingPair) => existingPair.key === pair.key)
-  )
+    (pair) =>
+      !bidirectionalPairsWithIds.some(
+        (existingPair) => existingPair.key === pair.key,
+      ),
+  );
 
   const hasVirtualPair =
-    bidirectionalPairsWithIds.some((pair) => pair.key === 'en-ru') &&
-    bidirectionalPairsWithIds.some((pair) => pair.key === 'en-sr')
+    bidirectionalPairsWithIds.some((pair) => pair.key === "en-ru") &&
+    bidirectionalPairsWithIds.some((pair) => pair.key === "en-sr");
 
   const handleAdd = () => {
-    if (!userId || !selectedPairKey) return
-    addMutation.mutate({ userId, key: selectedPairKey })
-  }
+    if (!userId || !selectedPairKey) return;
+    addMutation.mutate({ userId, key: selectedPairKey });
+  };
 
   const handleRemoveClick = (key: string) => {
-    setRemovePairKey(key)
-  }
+    setRemovePairKey(key);
+  };
 
   const handleConfirmRemovePair = () => {
-    if (!removePairKey) return
+    if (!removePairKey) return;
     const pairToRemove = bidirectionalPairsWithIds.find(
-      (pair) => pair.key === removePairKey
-    )
+      (pair) => pair.key === removePairKey,
+    );
     if (pairToRemove?.ids.length) {
-      removeMutation.mutate(pairToRemove.ids, { onSuccess: () => setRemovePairKey(null) })
+      removeMutation.mutate(pairToRemove.ids, {
+        onSuccess: () => setRemovePairKey(null),
+      });
     } else {
-      setRemovePairKey(null)
+      setRemovePairKey(null);
     }
-  }
+  };
 
   return (
     <>
@@ -100,15 +111,16 @@ export function SettingsPage() {
         Language pairs
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Choose which language pairs you want to learn (e.g. Russian ↔ English). You can add
-        multiple pairs. When adding a word, you still choose the direction (e.g. Russian → English).
+        Choose which language pairs you want to learn (e.g. Russian ↔ English).
+        You can add multiple pairs. When adding a word, you still choose the
+        direction (e.g. Russian → English).
       </Typography>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {isSupabaseTableMissingError(error)
             ? "We couldn't load language pairs. Please refresh the page or try again later."
-            : 'Failed to load language pairs. Check your connection and try again.'}
+            : "Failed to load language pairs. Check your connection and try again."}
         </Alert>
       )}
 
@@ -117,13 +129,13 @@ export function SettingsPage() {
           If the problem continues, try refreshing the page.
         </Typography>
       ) : isLoading ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <CircularProgress size={20} />
           <Typography variant="body2">Loading…</Typography>
         </Box>
       ) : (
         <>
-          <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1, mb: 2 }}>
+          <List dense sx={{ bgcolor: "action.hover", borderRadius: 1, mb: 2 }}>
             {bidirectionalPairsWithIds.length === 0 && !hasVirtualPair ? (
               <ListItem>
                 <ListItemText primary="No language pairs yet. Add one below." />
@@ -158,9 +170,18 @@ export function SettingsPage() {
           </List>
 
           {availableBidirectionalPairs.length > 0 && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
               <FormControl size="small" sx={{ minWidth: 260 }}>
-                <InputLabel id="language-pair-label">Add language pair</InputLabel>
+                <InputLabel id="language-pair-label">
+                  Add language pair
+                </InputLabel>
                 <Select
                   labelId="language-pair-label"
                   value={selectedPairKey}
@@ -179,7 +200,7 @@ export function SettingsPage() {
                 onClick={handleAdd}
                 disabled={addMutation.isPending || !userId}
               >
-                {addMutation.isPending ? 'Adding…' : 'Add'}
+                {addMutation.isPending ? "Adding…" : "Add"}
               </Button>
               {addMutation.isError && (
                 <Typography color="error" variant="body2">
@@ -203,5 +224,5 @@ export function SettingsPage() {
         </>
       )}
     </>
-  )
+  );
 }
