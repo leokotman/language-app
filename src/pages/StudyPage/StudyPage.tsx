@@ -1,5 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import { Box, Typography, Card as MuiCard, CardContent } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card as MuiCard,
+  CardContent,
+  Snackbar,
+} from "@mui/material";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserLanguages } from "@/hooks/useUserLanguages";
 import { useDueToday, useUpdateUserVocabulary } from "@/hooks/useVocabulary";
@@ -20,6 +26,7 @@ import {
   assignExerciseTypes,
   speakWord,
   playRecordingBlob,
+  LANG_DISPLAY_NAMES,
 } from "./StudyPage.helpers";
 import {
   SignInAlert,
@@ -98,6 +105,7 @@ export function StudyPage() {
     userAnswer?: string;
   } | null>(null);
   const [flashcardRevealed, setFlashcardRevealed] = useState(false);
+  const [ttsSnackMessage, setTtsSnackMessage] = useState<string | null>(null);
   const {
     recordingBlob,
     isRecording,
@@ -214,10 +222,18 @@ export function StudyPage() {
     selectedPair?.key?.split("-")[0] ??
     "en";
 
-  const handlePlayWord = useCallback(
-    () => speakWord(word, wordLang),
-    [word, wordLang],
-  );
+  const handlePlayWord = useCallback(() => {
+    if (import.meta.env?.DEV) {
+      console.log("[TTS] handlePlayWord", { word, wordLang });
+    }
+    const result = speakWord(word, wordLang);
+    if (!result.spoke && result.missingLang) {
+      const name = LANG_DISPLAY_NAMES[result.missingLang] ?? result.missingLang;
+      setTtsSnackMessage(
+        `No ${name} voice installed. Add a text-to-speech voice in your device or browser settings to hear the word.`,
+      );
+    }
+  }, [word, wordLang]);
   const handlePlayBack = useCallback(() => {
     if (recordingBlob) playRecordingBlob(recordingBlob);
   }, [recordingBlob]);
@@ -414,9 +430,31 @@ export function StudyPage() {
               ratingButtons={ratingButtonsElement}
             />
           )}
-          {showRatingOnly && ratingButtonsElement}
+          {showRatingOnly && isSpeaking && (
+            <>
+              <Typography variant="body1" sx={{ mt: 2 }}>
+                <strong>{word}</strong> — {translation}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                Rate your pronunciation
+              </Typography>
+              {ratingButtonsElement}
+            </>
+          )}
+          {showRatingOnly && !isSpeaking && ratingButtonsElement}
         </CardContent>
       </MuiCard>
+      <Snackbar
+        open={!!ttsSnackMessage}
+        autoHideDuration={8000}
+        onClose={() => setTtsSnackMessage(null)}
+        message={ttsSnackMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </Box>
   );
 }
