@@ -38,5 +38,7 @@ describe("ThemeModeContext", () => {
     expect(screen.getByTestId("mode")).toHaveTextContent("light");
     fireEvent.click(screen.getByRole("button", { name: "Toggle" }));
     expect(screen.getByTestId("mode")).toHaveTextContent("dark");
+    fireEvent.click(screen.getByRole("button", { name: "Toggle" }));
+    expect(screen.getByTestId("mode")).toHaveTextContent("light");
   });
 });

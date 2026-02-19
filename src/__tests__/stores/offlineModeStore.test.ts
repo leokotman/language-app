@@ -29,6 +29,27 @@ describe("offlineModeStore", () => {
     vi.restoreAllMocks();
   });
 
+  it("initializes offlineMode to false when localStorage.getItem throws", async () => {
+    vi.resetModules();
+    Object.defineProperty(globalThis, "localStorage", {
+      value: {
+        getItem: () => {
+          throw new Error("Storage unavailable");
+        },
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+      writable: true,
+    });
+    const { useOfflineModeStore: store } =
+      await import("@/stores/offlineModeStore");
+    expect(store.getState().offlineMode).toBe(false);
+    Object.defineProperty(globalThis, "localStorage", {
+      value: originalLocalStorage,
+      writable: true,
+    });
+  });
+
   it("setOfflineMode persists to localStorage and updates state", () => {
     const setItem = vi.fn();
     Object.defineProperty(globalThis, "localStorage", {

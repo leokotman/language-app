@@ -48,6 +48,12 @@ describe("getAuthErrorMessage", () => {
       "An error occurred. Please try again.",
     );
   });
+
+  it("returns fallback for object without message property", () => {
+    expect(getAuthErrorMessage({ other: "value" })).toBe(
+      "An error occurred. Please try again.",
+    );
+  });
 });
 
 describe("createAppError", () => {
@@ -106,6 +112,10 @@ describe("isSupabaseTableMissingError", () => {
     expect(isSupabaseTableMissingError(null)).toBe(false);
     expect(isSupabaseTableMissingError(undefined)).toBe(false);
   });
+
+  it("returns false when message is not a string", () => {
+    expect(isSupabaseTableMissingError({ message: 42 })).toBe(false);
+  });
 });
 
 describe("isNetworkError", () => {
@@ -133,5 +143,35 @@ describe("isNetworkError", () => {
   it("returns false for null/undefined", () => {
     expect(isNetworkError(null)).toBe(false);
     expect(isNetworkError(undefined)).toBe(false);
+  });
+
+  it("returns true when navigator.onLine is false", () => {
+    const originalOnLine = Object.getOwnPropertyDescriptor(navigator, "onLine");
+    Object.defineProperty(navigator, "onLine", {
+      value: false,
+      configurable: true,
+    });
+    try {
+      expect(isNetworkError(new Error("Other"))).toBe(true);
+    } finally {
+      if (originalOnLine) {
+        Object.defineProperty(navigator, "onLine", originalOnLine);
+      }
+    }
+  });
+
+  it("returns false when error has non-string message", () => {
+    const originalOnLine = Object.getOwnPropertyDescriptor(navigator, "onLine");
+    Object.defineProperty(navigator, "onLine", {
+      value: true,
+      configurable: true,
+    });
+    try {
+      expect(isNetworkError({ message: 123 })).toBe(false);
+    } finally {
+      if (originalOnLine) {
+        Object.defineProperty(navigator, "onLine", originalOnLine);
+      }
+    }
   });
 });

@@ -55,6 +55,13 @@ describe("getStoredThemeMode", () => {
     getItem.mockReturnValue("invalid");
     expect(getStoredThemeMode()).toBe("light");
   });
+
+  it('returns "light" and does not throw when getItem throws', () => {
+    getItem.mockImplementation(() => {
+      throw new Error("QuotaExceeded");
+    });
+    expect(getStoredThemeMode()).toBe("light");
+  });
 });
 
 describe("setStoredThemeMode", () => {

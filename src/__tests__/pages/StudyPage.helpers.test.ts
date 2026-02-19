@@ -164,5 +164,34 @@ describe("StudyPage.helpers", () => {
         writable: true,
       });
     });
+
+    it("revokes object URL when audio.play() rejects", async () => {
+      const revokeSpy = vi
+        .spyOn(URL, "revokeObjectURL")
+        .mockImplementation(() => {});
+      const mockPlay = vi.fn().mockRejectedValue(new Error("play failed"));
+      class MockAudio {
+        play = mockPlay;
+        onended = null;
+        onerror = null;
+      }
+      const originalAudio = globalThis.window.Audio;
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: MockAudio,
+        writable: true,
+      });
+      playRecordingBlob(new Blob());
+      await vi.waitFor(() => {
+        expect(mockPlay).toHaveBeenCalled();
+      });
+      await vi.waitFor(() => {
+        expect(revokeSpy).toHaveBeenCalled();
+      });
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: originalAudio,
+        writable: true,
+      });
+      revokeSpy.mockRestore();
+    });
   });
 });

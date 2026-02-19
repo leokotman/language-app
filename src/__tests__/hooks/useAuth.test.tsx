@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
+import type { User, Session } from "@supabase/supabase-js";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 import { logError } from "@/lib/errors";
@@ -87,5 +88,36 @@ describe("useAuth", () => {
     expect(logError).toHaveBeenCalledWith("useAuth.signOut", expect.any(Error));
     expect(useAuthStore.getState().user).toBeNull();
     expect(useAuthStore.getState().session).toBeNull();
+  });
+
+  it("does not call setAuth when getSession rejects after unmount", async () => {
+    let rejectGetSession: (err: Error) => void;
+    const getSessionPromise = new Promise<never>((_, rej) => {
+      rejectGetSession = rej;
+    });
+    mockGetSession.mockReturnValue(getSessionPromise);
+    const session = {
+      access_token: "x",
+      user: { id: "u1", email: "a@b.com" },
+    } as Session;
+    useAuthStore.setState({
+      user: session.user as User,
+      session,
+      loading: false,
+    });
+
+    const { unmount } = renderHook(() => useAuth());
+    unmount();
+
+    await act(async () => {
+      rejectGetSession!(new Error("session failed"));
+    });
+
+    expect(logError).toHaveBeenCalledWith(
+      "useAuth.getSession",
+      expect.any(Error),
+    );
+    expect(useAuthStore.getState().session).toEqual(session);
+    expect(useAuthStore.getState().user).toEqual(session.user);
   });
 });
