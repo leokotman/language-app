@@ -24,10 +24,11 @@ vi.mock("react-router-dom", async (importOriginal) => {
     useNavigate: () => mockNavigate,
   };
 });
+const mockIsNetworkError = vi.fn().mockReturnValue(false);
 vi.mock("@/lib/errors", () => ({
   getAuthErrorMessage: (err: { message?: string }) =>
     err?.message ?? "Auth error",
-  isNetworkError: () => false,
+  isNetworkError: (err: unknown) => mockIsNetworkError(err),
   logError: vi.fn(),
   OFFLINE_AUTH_MESSAGE: "You are offline. Please connect and try again.",
 }));
@@ -109,11 +110,9 @@ describe("SignupPage", () => {
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 
-  it("shows offline message when navigator is offline", async () => {
-    Object.defineProperty(globalThis, "navigator", {
-      value: { onLine: false },
-      writable: true,
-    });
+  it("shows offline message when signUp fails with network error", async () => {
+    mockSignUp.mockRejectedValue(new Error("Failed to fetch"));
+    mockIsNetworkError.mockReturnValue(true);
     renderSignupPage();
     fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
       target: { value: "test@example.com" },
@@ -128,7 +127,44 @@ describe("SignupPage", () => {
     expect(
       await screen.findByText("You are offline. Please connect and try again."),
     ).toBeInTheDocument();
-    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it("shows generic error when signUp fails and not network error", async () => {
+    mockSignUp.mockRejectedValue(new Error("Server error"));
+    mockIsNetworkError.mockReturnValue(false);
+    renderSignupPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/^password/i), {
+      target: { value: "password1" },
+    });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: "password1" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Sign up" }));
+    expect(
+      await screen.findByText("Something went wrong. Please try again."),
+    ).toBeInTheDocument();
+  });
+
+  it("navigates without calling upsertProfile when signUp returns no user", async () => {
+    mockSignUp.mockResolvedValue({ data: { user: null }, error: null });
+    renderSignupPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/^password/i), {
+      target: { value: "password1" },
+    });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: "password1" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Sign up" }));
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+    expect(mockUpsertProfile).not.toHaveBeenCalled();
   });
 
   it("calls signUp and navigates on success", async () => {

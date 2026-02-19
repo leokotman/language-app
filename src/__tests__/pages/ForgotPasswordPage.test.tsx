@@ -13,10 +13,11 @@ vi.mock("@/lib/supabase", () => ({
     },
   },
 }));
+const mockIsNetworkError = vi.fn().mockReturnValue(false);
 vi.mock("@/lib/errors", () => ({
   getAuthErrorMessage: (err: { message?: string }) =>
     err?.message ?? "Auth error",
-  isNetworkError: () => false,
+  isNetworkError: (err: unknown) => mockIsNetworkError(err),
   logError: vi.fn(),
   OFFLINE_AUTH_MESSAGE: "You are offline. Please connect and try again.",
 }));
@@ -92,11 +93,9 @@ describe("ForgotPasswordPage", () => {
     expect(await screen.findByText("Invalid email")).toBeInTheDocument();
   });
 
-  it("shows offline message when navigator is offline", async () => {
-    Object.defineProperty(globalThis, "navigator", {
-      value: { onLine: false },
-      writable: true,
-    });
+  it("shows offline message when reset fails with network error", async () => {
+    mockResetPasswordForEmail.mockRejectedValue(new Error("Failed to fetch"));
+    mockIsNetworkError.mockReturnValue(true);
     renderForgotPasswordPage();
     fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
       target: { value: "user@example.com" },
@@ -105,6 +104,18 @@ describe("ForgotPasswordPage", () => {
     expect(
       await screen.findByText("You are offline. Please connect and try again."),
     ).toBeInTheDocument();
-    expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
+  });
+
+  it("shows generic error when reset fails and not network error", async () => {
+    mockResetPasswordForEmail.mockRejectedValue(new Error("Server error"));
+    mockIsNetworkError.mockReturnValue(false);
+    renderForgotPasswordPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Send reset link" }));
+    expect(
+      await screen.findByText("Something went wrong. Please try again."),
+    ).toBeInTheDocument();
   });
 });
