@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+vi.mock("@/lib/errors", () => ({ logError: vi.fn() }));
+
 import {
   theme,
   getTheme,
