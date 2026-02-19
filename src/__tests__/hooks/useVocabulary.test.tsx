@@ -9,6 +9,7 @@ import {
   useDueToday,
   userVocabularyListQueryKey,
   useUserVocabularyList,
+  useAddToUserLibrary,
   useAddWordToLibrary,
   useCreateVocabulary,
   useUpdateVocabulary,
@@ -347,6 +348,34 @@ describe("useDeleteVocabulary", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["user-vocabulary", "user-1"],
     });
+  });
+});
+
+describe("useAddToUserLibrary", () => {
+  it("calls addToUserLibrary and invalidates user-vocabulary and vocabulary", async () => {
+    const { invalidateSpy, W } = mutationWrapper();
+    vi.mocked(vocabularyApi.addToUserLibrary).mockResolvedValue({
+      data: null,
+      error: null,
+    });
+    const { result } = renderHook(() => useAddToUserLibrary("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate({
+        user_id: "user-1",
+        vocabulary_id: "v-1",
+      });
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(vocabularyApi.addToUserLibrary).toHaveBeenCalledWith({
+      user_id: "user-1",
+      vocabulary_id: "v-1",
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["user-vocabulary", "user-1"],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["vocabulary"] });
   });
 });
 

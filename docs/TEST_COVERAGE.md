@@ -21,10 +21,10 @@ Configuration: `vite.config.ts` → `test.coverage` (include, exclude, **target 
 
 | Metric     | Current | Target (see below) |
 | ---------- | ------- | ------------------ |
-| Statements | ~62.2%  | 70–80%             |
+| Statements | ~62.5%  | 70–80%             |
 | Branches   | ~49%    | 70–80%             |
 | Functions  | ~60%    | 70–80%             |
-| Lines      | ~63.6%  | 70–80%             |
+| Lines      | ~64%    | 70–80%             |
 
 **Well-covered areas:** `App.tsx`, `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts`, `lib/offlineSync.ts`, **`lib/dictionary`**, **`lib/offlineCache`** (lang-017), `hooks/useLanguages.ts`, `hooks/useAuth.ts`, `hooks/useUserLanguages.ts`, `hooks/useVocabulary.ts`, `stores/authStore`, `stores/offlineModeStore` (high); API `languages`, `profiles`, `userLanguages`, `vocabulary` (high); `ConfirmDialog`, `Layout`, `ProtectedRoute`, `LibraryPage.helpers`, `StudyPage.helpers` (partial); **ForgotPasswordPage**, **LoginPage**, **SettingsPage** (high, added in lang-016). **Gaps:** `useAudioRecorder`; DictionaryPage, LibraryPage, StudyPage (main page components); Study subcomponents; `lib/offlineDebug`.
 
