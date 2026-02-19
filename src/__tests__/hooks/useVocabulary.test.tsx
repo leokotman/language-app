@@ -7,8 +7,14 @@ import {
   useVocabularyList,
   dueTodayQueryKey,
   useDueToday,
+  userVocabularyListQueryKey,
   useUserVocabularyList,
   useAddWordToLibrary,
+  useCreateVocabulary,
+  useUpdateVocabulary,
+  useDeleteVocabulary,
+  useUpdateUserVocabulary,
+  useRemoveFromUserLibrary,
 } from "@/hooks/useVocabulary";
 import * as vocabularyApi from "@/api/vocabulary";
 
@@ -162,6 +168,12 @@ describe("useDueToday", () => {
   });
 });
 
+describe("userVocabularyListQueryKey", () => {
+  it("returns key array with userId", () => {
+    expect(userVocabularyListQueryKey("u1")).toEqual(["user-vocabulary", "u1"]);
+  });
+});
+
 describe("useUserVocabularyList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -243,6 +255,144 @@ describe("useAddWordToLibrary", () => {
       language_from: "en",
       language_to: "ru",
     });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["user-vocabulary", "user-1"],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["vocabulary"] });
+  });
+});
+
+function mutationWrapper() {
+  const queryClient = createTestQueryClient();
+  const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+  function W({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  }
+  return { queryClient, invalidateSpy, W };
+}
+
+describe("useCreateVocabulary", () => {
+  it("calls createVocabulary and invalidates queries", async () => {
+    const { invalidateSpy, W } = mutationWrapper();
+    vi.mocked(vocabularyApi.createVocabulary).mockResolvedValue({
+      data: null,
+      error: null,
+    });
+    const { result } = renderHook(() => useCreateVocabulary("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate({
+        word: "hi",
+        translation: "привет",
+        language_from: "en",
+        language_to: "ru",
+        source: "user",
+        created_by: "user-1",
+      });
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(vocabularyApi.createVocabulary).toHaveBeenCalled();
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["vocabulary"] });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["user-vocabulary", "user-1"],
+    });
+  });
+});
+
+describe("useUpdateVocabulary", () => {
+  it("calls updateVocabulary and invalidates queries", async () => {
+    const { invalidateSpy, W } = mutationWrapper();
+    vi.mocked(vocabularyApi.updateVocabulary).mockResolvedValue({
+      data: null,
+      error: null,
+    });
+    const { result } = renderHook(() => useUpdateVocabulary("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate({
+        id: "v-1",
+        updates: { word: "hello" },
+      });
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(vocabularyApi.updateVocabulary).toHaveBeenCalledWith("v-1", {
+      word: "hello",
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["vocabulary"] });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["user-vocabulary", "user-1"],
+    });
+  });
+});
+
+describe("useDeleteVocabulary", () => {
+  it("calls deleteVocabulary and invalidates queries", async () => {
+    const { invalidateSpy, W } = mutationWrapper();
+    vi.mocked(vocabularyApi.deleteVocabulary).mockResolvedValue({
+      error: null,
+    });
+    const { result } = renderHook(() => useDeleteVocabulary("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate("v-1");
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(vocabularyApi.deleteVocabulary).toHaveBeenCalledWith("v-1");
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["vocabulary"] });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["user-vocabulary", "user-1"],
+    });
+  });
+});
+
+describe("useUpdateUserVocabulary", () => {
+  it("calls updateUserVocabulary and invalidates user-vocabulary and due-today", async () => {
+    const { invalidateSpy, W } = mutationWrapper();
+    vi.mocked(vocabularyApi.updateUserVocabulary).mockResolvedValue({
+      data: null,
+      error: null,
+    });
+    const { result } = renderHook(() => useUpdateUserVocabulary("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate({
+        id: "uv-1",
+        updates: { state: 1 },
+      });
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(vocabularyApi.updateUserVocabulary).toHaveBeenCalledWith("uv-1", {
+      state: 1,
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["user-vocabulary", "user-1"],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["due-today", "user-1"],
+    });
+  });
+});
+
+describe("useRemoveFromUserLibrary", () => {
+  it("calls removeFromUserLibrary and invalidates queries", async () => {
+    const { invalidateSpy, W } = mutationWrapper();
+    vi.mocked(vocabularyApi.removeFromUserLibrary).mockResolvedValue({
+      error: null,
+    });
+    const { result } = renderHook(() => useRemoveFromUserLibrary("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate("uv-1");
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(vocabularyApi.removeFromUserLibrary).toHaveBeenCalledWith("uv-1");
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["user-vocabulary", "user-1"],
     });

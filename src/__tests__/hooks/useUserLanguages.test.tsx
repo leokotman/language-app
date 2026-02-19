@@ -6,6 +6,9 @@ import {
   useUserLanguages,
   useAddUserLanguage,
   useRemoveUserLanguage,
+  useRemoveUserLanguagesByIds,
+  useAddBidirectionalPair,
+  useUpdateUserLanguage,
   USER_LANGUAGES_QUERY_KEY,
 } from "@/hooks/useUserLanguages";
 import * as userLanguagesApi from "@/api/userLanguages";
@@ -153,6 +156,103 @@ describe("useRemoveUserLanguage", () => {
       expect(result.current.isSuccess).toBe(true);
     });
     expect(userLanguagesApi.removeUserLanguage).toHaveBeenCalledWith("ul-1");
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: [...USER_LANGUAGES_QUERY_KEY, "user-1"],
+    });
+  });
+});
+
+describe("useRemoveUserLanguagesByIds", () => {
+  it("calls removeUserLanguagesByIds and invalidates queries", async () => {
+    const queryClient = createTestQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+    function W({ children }: { children: ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+    }
+    vi.mocked(userLanguagesApi.removeUserLanguagesByIds).mockResolvedValue({
+      error: null,
+    });
+    const { result } = renderHook(() => useRemoveUserLanguagesByIds("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate(["ul-1", "ul-2"]);
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(userLanguagesApi.removeUserLanguagesByIds).toHaveBeenCalledWith([
+      "ul-1",
+      "ul-2",
+    ]);
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: [...USER_LANGUAGES_QUERY_KEY, "user-1"],
+    });
+  });
+});
+
+describe("useAddBidirectionalPair", () => {
+  it("calls addBidirectionalPair and invalidates by variables.userId", async () => {
+    const queryClient = createTestQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+    function W({ children }: { children: ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+    }
+    vi.mocked(userLanguagesApi.addBidirectionalPair).mockResolvedValue({
+      data: [],
+      error: null,
+    });
+    const { result } = renderHook(() => useAddBidirectionalPair(), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate({ userId: "user-1", key: "en-ru" });
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(userLanguagesApi.addBidirectionalPair).toHaveBeenCalledWith(
+      "user-1",
+      "en-ru",
+    );
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: [...USER_LANGUAGES_QUERY_KEY, "user-1"],
+    });
+  });
+});
+
+describe("useUpdateUserLanguage", () => {
+  it("calls updateUserLanguage and invalidates queries", async () => {
+    const queryClient = createTestQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+    function W({ children }: { children: ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+    }
+    vi.mocked(userLanguagesApi.updateUserLanguage).mockResolvedValue({
+      data: { ...mockRow, learning_code: "sr" },
+      error: null,
+    });
+    const { result } = renderHook(() => useUpdateUserLanguage("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate({
+        id: "ul-1",
+        updates: { learning_code: "sr" },
+      });
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(userLanguagesApi.updateUserLanguage).toHaveBeenCalledWith("ul-1", {
+      learning_code: "sr",
+    });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: [...USER_LANGUAGES_QUERY_KEY, "user-1"],
     });

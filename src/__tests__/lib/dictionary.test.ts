@@ -86,6 +86,12 @@ describe("dictionary", () => {
       const second = await getLookupCache("en", "ru", "hi");
       expect(second).toEqual(entries);
     });
+
+    it("returns undefined when IDB returns empty array", async () => {
+      vi.mocked(offlineCache.getDictionaryLookupCache).mockResolvedValue([]);
+      const result = await getLookupCache("en", "ru", "nonexistentkey");
+      expect(result).toBeUndefined();
+    });
   });
 
   describe("setLookupCache", () => {
