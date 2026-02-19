@@ -6,6 +6,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
+- Chore/lang 017 increase coverage (#23)
+
+
+### Changed
+
 - Chore/lang 016 coverage improvements (#22)
 
 ### Changed
