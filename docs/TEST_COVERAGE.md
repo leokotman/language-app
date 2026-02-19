@@ -21,12 +21,12 @@ Configuration: `vite.config.ts` → `test.coverage` (include, exclude, **target 
 
 | Metric     | Current | Target (see below) |
 |-----------|---------|---------------------|
-| Statements| ~24.4%  | 70–80%              |
-| Branches  | ~18.3%  | 70–80%              |
-| Functions | ~19.9%  | 70–80%              |
-| Lines     | ~24.2%  | 70–80%              |
+| Statements| ~38.2%  | 70–80%              |
+| Branches  | ~30.3%  | 70–80%              |
+| Functions | ~33.3%  | 70–80%              |
+| Lines     | ~39.0%  | 70–80%              |
 
-**Well-covered areas:** `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts` (high); `LibraryPage.helpers`, `StudyPage.helpers` (partial); `ConfirmDialog`, `stores/authStore`, `theme`, `Layout`, `ProtectedRoute`, `OfflinePrefetch` (partial). **Gaps:** API layer, hooks, most page components and Study subcomponents.
+**Well-covered areas:** `App.tsx`, `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts`, `lib/offlineSync.ts`, `hooks/useLanguages.ts`, `hooks/useAuth.ts`, `hooks/useUserLanguages.ts`, `hooks/useVocabulary.ts`, `stores/authStore`, `stores/offlineModeStore` (high); API `languages`, `profiles`, `userLanguages`, `vocabulary` (high); `ConfirmDialog`, `Layout`, `ProtectedRoute`, `LibraryPage.helpers`, `StudyPage.helpers` (partial). **Gaps:** `useAudioRecorder`; most page components and Study subcomponents; `lib/dictionary`, `lib/offlineCache`, `lib/offlineDebug`.
 
 Re-run `npm run coverage` and open `coverage/index.html` for an up-to-date per-file breakdown.
 

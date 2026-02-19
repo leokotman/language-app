@@ -97,6 +97,10 @@ describe('isNetworkError', () => {
     expect(isNetworkError({ message: 'Network request failed' })).toBe(true)
   })
 
+  it('returns true for networkerror (lowercase)', () => {
+    expect(isNetworkError({ message: 'networkerror' })).toBe(true)
+  })
+
   it('returns false for generic error', () => {
     expect(isNetworkError(new Error('Invalid credentials'))).toBe(false)
   })
