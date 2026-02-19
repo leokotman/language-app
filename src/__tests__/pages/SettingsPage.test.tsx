@@ -5,6 +5,7 @@ import { useUserLanguages } from "@/hooks/useUserLanguages";
 
 const mockAddMutate = vi.fn();
 const mockRemoveMutate = vi.fn();
+let addMutationState = { isPending: false, isError: false };
 
 vi.mock("@/stores/authStore", () => ({
   useAuthStore: (selector: (s: { user: { id: string } | null }) => unknown) =>
@@ -14,8 +15,12 @@ vi.mock("@/hooks/useUserLanguages", () => ({
   useUserLanguages: vi.fn(),
   useAddBidirectionalPair: () => ({
     mutate: mockAddMutate,
-    isPending: false,
-    isError: false,
+    get isPending() {
+      return addMutationState.isPending;
+    },
+    get isError() {
+      return addMutationState.isError;
+    },
   }),
   useRemoveUserLanguagesByIds: () => ({
     mutate: mockRemoveMutate,
@@ -33,12 +38,14 @@ type UseUserLanguagesResult = ReturnType<typeof useUserLanguages>;
 
 /** Minimal shape that SettingsPage reads; cast to full UseQueryResult for mock. */
 interface UserLanguagesQueryState {
-  data: Array<{
-    id: string;
-    user_id: string;
-    native_code: string;
-    learning_code: string;
-  }> | undefined;
+  data:
+    | Array<{
+        id: string;
+        user_id: string;
+        native_code: string;
+        learning_code: string;
+      }>
+    | undefined;
   isLoading: boolean;
   error: Error | null;
   isError: boolean;
@@ -62,7 +69,10 @@ const defaultQueryState: UserLanguagesQueryState = {
 function createQueryState(
   overrides: Partial<UserLanguagesQueryState> = {},
 ): UseUserLanguagesResult {
-  return { ...defaultQueryState, ...overrides } as unknown as UseUserLanguagesResult;
+  return {
+    ...defaultQueryState,
+    ...overrides,
+  } as unknown as UseUserLanguagesResult;
 }
 
 const onePairData = [
@@ -148,6 +158,9 @@ describe("SettingsPage", () => {
         /We couldn't load language pairs. Please refresh the page/,
       ),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText("If the problem continues, try refreshing the page."),
+    ).toBeInTheDocument();
   });
 
   it("shows existing language pairs with remove button", () => {
@@ -188,5 +201,29 @@ describe("SettingsPage", () => {
       userId: "user-1",
       key: "en-ru",
     });
+  });
+
+  it("shows virtual pair hint when user has both en-ru and en-sr", () => {
+    const enRuAndEnSr = [
+      { id: "ul1", user_id: "user-1", native_code: "en", learning_code: "ru" },
+      { id: "ul2", user_id: "user-1", native_code: "en", learning_code: "sr" },
+    ];
+    useUserLanguagesMock.mockReturnValue(
+      createQueryState({ data: enRuAndEnSr }),
+    );
+    render(<SettingsPage />);
+    expect(
+      screen.getByText(
+        /Available when you have Russian↔English and Serbian↔English/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows add error message when add mutation fails", () => {
+    addMutationState = { isPending: false, isError: true };
+    useUserLanguagesMock.mockReturnValue(createQueryState({ data: [] }));
+    render(<SettingsPage />);
+    expect(screen.getByText("Could not add. Try again.")).toBeInTheDocument();
+    addMutationState = { isPending: false, isError: false };
   });
 });

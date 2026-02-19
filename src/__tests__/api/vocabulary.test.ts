@@ -498,5 +498,31 @@ describe("vocabulary API", () => {
       expect(result.data).toBeNull();
       expect(result.error).toBeDefined();
     });
+
+    it("returns error when addToUserLibrary fails after createVocabulary succeeds", async () => {
+      const vocabRow = {
+        ...mockVocabularyRow,
+        id: "v-new",
+        source: "user" as const,
+        created_by: "user-1",
+      };
+      vi.mocked(supabase.from).mockImplementation((table: string) => {
+        if (table === "vocabulary") {
+          return createSupabaseChain({ data: vocabRow, error: null }) as never;
+        }
+        return createSupabaseChain({
+          data: null,
+          error: new Error("add to library failed"),
+        }) as never;
+      });
+      const result = await addWordToLibrary("user-1", {
+        word: "hi",
+        translation: "привет",
+        language_from: "en",
+        language_to: "ru",
+      });
+      expect(result.data).toBeNull();
+      expect(result.error).toBeDefined();
+    });
   });
 });

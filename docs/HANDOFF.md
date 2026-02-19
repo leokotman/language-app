@@ -38,6 +38,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
+- chore (lang-017): Unit test coverage — reached 70% on all metrics (statements, branches, functions, lines); coverage thresholds enabled in vite.config.ts; added LibraryPage component tests (AddWordForm, EditWordDialog, ImportExportBar, LibraryFilterBar, LibraryList), StudyPage smoke tests (SignInAlert, NoCardsDue), DictionaryPage/LibraryPage smoke tests; docs/TEST_COVERAGE.md updated.
 - chore (refactor): Study page — split into layout components (SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete), card block components (FlashcardBlock, ReverseFlashcardBlock, TypingBlock, MultipleChoiceBlock, ReverseMultipleChoiceBlock, ListeningBlock, SpeakingBlock, AnswerFeedbackBlock, RatingButtons), condition constants (EXERCISE_TYPE_SUBTITLES), memoized handlers; helpers and types in StudyPage.helpers / StudyPage.models; components index.
 - lang-015: Phase 4 speech (recording only). New exercise type **speaking**: see/hear word → Record → Stop → Play back → self-rate (Again/Hard/Good/Easy). useAudioRecorder hook (getUserMedia + MediaRecorder), playRecordingBlob helper; StudyPage speaking UI and E2E handling (Record/Stop in loop).
 - lang-014: Phase 3 — reverse multiple choice (translation→word pick) and listening (TTS). New exercise types: reverse_multiple_choice (show translation, pick word from 4 options; buildReverseMultipleChoiceOptions), listening (Play word via Web Speech API, pick translation from 4 options; speakWord helper with language_from). StudyPage: new options in EXERCISE_TYPE_OPTIONS, UI blocks and correct-answer display; E2E excludes "Play word" from option click.
@@ -65,7 +66,7 @@ Recent work (from git, latest first):
 _Not yet implemented; pick from here (and from §6 Priority) for the next feature._
 
 - **Chore:** Refactor LibraryPage / DictionaryPage (subcomponents, helpers) — see `docs/REFACTORING_OPPORTUNITIES.md`.
-- **Chore:** Increase unit test coverage toward 70–80% — run `npm run coverage`, see `docs/TEST_COVERAGE.md`.
+- **Chore (done lang-017):** Unit test coverage at 70%+ on all metrics; thresholds enforced in CI. See `docs/TEST_COVERAGE.md`.
 - Phase 3: FSRS algorithm, “due today” query, study session flow (start, show card, reveal, rate, update SRS).
 - Phase 3: Adaptive exercise selection (e.g. weight by difficulty).
 - Default language pair: preselect when user has one pair; “study language” in Settings or Study page.

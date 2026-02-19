@@ -8,11 +8,9 @@ All notable changes to the Language App are documented here. The format is based
 
 - Chore/lang 016 coverage improvements (#22)
 
-
 ### Changed
 
 - Add CodeQL analysis workflow configuration
-
 
 ### Changed
 

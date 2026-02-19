@@ -149,6 +149,33 @@ describe("StudyPage.helpers", () => {
         writable: true,
       });
     });
+
+    it("calls speechSynthesis.speak when available", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      class MockUtterance {
+        lang = "";
+        rate = 1;
+        text: string;
+        constructor(text: string) {
+          this.text = text;
+        }
+      }
+      Object.defineProperty(window, "speechSynthesis", {
+        value: { speak, cancel },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: MockUtterance,
+        writable: true,
+      });
+      speakWord("hello", "ru");
+      expect(cancel).toHaveBeenCalled();
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.lang).toBe("ru");
+      expect(utterance.rate).toBe(0.9);
+    });
   });
 
   describe("playRecordingBlob", () => {
@@ -163,6 +190,35 @@ describe("StudyPage.helpers", () => {
         value: originalWindow,
         writable: true,
       });
+    });
+
+    it("revokes object URL when audio.play() rejects", async () => {
+      const revokeSpy = vi
+        .spyOn(URL, "revokeObjectURL")
+        .mockImplementation(() => {});
+      const mockPlay = vi.fn().mockRejectedValue(new Error("play failed"));
+      class MockAudio {
+        play = mockPlay;
+        onended = null;
+        onerror = null;
+      }
+      const originalAudio = globalThis.window.Audio;
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: MockAudio,
+        writable: true,
+      });
+      playRecordingBlob(new Blob());
+      await vi.waitFor(() => {
+        expect(mockPlay).toHaveBeenCalled();
+      });
+      await vi.waitFor(() => {
+        expect(revokeSpy).toHaveBeenCalled();
+      });
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: originalAudio,
+        writable: true,
+      });
+      revokeSpy.mockRestore();
     });
   });
 });
