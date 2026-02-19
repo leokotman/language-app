@@ -9,29 +9,29 @@ import {
   Typography,
   CircularProgress,
   Alert,
-} from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import type { DictionaryEntry } from '@/lib/dictionary'
-import type { ResultItem } from '../DictionaryPage.models'
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import type { DictionaryEntry } from "@/lib/dictionary";
+import type { ResultItem } from "../DictionaryPage.models";
 
 export type DictionaryResultsListProps = {
-  results: ResultItem[]
-  isOffline: boolean
-  hasStoreResults: boolean
-  apiLoading: boolean
-  apiError: string | null
-  searchTrimmed: boolean
-  apiSupported: boolean
-  isItemInLibrary: (item: ResultItem) => boolean
-  onAddFromStore: (vocabularyId: string) => void
-  onAddFromApi: (entry: DictionaryEntry) => void
-  onDismissError: () => void
-  addToLibraryPending: boolean
-  addWordPending: boolean
-  userId: string
-}
+  results: ResultItem[];
+  isOffline: boolean;
+  hasStoreResults: boolean;
+  apiLoading: boolean;
+  apiError: string | null;
+  searchTrimmed: boolean;
+  apiSupported: boolean;
+  isItemInLibrary: (item: ResultItem) => boolean;
+  onAddFromStore: (vocabularyId: string) => void;
+  onAddFromApi: (entry: DictionaryEntry) => void;
+  onDismissError: () => void;
+  addToLibraryPending: boolean;
+  addWordPending: boolean;
+  userId: string;
+};
 
 export function DictionaryResultsList({
   results,
@@ -54,7 +54,7 @@ export function DictionaryResultsList({
     searchTrimmed &&
     results.length === 0 &&
     !hasStoreResults &&
-    (isOffline || !apiSupported)
+    (isOffline || !apiSupported);
   const showEmptyNoApi =
     !apiLoading &&
     searchTrimmed &&
@@ -62,7 +62,7 @@ export function DictionaryResultsList({
     !hasStoreResults &&
     apiSupported &&
     !isOffline &&
-    !apiError
+    !apiError;
 
   return (
     <>
@@ -87,7 +87,7 @@ export function DictionaryResultsList({
 
       {apiLoading && !hasStoreResults && (
         <Box
-          sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+          sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
           data-testid="dictionary-loading"
         >
           <CircularProgress size={24} />
@@ -103,8 +103,8 @@ export function DictionaryResultsList({
           data-testid="dictionary-empty"
         >
           {isOffline
-            ? 'Connect to the internet to look up this word.'
-            : 'No results found. Try another word or direction.'}
+            ? "Connect to the internet to look up this word."
+            : "No results found. Try another word or direction."}
         </Typography>
       )}
 
@@ -120,10 +120,10 @@ export function DictionaryResultsList({
       )}
 
       {results.length > 0 && (
-        <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1 }}>
+        <List dense sx={{ bgcolor: "action.hover", borderRadius: 1 }}>
           {results.map((item, index) => {
-            if (item.source === 'store') {
-              const inLibrary = isItemInLibrary(item)
+            if (item.source === "store") {
+              const inLibrary = isItemInLibrary(item);
               return (
                 <ListItem key={`store-${item.vocabularyId}`} divider>
                   <ListItemText
@@ -132,7 +132,9 @@ export function DictionaryResultsList({
                   />
                   <ListItemSecondaryAction>
                     {inLibrary ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
                         <CheckCircleIcon color="success" fontSize="small" />
                         <Typography variant="body2" color="text.secondary">
                           In library
@@ -150,19 +152,24 @@ export function DictionaryResultsList({
                     )}
                   </ListItemSecondaryAction>
                 </ListItem>
-              )
+              );
             }
-            const { entry } = item
-            const inLibrary = isItemInLibrary(item)
+            const { entry } = item;
+            const inLibrary = isItemInLibrary(item);
             return (
-              <ListItem key={`api-${entry.word}-${entry.translation}-${index}`} divider>
+              <ListItem
+                key={`api-${entry.word}-${entry.translation}-${index}`}
+                divider
+              >
                 <ListItemText
                   primary={`${entry.word} — ${entry.translation}`}
                   secondary={`${entry.language_from} → ${entry.language_to}`}
                 />
                 <ListItemSecondaryAction>
                   {inLibrary ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
                       <CheckCircleIcon color="success" fontSize="small" />
                       <Typography variant="body2" color="text.secondary">
                         In library
@@ -176,22 +183,22 @@ export function DictionaryResultsList({
                       onClick={() => onAddFromApi(entry)}
                       disabled={!userId || addWordPending}
                     >
-                      {addWordPending ? 'Adding…' : 'Add to library'}
+                      {addWordPending ? "Adding…" : "Add to library"}
                     </Button>
                   )}
                 </ListItemSecondaryAction>
               </ListItem>
-            )
+            );
           })}
         </List>
       )}
 
       {!searchTrimmed && !apiLoading && (
         <Typography color="text.secondary" variant="body2">
-          Enter a word and choose a direction. Results from your saved words appear first; when
-          you're online, we'll also search for more.
+          Enter a word and choose a direction. Results from your saved words
+          appear first; when you're online, we'll also search for more.
         </Typography>
       )}
     </>
-  )
+  );
 }

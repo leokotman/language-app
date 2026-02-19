@@ -18,11 +18,11 @@ Dictionary and Library use IndexedDB when offline. The app **cannot** disconnect
 
 In console: `localStorage.setItem('language-app-debug-offline', '1')` then **refresh**. All offline-related logs start with `[offline]`. Copy them when debugging. Off: `localStorage.removeItem('language-app-debug-offline')` then refresh.
 
-| Log | Meaning |
-|-----|--------|
-| `syncForOffline start/done` | Full sync started/finished; `appVocabCount` = rows in cache. |
-| `listVocabulary offline ... cacheTotal=... filtered=...` | Offline read; `filtered` = rows for current direction. |
-| `getAppVocabulary count=...` | Rows in app vocabulary cache. |
+| Log                                                      | Meaning                                                      |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| `syncForOffline start/done`                              | Full sync started/finished; `appVocabCount` = rows in cache. |
+| `listVocabulary offline ... cacheTotal=... filtered=...` | Offline read; `filtered` = rows for current direction.       |
+| `getAppVocabulary count=...`                             | Rows in app vocabulary cache.                                |
 
 If after changing direction you see `filtered=0`, run full sync (login prefetch or Offline ON) so all directions are cached.
 

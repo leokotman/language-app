@@ -1,15 +1,15 @@
-import { Outlet } from 'react-router-dom'
-import { Box, Container } from '@mui/material'
-import { Navbar } from './Navbar'
-import { OfflinePrefetch } from '@/components/features/offline/OfflinePrefetch'
+import { Outlet } from "react-router-dom";
+import { Box, Container } from "@mui/material";
+import { Navbar } from "./Navbar";
+import { OfflinePrefetch } from "@/components/features/offline/OfflinePrefetch";
 
 export function Layout() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <OfflinePrefetch />
@@ -19,7 +19,7 @@ export function Layout() {
         sx={{
           flex: 1,
           py: 3,
-          overflow: 'auto',
+          overflow: "auto",
         }}
       >
         <Container maxWidth="lg">
@@ -27,5 +27,5 @@ export function Layout() {
         </Container>
       </Box>
     </Box>
-  )
+  );
 }

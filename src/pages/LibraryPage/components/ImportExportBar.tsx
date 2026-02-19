@@ -1,17 +1,17 @@
-import { Box, Button, Typography } from '@mui/material'
-import DownloadIcon from '@mui/icons-material/Download'
-import UploadIcon from '@mui/icons-material/Upload'
+import { Box, Button, Typography } from "@mui/material";
+import DownloadIcon from "@mui/icons-material/Download";
+import UploadIcon from "@mui/icons-material/Upload";
 
 export type ImportExportBarProps = {
-  exportRowCount: number
-  onExportCsv: () => void
-  onExportJson: () => void
-  fileInputRef: React.RefObject<HTMLInputElement | null>
-  onImportClick: () => void
-  onImportFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  isImporting: boolean
-  importMessage: string | null
-}
+  exportRowCount: number;
+  onExportCsv: () => void;
+  onExportJson: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onImportClick: () => void;
+  onImportFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isImporting: boolean;
+  importMessage: string | null;
+};
 
 export function ImportExportBar({
   exportRowCount,
@@ -24,7 +24,9 @@ export function ImportExportBar({
   importMessage,
 }: ImportExportBarProps) {
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+    <Box
+      sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}
+    >
       <Button
         size="small"
         startIcon={<DownloadIcon />}
@@ -45,7 +47,7 @@ export function ImportExportBar({
         ref={fileInputRef}
         type="file"
         accept=".csv,.json"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onChange={onImportFileChange}
       />
       <Button
@@ -54,7 +56,7 @@ export function ImportExportBar({
         onClick={onImportClick}
         disabled={isImporting}
       >
-        {isImporting ? 'Importing…' : 'Import'}
+        {isImporting ? "Importing…" : "Import"}
       </Button>
       {importMessage && (
         <Typography variant="body2" color="text.secondary">
@@ -62,5 +64,5 @@ export function ImportExportBar({
         </Typography>
       )}
     </Box>
-  )
+  );
 }

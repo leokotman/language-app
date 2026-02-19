@@ -103,13 +103,18 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 
 <p>Hi, {{ .Email }},</p>
 
-<p>You signed up for <strong>Language App</strong> — the app where you build your vocabulary, practice with spaced repetition, and track your progress.</p>
+<p>
+  You signed up for <strong>Language App</strong> — the app where you build your
+  vocabulary, practice with spaced repetition, and track your progress.
+</p>
 
 <p>Click the link below to confirm your email and start learning:</p>
 
 <p><a href="{{ .ConfirmationURL }}">Confirm your email</a></p>
 
-<p>If you didn’t create an account with Language App, you can ignore this email.</p>
+<p>
+  If you didn’t create an account with Language App, you can ignore this email.
+</p>
 
 <p>— The Language App team</p>
 ```
@@ -120,7 +125,7 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 
 ## 8. Create the core data tables (vocabulary, languages, user library)
 
-**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → *(optional)* **005** (step 9b) → *(optional)* **008** (step 9c) → **004** (step 10) → **006** (step 10b) → **007** (step 10c). Do not run 004 before 003 or 005.
+**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → _(optional)_ **005** (step 9b) → _(optional)_ **008** (step 9c) → **004** (step 10) → **006** (step 10b) → **007** (step 10c). Do not run 004 before 003 or 005.
 
 For language selection and vocabulary (Phase 1, Week 3):
 
