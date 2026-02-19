@@ -7,6 +7,7 @@ import {
   buildReverseMultipleChoiceOptions,
   assignExerciseTypes,
   speakWord,
+  hasVoiceForLang,
   playRecordingBlob,
 } from "@/pages/StudyPage/StudyPage.helpers";
 import type { StudyCardItem } from "@/pages/StudyPage/StudyPage.models";
@@ -137,44 +138,138 @@ describe("StudyPage.helpers", () => {
   });
 
   describe("speakWord", () => {
-    it("does nothing when window or speechSynthesis is undefined", () => {
+    it("returns missingLang when window or speechSynthesis is undefined", () => {
       const originalSpeechSynthesis = window.speechSynthesis;
       Object.defineProperty(window, "speechSynthesis", {
         value: undefined,
         writable: true,
       });
-      expect(() => speakWord("hello", "en")).not.toThrow();
+      expect(speakWord("hello", "en")).toEqual({
+        spoke: false,
+        missingLang: "en",
+      });
       Object.defineProperty(window, "speechSynthesis", {
         value: originalSpeechSynthesis,
         writable: true,
       });
     });
 
-    it("calls speechSynthesis.speak when available", () => {
+    it("does not speak and returns missingLang when voices not yet loaded (Chrome)", () => {
       const speak = vi.fn();
       const cancel = vi.fn();
+      Object.defineProperty(window, "speechSynthesis", {
+        value: { speak, cancel, getVoices: () => [] },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("hello", "ru")).toEqual({
+        spoke: false,
+        missingLang: "ru",
+      });
+      expect(speak).not.toHaveBeenCalled();
+    });
+
+    it("sets utterance.voice when a matching language voice is available", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const srVoice = {
+        default: false,
+        lang: "sr-Latn-RS",
+        localService: true,
+        name: "Serbian",
+        voiceURI: "sr-latn",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [srVoice],
+        },
+        writable: true,
+      });
       class MockUtterance {
         lang = "";
         rate = 1;
+        voice: SpeechSynthesisVoice | null = null;
         text: string;
         constructor(text: string) {
           this.text = text;
         }
       }
-      Object.defineProperty(window, "speechSynthesis", {
-        value: { speak, cancel },
-        writable: true,
-      });
       Object.defineProperty(window, "SpeechSynthesisUtterance", {
         value: MockUtterance,
         writable: true,
       });
-      speakWord("hello", "ru");
-      expect(cancel).toHaveBeenCalled();
-      expect(speak).toHaveBeenCalled();
+      expect(speakWord("veče", "sr")).toEqual({ spoke: true });
       const utterance = speak.mock.calls[0][0];
-      expect(utterance.lang).toBe("ru");
-      expect(utterance.rate).toBe(0.9);
+      expect(utterance.lang).toBe("sr-Latn");
+      expect(utterance.voice).toBe(srVoice);
+    });
+
+    it("does not speak and returns missingLang when no voice for language", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const enVoice = {
+        default: true,
+        lang: "en-US",
+        localService: true,
+        name: "English",
+        voiceURI: "en-us",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [enVoice],
+        },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("dobar dan", "sr")).toEqual({
+        spoke: false,
+        missingLang: "sr",
+      });
+      expect(speak).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("hasVoiceForLang", () => {
+    it("returns false when speechSynthesis is undefined", () => {
+      const original = window.speechSynthesis;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: undefined,
+        writable: true,
+      });
+      expect(hasVoiceForLang("sr")).toBe(false);
+      Object.defineProperty(window, "speechSynthesis", {
+        value: original,
+        writable: true,
+      });
+    });
+
+    it("returns false when no voices loaded", () => {
+      Object.defineProperty(window, "speechSynthesis", {
+        value: { getVoices: () => [] },
+        writable: true,
+      });
+      expect(hasVoiceForLang("sr")).toBe(false);
+    });
+
+    it("returns true when a matching voice exists", () => {
+      const srVoice = {
+        lang: "sr-Latn-RS",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: { getVoices: () => [srVoice] },
+        writable: true,
+      });
+      expect(hasVoiceForLang("sr")).toBe(true);
     });
   });
 
