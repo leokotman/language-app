@@ -21,12 +21,12 @@ Configuration: `vite.config.ts` → `test.coverage` (include, exclude, **target 
 
 | Metric     | Current | Target (see below) |
 | ---------- | ------- | ------------------ |
-| Statements | ~38.2%  | 70–80%             |
-| Branches   | ~30.3%  | 70–80%             |
-| Functions  | ~33.3%  | 70–80%             |
-| Lines      | ~39.0%  | 70–80%             |
+| Statements | ~54.1%  | 70–80%             |
+| Branches   | ~42.3%  | 70–80%             |
+| Functions  | ~51.1%  | 70–80%             |
+| Lines      | ~55.7%  | 70–80%             |
 
-**Well-covered areas:** `App.tsx`, `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts`, `lib/offlineSync.ts`, `hooks/useLanguages.ts`, `hooks/useAuth.ts`, `hooks/useUserLanguages.ts`, `hooks/useVocabulary.ts`, `stores/authStore`, `stores/offlineModeStore` (high); API `languages`, `profiles`, `userLanguages`, `vocabulary` (high); `ConfirmDialog`, `Layout`, `ProtectedRoute`, `LibraryPage.helpers`, `StudyPage.helpers` (partial). **Gaps:** `useAudioRecorder`; most page components and Study subcomponents; `lib/dictionary`, `lib/offlineCache`, `lib/offlineDebug`.
+**Well-covered areas:** `App.tsx`, `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts`, `lib/offlineSync.ts`, `hooks/useLanguages.ts`, `hooks/useAuth.ts`, `hooks/useUserLanguages.ts`, `hooks/useVocabulary.ts`, `stores/authStore`, `stores/offlineModeStore` (high); API `languages`, `profiles`, `userLanguages`, `vocabulary` (high); `ConfirmDialog`, `Layout`, `ProtectedRoute`, `LibraryPage.helpers`, `StudyPage.helpers` (partial); **ForgotPasswordPage**, **LoginPage**, **SettingsPage** (high, added in lang-016). **Gaps:** `useAudioRecorder`; DictionaryPage, LibraryPage, StudyPage (main page components); Study subcomponents; `lib/dictionary`, `lib/offlineCache`, `lib/offlineDebug`.
 
 Re-run `npm run coverage` and open `coverage/index.html` for an up-to-date per-file breakdown.
 
