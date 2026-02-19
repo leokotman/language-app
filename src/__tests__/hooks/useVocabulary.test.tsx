@@ -9,6 +9,7 @@ import {
   useDueToday,
   userVocabularyListQueryKey,
   useUserVocabularyList,
+  useAddToUserLibrary,
   useAddWordToLibrary,
   useCreateVocabulary,
   useUpdateVocabulary,
@@ -119,6 +120,28 @@ describe("useVocabularyList", () => {
     expect(r1.current.isFetching).toBe(false);
     expect(vocabularyApi.listVocabulary).not.toHaveBeenCalled();
   });
+
+  it("throws when listVocabulary returns error", async () => {
+    const apiError = new Error("fetch failed");
+    vi.mocked(vocabularyApi.listVocabulary).mockResolvedValue({
+      data: null as unknown as Awaited<
+        ReturnType<typeof vocabularyApi.listVocabulary>
+      >["data"],
+      error: apiError,
+    });
+    const { result } = renderHook(
+      () =>
+        useVocabularyList({
+          languageFrom: "en",
+          languageTo: "ru",
+        }),
+      { wrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+    expect(result.current.error).toBe(apiError);
+  });
 });
 
 describe("dueTodayQueryKey", () => {
@@ -137,6 +160,13 @@ describe("dueTodayQueryKey", () => {
       null,
       "en-ru",
     ]);
+    expect(
+      dueTodayQueryKey("u1", {
+        languageFrom: "en",
+        languageTo: "ru",
+        pairKey: "en-ru",
+      }),
+    ).toEqual(["due-today", "u1", "en", "ru", "en-ru"]);
   });
 });
 
@@ -166,6 +196,41 @@ describe("useDueToday", () => {
     expect(result.current.isFetching).toBe(false);
     expect(vocabularyApi.listDueToday).not.toHaveBeenCalled();
   });
+
+  it("calls listDueToday with filters when provided", async () => {
+    const { result } = renderHook(
+      () =>
+        useDueToday("user-1", {
+          languageFrom: "en",
+          languageTo: "ru",
+          pairKey: "en-ru",
+        }),
+      { wrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(vocabularyApi.listDueToday).toHaveBeenCalledWith("user-1", {
+      languageFrom: "en",
+      languageTo: "ru",
+      pairKey: "en-ru",
+    });
+  });
+
+  it("throws when listDueToday returns error", async () => {
+    const apiError = new Error("due today failed");
+    vi.mocked(vocabularyApi.listDueToday).mockResolvedValue({
+      data: null as unknown as Awaited<
+        ReturnType<typeof vocabularyApi.listDueToday>
+      >["data"],
+      error: apiError,
+    });
+    const { result } = renderHook(() => useDueToday("user-1"), { wrapper });
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+    expect(result.current.error).toBe(apiError);
+  });
 });
 
 describe("userVocabularyListQueryKey", () => {
@@ -192,6 +257,23 @@ describe("useUserVocabularyList", () => {
     });
     expect(result.current.data).toEqual([]);
     expect(vocabularyApi.listUserVocabulary).toHaveBeenCalledWith("user-1");
+  });
+
+  it("throws when listUserVocabulary returns error", async () => {
+    const apiError = new Error("list failed");
+    vi.mocked(vocabularyApi.listUserVocabulary).mockResolvedValue({
+      data: null as unknown as Awaited<
+        ReturnType<typeof vocabularyApi.listUserVocabulary>
+      >["data"],
+      error: apiError,
+    });
+    const { result } = renderHook(() => useUserVocabularyList("user-1"), {
+      wrapper,
+    });
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+    expect(result.current.error).toBe(apiError);
   });
 });
 
@@ -347,6 +429,34 @@ describe("useDeleteVocabulary", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["user-vocabulary", "user-1"],
     });
+  });
+});
+
+describe("useAddToUserLibrary", () => {
+  it("calls addToUserLibrary and invalidates user-vocabulary and vocabulary", async () => {
+    const { invalidateSpy, W } = mutationWrapper();
+    vi.mocked(vocabularyApi.addToUserLibrary).mockResolvedValue({
+      data: null,
+      error: null,
+    });
+    const { result } = renderHook(() => useAddToUserLibrary("user-1"), {
+      wrapper: W,
+    });
+    await act(async () => {
+      result.current.mutate({
+        user_id: "user-1",
+        vocabulary_id: "v-1",
+      });
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(vocabularyApi.addToUserLibrary).toHaveBeenCalledWith({
+      user_id: "user-1",
+      vocabulary_id: "v-1",
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["user-vocabulary", "user-1"],
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["vocabulary"] });
   });
 });
 

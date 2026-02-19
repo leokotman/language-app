@@ -73,13 +73,20 @@ export function SettingsPage() {
       ),
   );
 
+  // Keep select value in sync with available options (e.g. user already has en-ru, so options only show en-sr)
+  const selectValue = availableBidirectionalPairs.some(
+    (p) => p.key === selectedPairKey,
+  )
+    ? selectedPairKey
+    : (availableBidirectionalPairs[0]?.key ?? "");
+
   const hasVirtualPair =
     bidirectionalPairsWithIds.some((pair) => pair.key === "en-ru") &&
     bidirectionalPairsWithIds.some((pair) => pair.key === "en-sr");
 
   const handleAdd = () => {
-    if (!userId || !selectedPairKey) return;
-    addMutation.mutate({ userId, key: selectedPairKey });
+    if (!userId || !selectValue) return;
+    addMutation.mutate({ userId, key: selectValue });
   };
 
   const handleRemoveClick = (key: string) => {
@@ -184,7 +191,7 @@ export function SettingsPage() {
                 </InputLabel>
                 <Select
                   labelId="language-pair-label"
-                  value={selectedPairKey}
+                  value={selectValue}
                   label="Add language pair"
                   onChange={(event) => setSelectedPairKey(event.target.value)}
                 >

@@ -65,4 +65,48 @@ describe("ConfirmDialog", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Keep" })).toBeInTheDocument();
   });
+
+  it("shows loading state (ellipsis) and disables buttons when loading is true", () => {
+    renderConfirmDialog({
+      open: true,
+      title: "Confirm",
+      message: "Message",
+      confirmLabel: "Save",
+      onConfirm: vi.fn(),
+      onCancel: vi.fn(),
+      loading: true,
+    });
+    const confirmBtn = screen.getByRole("button", { name: "…" });
+    expect(confirmBtn).toHaveTextContent("…");
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    expect(confirmBtn).toBeDisabled();
+  });
+
+  it("renders confirm button with error color when confirmColor is error", () => {
+    renderConfirmDialog({
+      open: true,
+      title: "Delete",
+      message: "Are you sure?",
+      confirmLabel: "Delete",
+      onConfirm: vi.fn(),
+      onCancel: vi.fn(),
+      confirmColor: "error",
+    });
+    const confirmBtn = screen.getByRole("button", { name: "Delete" });
+    expect(confirmBtn).toHaveClass("MuiButton-colorError");
+  });
+
+  it("renders confirm button with warning color when confirmColor is warning", () => {
+    renderConfirmDialog({
+      open: true,
+      title: "Warning",
+      message: "Continue?",
+      confirmLabel: "Continue",
+      onConfirm: vi.fn(),
+      onCancel: vi.fn(),
+      confirmColor: "warning",
+    });
+    const confirmBtn = screen.getByRole("button", { name: "Continue" });
+    expect(confirmBtn).toHaveClass("MuiButton-colorWarning");
+  });
 });

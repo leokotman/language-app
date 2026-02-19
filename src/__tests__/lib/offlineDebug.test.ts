@@ -85,6 +85,18 @@ describe("offlineDebug", () => {
       });
       expect(isDictionaryPerfDebugEnabled()).toBe(false);
     });
+
+    it("returns false when localStorage.getItem throws", () => {
+      Object.defineProperty(globalThis, "localStorage", {
+        value: {
+          getItem: vi.fn().mockImplementation(() => {
+            throw new Error("quota");
+          }),
+        },
+        writable: true,
+      });
+      expect(isDictionaryPerfDebugEnabled()).toBe(false);
+    });
   });
 
   describe("offlineLog", () => {
@@ -162,6 +174,26 @@ describe("offlineDebug", () => {
       expect(call[0]).toBe("[dict-perf]");
       expect(call[2]).toBe("render");
       expect(call[3]).toEqual({ id: "x" });
+    });
+
+    it("logs message only when enabled and no data arg", () => {
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      Object.defineProperty(globalThis, "localStorage", {
+        value: {
+          getItem: vi
+            .fn()
+            .mockImplementation((k: string) =>
+              k === DICT_PERF_KEY ? "1" : null,
+            ),
+        },
+        writable: true,
+      });
+      dictPerfLog("effect");
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "[dict-perf]",
+        expect.any(String),
+        "effect",
+      );
     });
   });
 });

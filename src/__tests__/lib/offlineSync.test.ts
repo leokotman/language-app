@@ -92,6 +92,17 @@ describe("offlineSync", () => {
     expect(result.error).toBe(err);
   });
 
+  it("wraps non-Error getUserLanguages error in Error", async () => {
+    vi.mocked(userLanguages.getUserLanguages).mockResolvedValue({
+      data: [],
+      error: "langs string error" as unknown as Error,
+    });
+    const result = await syncForOffline("user-1");
+    expect(result.success).toBe(false);
+    expect(result.error).toBeInstanceOf(Error);
+    expect((result.error as Error).message).toBe("langs string error");
+  });
+
   it("returns failure when listUserVocabulary returns error", async () => {
     const err = new Error("library error");
     vi.mocked(vocabulary.listUserVocabulary).mockResolvedValue({
@@ -101,6 +112,21 @@ describe("offlineSync", () => {
     const result = await syncForOffline("user-1");
     expect(result.success).toBe(false);
     expect(result.error).toBe(err);
+  });
+
+  it("wraps non-Error listUserVocabulary error in Error", async () => {
+    vi.mocked(userLanguages.getUserLanguages).mockResolvedValue({
+      data: [],
+      error: null,
+    });
+    vi.mocked(vocabulary.listUserVocabulary).mockResolvedValue({
+      data: [],
+      error: { code: "LIB_ERR" } as unknown as Error,
+    });
+    const result = await syncForOffline("user-1");
+    expect(result.success).toBe(false);
+    expect(result.error).toBeInstanceOf(Error);
+    expect((result.error as Error).message).toBe("[object Object]");
   });
 
   it("wraps non-Error app error in Error", async () => {

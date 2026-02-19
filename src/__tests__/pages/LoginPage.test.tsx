@@ -25,10 +25,11 @@ vi.mock("react-router-dom", async (importOriginal) => {
     useLocation: () => ({ state: null }),
   };
 });
+const mockIsNetworkError = vi.fn().mockReturnValue(false);
 vi.mock("@/lib/errors", () => ({
   getAuthErrorMessage: (err: { message?: string }) =>
     err?.message ?? "Auth error",
-  isNetworkError: () => false,
+  isNetworkError: (err: unknown) => mockIsNetworkError(err),
   logError: vi.fn(),
   OFFLINE_AUTH_MESSAGE: "You are offline. Please connect and try again.",
 }));
@@ -100,6 +101,29 @@ describe("LoginPage", () => {
     });
   });
 
+  it("shows offline message when navigator is offline before submit", async () => {
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: false },
+      writable: true,
+    });
+    renderLoginPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(document.querySelector('input[type="password"]')!, {
+      target: { value: "password1" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Sign in" }));
+    expect(
+      await screen.findByText("You are offline. Please connect and try again."),
+    ).toBeInTheDocument();
+    expect(mockSignIn).not.toHaveBeenCalled();
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: true },
+      writable: true,
+    });
+  });
+
   it("shows error when sign in fails", async () => {
     mockSignIn.mockResolvedValue({
       data: { session: null },
@@ -118,11 +142,9 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows offline message when navigator is offline", async () => {
-    Object.defineProperty(globalThis, "navigator", {
-      value: { onLine: false },
-      writable: true,
-    });
+  it("shows offline message when signIn fails with network error", async () => {
+    mockSignIn.mockRejectedValue(new Error("Failed to fetch"));
+    mockIsNetworkError.mockReturnValue(true);
     renderLoginPage();
     fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
       target: { value: "user@example.com" },
@@ -134,6 +156,43 @@ describe("LoginPage", () => {
     expect(
       await screen.findByText("You are offline. Please connect and try again."),
     ).toBeInTheDocument();
-    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it("shows generic error when signIn fails and not network error", async () => {
+    mockSignIn.mockRejectedValue(new Error("Server error"));
+    mockIsNetworkError.mockReturnValue(false);
+    renderLoginPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(document.querySelector('input[type="password"]')!, {
+      target: { value: "password1" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Sign in" }));
+    expect(
+      await screen.findByText("Something went wrong. Please try again."),
+    ).toBeInTheDocument();
+  });
+
+  it("dismisses error when alert onClose is clicked", async () => {
+    mockSignIn.mockResolvedValue({
+      data: { session: null },
+      error: { message: "Invalid credentials" },
+    });
+    renderLoginPage();
+    fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(document.querySelector('input[type="password"]')!, {
+      target: { value: "wrong" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: "Sign in" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Invalid credentials");
+    const closeButton = screen.getByRole("button", { name: /close/i });
+    fireEvent.click(closeButton);
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
   });
 });

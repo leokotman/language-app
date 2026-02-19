@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+vi.mock("@/lib/errors", () => ({ logError: vi.fn() }));
+
 import {
   theme,
   getTheme,
@@ -46,10 +49,30 @@ describe("getStoredThemeMode", () => {
     expect(getStoredThemeMode()).toBe("light");
   });
 
+  it('returns "light" when window is undefined (e.g. SSR)', () => {
+    const originalWindow = globalThis.window;
+    Object.defineProperty(globalThis, "window", {
+      value: undefined,
+      writable: true,
+    });
+    expect(getStoredThemeMode()).toBe("light");
+    Object.defineProperty(globalThis, "window", {
+      value: originalWindow,
+      writable: true,
+    });
+  });
+
   it('returns "light" when stored value is invalid or missing', () => {
     getItem.mockReturnValue(null);
     expect(getStoredThemeMode()).toBe("light");
     getItem.mockReturnValue("invalid");
+    expect(getStoredThemeMode()).toBe("light");
+  });
+
+  it('returns "light" and does not throw when getItem throws', () => {
+    getItem.mockImplementation(() => {
+      throw new Error("QuotaExceeded");
+    });
     expect(getStoredThemeMode()).toBe("light");
   });
 });

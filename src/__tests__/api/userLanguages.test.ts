@@ -129,6 +129,21 @@ describe("userLanguages API", () => {
       expect(result.error).toBeNull();
       expect(offlineCache.getUserLanguages).toHaveBeenCalledWith("user-1");
     });
+
+    it("rethrows when Supabase throws and isNetworkError is false", async () => {
+      const dbErr = new Error("db constraint");
+      const rejectingChain = {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        then(_: unknown, reject?: (r: unknown) => void) {
+          return Promise.reject(dbErr).then(undefined, reject);
+        },
+      };
+      vi.mocked(supabase.from).mockReturnValue(rejectingChain as never);
+      vi.mocked(isNetworkError).mockReturnValue(false);
+      await expect(getUserLanguages("user-1")).rejects.toThrow(dbErr);
+    });
   });
 
   describe("addUserLanguage", () => {

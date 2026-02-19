@@ -72,13 +72,12 @@ export default defineConfig(() => {
           "**/*.test.{ts,tsx}",
           "**/*.spec.{ts,tsx}",
         ],
-        // Uncomment to fail the run when coverage is below target (e.g. in CI):
-        // thresholds: {
-        //   statements: COVERAGE_TARGET_PCT,
-        //   branches: COVERAGE_TARGET_PCT,
-        //   functions: COVERAGE_TARGET_PCT,
-        //   lines: COVERAGE_TARGET_PCT,
-        // },
+        thresholds: {
+          statements: COVERAGE_TARGET_PCT,
+          branches: COVERAGE_TARGET_PCT,
+          functions: COVERAGE_TARGET_PCT,
+          lines: COVERAGE_TARGET_PCT,
+        },
       },
     },
   };
