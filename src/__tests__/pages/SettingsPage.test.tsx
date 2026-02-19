@@ -33,12 +33,14 @@ type UseUserLanguagesResult = ReturnType<typeof useUserLanguages>;
 
 /** Minimal shape that SettingsPage reads; cast to full UseQueryResult for mock. */
 interface UserLanguagesQueryState {
-  data: Array<{
-    id: string;
-    user_id: string;
-    native_code: string;
-    learning_code: string;
-  }> | undefined;
+  data:
+    | Array<{
+        id: string;
+        user_id: string;
+        native_code: string;
+        learning_code: string;
+      }>
+    | undefined;
   isLoading: boolean;
   error: Error | null;
   isError: boolean;
@@ -62,7 +64,10 @@ const defaultQueryState: UserLanguagesQueryState = {
 function createQueryState(
   overrides: Partial<UserLanguagesQueryState> = {},
 ): UseUserLanguagesResult {
-  return { ...defaultQueryState, ...overrides } as unknown as UseUserLanguagesResult;
+  return {
+    ...defaultQueryState,
+    ...overrides,
+  } as unknown as UseUserLanguagesResult;
 }
 
 const onePairData = [
