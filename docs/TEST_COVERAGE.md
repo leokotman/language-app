@@ -10,23 +10,23 @@ npm run coverage
 - **Terminal:** full coverage table (with colors) plus a **summary** with each metric: percentage and `(covered/total)` per category (Statements, Branches, Functions, Lines).
 - **Artifacts:** `coverage/` (HTML report, `coverage/coverage-final.json`). The `coverage/` directory is gitignored.
 
-Configuration: `vite.config.ts` → `test.coverage` (include, exclude, **target %** and reporter).
+Configuration: `vite.config.ts` → `test.coverage` (include, exclude, **target %**, reporter, **thresholds**).
 
 - **Target percentage:** `COVERAGE_TARGET_PCT = 70` in `vite.config.ts`. The coverage run prints a **Target** block after the summary: each metric shows current `pct% (covered/total) out of 70%` and, if below target, `— need N more` (how many more covered items to reach 70%).
-- **Enforcing the target:** Uncomment `coverage.thresholds` in `vite.config.ts` (statements, branches, functions, lines set to `COVERAGE_TARGET_PCT`) to make `npm run coverage` fail when coverage is below target (e.g. in CI). Default is commented so the run passes while you work toward the goal.
+- **Enforcing the target:** `coverage.thresholds` in `vite.config.ts` are **enabled** (statements, branches, functions, lines set to `COVERAGE_TARGET_PCT`). `npm run coverage` fails when any metric is below 70% (e.g. in CI). See `vite.config.ts` to temporarily comment thresholds while working on new code.
 
 ---
 
 ## Current coverage (snapshot)
 
-| Metric     | Current | Target (see below) |
-| ---------- | ------- | ------------------ |
-| Statements | ~66.3%  | 70–80%             |
-| Branches   | ~53.1%  | 70–80%             |
-| Functions  | ~63.4%  | 70–80%             |
-| Lines      | ~67.7%  | 70–80%             |
+| Metric     | Current | Target |
+| ---------- | ------- | ------ |
+| Statements | ~84%    | 70% ✓  |
+| Branches   | ~70.2%  | 70% ✓  |
+| Functions  | ~80.6%  | 70% ✓  |
+| Lines      | ~85.9%  | 70% ✓  |
 
-**Well-covered areas:** `App.tsx`, `lib/fsrs.ts`, `lib/sanitize.ts`, `lib/errors.ts`, `lib/importExport.ts`, `lib/offlineSync.ts`, **`lib/dictionary`**, **`lib/offlineCache`** (lang-017), `hooks/useLanguages.ts`, `hooks/useAuth.ts`, `hooks/useUserLanguages.ts`, `hooks/useVocabulary.ts`, `stores/authStore`, `stores/offlineModeStore` (high); API `languages`, `profiles`, `userLanguages`, `vocabulary` (high); `ConfirmDialog`, `Layout`, `ProtectedRoute`, `LibraryPage.helpers`, `StudyPage.helpers` (partial); **ForgotPasswordPage**, **LoginPage**, **SettingsPage** (high, added in lang-016). **Gaps:** DictionaryPage, LibraryPage, StudyPage (main page components); some Study subcomponents; `lib/offlineDebug`.
+**Well-covered areas:** `App.tsx`, `lib/` (fsrs, sanitize, errors, importExport, offlineSync, dictionary, offlineCache, etc.), `hooks/` (useAuth, useUserLanguages, useVocabulary, useAudioRecorder, etc.), `stores/`, API (`languages`, `profiles`, `userLanguages`, `vocabulary`), `ConfirmDialog`, `Layout`, `ProtectedRoute`, `LibraryPage.helpers`, `StudyPage.helpers`, Study page components (FlashcardBlock, TypingBlock, RatingButtons, MultipleChoiceBlock, ListeningBlock, SpeakingBlock, StudySetup, NoCardsDue, etc.), **LibraryPage components** (AddWordForm, EditWordDialog, ImportExportBar, LibraryFilterBar, LibraryList), **DictionaryPage** / **LibraryPage** / **StudyPage** smoke tests, ForgotPasswordPage, LoginPage, SettingsPage. **Remaining gaps (lower priority):** DictionaryPage/LibraryPage/StudyPage main files (deeper branches), `lib/offlineDebug`, some branches in Navbar/SettingsPage/SignupPage.
 
 Re-run `npm run coverage` and open `coverage/index.html` for an up-to-date per-file breakdown.
 
