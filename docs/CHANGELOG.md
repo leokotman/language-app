@@ -6,6 +6,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
+- Add CodeQL analysis workflow configuration
+
+
+### Changed
+
 - **lang-016:** add test coverage config, script, and docs
 - **lang-016:** test: add unit tests for importExport, LibraryPage.helpers, StudyPage.helpers, ConfirmDialog
 - **lang-016:** refactor: split LibraryPage and DictionaryPage into subcomponents
