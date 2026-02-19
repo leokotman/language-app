@@ -6,6 +6,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
+- add TTS voices limitations and guidance (TTS_VOICES.md)
+
+
+### Changed
+
 - Chore/lang 017 increase coverage (#23)
 
 
