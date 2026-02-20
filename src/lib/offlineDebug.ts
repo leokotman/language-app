@@ -68,11 +68,11 @@ export function dictPerfLog(
   data?: Record<string, unknown>,
 ): void {
   if (!isDictionaryPerfDebugEnabled()) return;
-  const t =
+  const timestamp =
     typeof performance !== "undefined" ? performance.now().toFixed(1) : "";
   if (data !== undefined) {
-    console.log("[dict-perf]", t, message, data);
+    console.log("[dict-perf]", timestamp, message, data);
   } else {
-    console.log("[dict-perf]", t, message);
+    console.log("[dict-perf]", timestamp, message);
   }
 }

@@ -27,11 +27,12 @@ export const MAX_SEARCH_LENGTH = 200;
 /** Strip control chars except tab (0x09), newline (0x0A), carriage return (0x0D). */
 function stripControlChars(value: string): string {
   let out = "";
-  for (let i = 0; i < value.length; i++) {
-    const charCode = value.charCodeAt(i);
-    if (charCode === 9 || charCode === 10 || charCode === 13) out += value[i];
+  for (let index = 0; index < value.length; index++) {
+    const charCode = value.charCodeAt(index);
+    if (charCode === 9 || charCode === 10 || charCode === 13)
+      out += value[index];
     else if (charCode < 32 || charCode === 127) continue;
-    else out += value[i];
+    else out += value[index];
   }
   return out;
 }

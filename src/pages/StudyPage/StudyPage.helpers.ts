@@ -17,35 +17,57 @@ export function isAnswerCorrect(
 /** Deterministic shuffle so option order is stable for the same card. */
 function shuffleWithSeed<T>(items: T[], seed: string): T[] {
   const arr = [...items];
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h << 5) - h + seed.charCodeAt(i);
+  let hash = 0;
+  for (let index = 0; index < seed.length; index++)
+    hash = (hash << 5) - hash + seed.charCodeAt(index);
   const rand = () => {
-    h = (h * 1664525 + 1013904223) >>> 0;
-    return h / 2 ** 32;
+    hash = (hash * 1664525 + 1013904223) >>> 0;
+    return hash / 2 ** 32;
   };
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  for (let index = arr.length - 1; index > 0; index--) {
+    const swapIndex = Math.floor(rand() * (index + 1));
+    [arr[index], arr[swapIndex]] = [arr[swapIndex], arr[index]];
   }
   return arr;
 }
 
-/** Pick N distractors (wrong answers) from other cards' translations. Prefer similar length. Order deterministic by seed. */
+/** Cards with the same language direction as the current card (so options stay in one language). */
+function sameDirectionCards(
+  cards: StudyCardItem[],
+  currentCard: StudyCardItem,
+): StudyCardItem[] {
+  const from = currentCard.vocabulary?.language_from;
+  const to = currentCard.vocabulary?.language_to;
+  if (from == null || to == null) return cards;
+  return cards.filter(
+    (card) =>
+      card.vocabulary?.language_from === from &&
+      card.vocabulary?.language_to === to,
+  );
+}
+
+/** Pick N distractors (wrong answers) from other cards' translations. Same direction only so all options are in one language. Prefer similar length. Order deterministic by seed. */
 export function pickDistractors(
   cards: StudyCardItem[],
   currentCard: StudyCardItem,
   count: number,
 ): string[] {
+  const sameDir = sameDirectionCards(cards, currentCard);
   const correct = currentCard.vocabulary?.translation?.trim() ?? "";
-  const others = cards
-    .filter((c) => c.id !== currentCard.id)
-    .map((c) => c.vocabulary?.translation?.trim())
-    .filter((t): t is string => !!t && t !== correct);
+  const others = sameDir
+    .filter((card) => card.id !== currentCard.id)
+    .map((card) => card.vocabulary?.translation?.trim())
+    .filter(
+      (translation): translation is string =>
+        !!translation && translation !== correct,
+    );
   const unique = Array.from(new Set(others));
   if (unique.length <= count) return shuffleWithSeed(unique, currentCard.id);
   const correctLen = correct.length;
   const bySimilarity = [...unique].sort(
-    (a, b) => Math.abs(a.length - correctLen) - Math.abs(b.length - correctLen),
+    (optionA, optionB) =>
+      Math.abs(optionA.length - correctLen) -
+      Math.abs(optionB.length - correctLen),
   );
   const similar = bySimilarity.slice(0, count * 2);
   const shuffled = shuffleWithSeed(similar, currentCard.id);
@@ -63,22 +85,25 @@ export function buildMultipleChoiceOptions(
   return shuffleWithSeed(options, currentCard.id);
 }
 
-/** Pick N distractors (wrong words) from other cards for reverse multiple choice. */
+/** Pick N distractors (wrong words) from other cards for reverse multiple choice. Same direction only so all options are in one language. */
 function pickWordDistractors(
   cards: StudyCardItem[],
   currentCard: StudyCardItem,
   count: number,
 ): string[] {
+  const sameDir = sameDirectionCards(cards, currentCard);
   const correct = currentCard.vocabulary?.word?.trim() ?? "";
-  const others = cards
-    .filter((c) => c.id !== currentCard.id)
-    .map((c) => c.vocabulary?.word?.trim())
-    .filter((w): w is string => !!w && w !== correct);
+  const others = sameDir
+    .filter((card) => card.id !== currentCard.id)
+    .map((card) => card.vocabulary?.word?.trim())
+    .filter((word): word is string => !!word && word !== correct);
   const unique = Array.from(new Set(others));
   if (unique.length <= count) return shuffleWithSeed(unique, currentCard.id);
   const correctLen = correct.length;
   const bySimilarity = [...unique].sort(
-    (a, b) => Math.abs(a.length - correctLen) - Math.abs(b.length - correctLen),
+    (optionA, optionB) =>
+      Math.abs(optionA.length - correctLen) -
+      Math.abs(optionB.length - correctLen),
   );
   const similar = bySimilarity.slice(0, count * 2);
   const shuffled = shuffleWithSeed(similar, currentCard.id);
@@ -104,7 +129,7 @@ export function assignExerciseTypes(
   if (enabledTypes.length === 0) return [];
   if (enabledTypes.length === 1) return Array(cardCount).fill(enabledTypes[0]);
   const result: ExerciseType[] = [];
-  for (let i = 0; i < cardCount; i++) {
+  for (let index = 0; index < cardCount; index++) {
     result.push(enabledTypes[Math.floor(Math.random() * enabledTypes.length)]);
   }
   return result;
@@ -141,13 +166,17 @@ function getVoiceForLang(
     console.log(
       "voices count:",
       voices.length,
-      voices.map((v) => ({ lang: v.lang, name: v.name, default: v.default })),
+      voices.map((voice) => ({
+        lang: voice.lang,
+        name: voice.name,
+        default: voice.default,
+      })),
     );
   }
   const primary = bcp47.split("-")[0].toLowerCase();
   // Prefer exact lang match, then any voice whose lang starts with the primary tag (e.g. sr-RS, sr-Latn).
   const exact = voices.find(
-    (v) => v.lang.toLowerCase() === bcp47.toLowerCase(),
+    (voice) => voice.lang.toLowerCase() === bcp47.toLowerCase(),
   );
   if (exact) {
     if (TTS_DEBUG)
@@ -155,8 +184,8 @@ function getVoiceForLang(
     if (TTS_DEBUG) console.groupEnd();
     return exact;
   }
-  const primaryMatch = voices.find((v) =>
-    v.lang.toLowerCase().startsWith(primary + "-"),
+  const primaryMatch = voices.find((voice) =>
+    voice.lang.toLowerCase().startsWith(primary + "-"),
   );
   if (primaryMatch) {
     if (TTS_DEBUG)
@@ -169,7 +198,7 @@ function getVoiceForLang(
     return primaryMatch;
   }
   const fallback = voices.find(
-    (v) => v.lang.toLowerCase().split("-")[0] === primary,
+    (voice) => voice.lang.toLowerCase().split("-")[0] === primary,
   );
   if (TTS_DEBUG)
     console.log(

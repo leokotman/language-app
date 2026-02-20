@@ -130,7 +130,9 @@ describe("importExport", () => {
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(0);
       expect(
-        result.errors.some((e) => e.includes("missing or empty translation")),
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("missing or empty translation"),
+        ),
       ).toBe(true);
     });
     it("rejects invalid language_to", async () => {
@@ -140,9 +142,11 @@ describe("importExport", () => {
       const file = createFile(json, "x.json", "application/json");
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(0);
-      expect(result.errors.some((e) => e.includes("language_to must be"))).toBe(
-        true,
-      );
+      expect(
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("language_to must be"),
+        ),
+      ).toBe(true);
     });
     it("validates row fields and returns errors for invalid rows", async () => {
       const json = JSON.stringify([
@@ -158,7 +162,9 @@ describe("importExport", () => {
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(1);
       expect(
-        result.errors.some((e) => e.includes("missing or empty word")),
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("missing or empty word"),
+        ),
       ).toBe(true);
     });
     it("rejects unsupported language codes", async () => {
@@ -169,7 +175,9 @@ describe("importExport", () => {
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(0);
       expect(
-        result.errors.some((e) => e.includes("language_from must be")),
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("language_from must be"),
+        ),
       ).toBe(true);
     });
     it("rejects same language_from and language_to", async () => {
@@ -179,7 +187,11 @@ describe("importExport", () => {
       const file = createFile(json, "x.json", "application/json");
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(0);
-      expect(result.errors.some((e) => e.includes("must differ"))).toBe(true);
+      expect(
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("must differ"),
+        ),
+      ).toBe(true);
     });
     it("treats content starting with [ as JSON", async () => {
       const file = createFile(
@@ -212,7 +224,9 @@ describe("importExport", () => {
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(0);
       expect(
-        result.errors.some((e) => e.includes("CSV must have header")),
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("CSV must have header"),
+        ),
       ).toBe(true);
     });
     it("parses .txt file as CSV when content does not start with [", async () => {
@@ -230,9 +244,11 @@ describe("importExport", () => {
       const file = createFile(json, "x.json", "application/json");
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(0);
-      expect(result.errors.some((e) => e.includes("expected an object"))).toBe(
-        true,
-      );
+      expect(
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("expected an object"),
+        ),
+      ).toBe(true);
     });
     it("returns error for row with non-string word", async () => {
       const json = JSON.stringify([
@@ -242,7 +258,9 @@ describe("importExport", () => {
       const result = await parseLibraryFile(file);
       expect(result.rows).toHaveLength(0);
       expect(
-        result.errors.some((e) => e.includes("missing or empty word")),
+        result.errors.some((errorMessage) =>
+          errorMessage.includes("missing or empty word"),
+        ),
       ).toBe(true);
     });
   });

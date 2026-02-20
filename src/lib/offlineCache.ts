@@ -164,13 +164,13 @@ export async function setDictionaryLookupCache(
   if (entries.length === 0) return;
   const meta = await get<{ keys: string[] }>(KEY_LOOKUP_META);
   const keys = meta?.keys ?? [];
-  const updated = [queryKey, ...keys.filter((k) => k !== queryKey)].slice(
+  const updated = [queryKey, ...keys.filter((key) => key !== queryKey)].slice(
     0,
     LOOKUP_CACHE_MAX_ENTRIES,
   );
-  const evicted = keys.filter((k) => !updated.includes(k));
-  for (const k of evicted) {
-    await deleteKey(KEY_LOOKUP_PREFIX + k);
+  const evicted = keys.filter((key) => !updated.includes(key));
+  for (const keyToEvict of evicted) {
+    await deleteKey(KEY_LOOKUP_PREFIX + keyToEvict);
   }
   await set(KEY_LOOKUP_PREFIX + queryKey, { entries, updatedAt: Date.now() });
   await set(KEY_LOOKUP_META, { keys: updated });

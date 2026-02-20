@@ -157,6 +157,23 @@ describe("ImportExportBar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Export CSV" }));
     expect(onExportCsv).toHaveBeenCalled();
   });
+
+  it("shows Importing… and disables Import when isImporting is true", () => {
+    render(
+      <ImportExportBar
+        exportRowCount={0}
+        onExportCsv={() => {}}
+        onExportJson={() => {}}
+        fileInputRef={{ current: null }}
+        onImportClick={() => {}}
+        onImportFileChange={() => {}}
+        isImporting={true}
+        importMessage={null}
+      />,
+    );
+    const importButton = screen.getByRole("button", { name: "Importing…" });
+    expect(importButton).toBeDisabled();
+  });
 });
 
 describe("LibraryFilterBar", () => {
@@ -248,6 +265,38 @@ describe("LibraryList", () => {
     expect(screen.getByTestId("library-empty")).toHaveTextContent(
       /no words match/i,
     );
+  });
+
+  it("shows virtual pair banner and (via English) when filter is ru-sr", () => {
+    const items: LibraryItem[] = [
+      {
+        id: "uv1",
+        vocabulary_id: "v1",
+        vocabulary: {
+          word: "hello",
+          translation: "привет",
+          language_from: "en",
+          language_to: "ru",
+        },
+      },
+    ];
+    render(
+      <LibraryList
+        items={items}
+        languageFilter="ru-sr"
+        onEdit={() => {}}
+        onDelete={() => {}}
+        isLoading={false}
+        totalCount={1}
+        error={false}
+      />,
+    );
+    expect(
+      screen.getByText(/direct Russian↔Serbian words only/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/English → Russian \(via English\)/),
+    ).toBeInTheDocument();
   });
 
   it("renders list of items with edit and delete buttons", () => {

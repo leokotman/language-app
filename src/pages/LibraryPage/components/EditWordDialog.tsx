@@ -50,19 +50,19 @@ export function EditWordDialog({
             autoFocus
             label="Word"
             value={editingItem?.word ?? ""}
-            onChange={(e) =>
+            onChange={(event) =>
               onWordChange(
-                clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH),
+                clampAndStripControlChars(event.target.value, MAX_WORD_LENGTH),
               )
             }
           />
           <TextField
             label="Translation"
             value={editingItem?.translation ?? ""}
-            onChange={(e) =>
+            onChange={(event) =>
               onTranslationChange(
                 clampAndStripControlChars(
-                  e.target.value,
+                  event.target.value,
                   MAX_TRANSLATION_LENGTH,
                 ),
               )

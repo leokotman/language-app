@@ -106,11 +106,11 @@ describe("dictionary", () => {
           language_to: "ru",
         },
       ];
-      for (let i = 0; i < 80; i++) {
+      for (let index = 0; index < 80; index++) {
         vi.mocked(offlineCache.getDictionaryLookupCache).mockResolvedValue(
           entry,
         );
-        await getLookupCache("en", "ru", `q${i}`);
+        await getLookupCache("en", "ru", `q${index}`);
       }
       vi.mocked(offlineCache.getDictionaryLookupCache).mockResolvedValue([
         { ...entry[0], word: "new", translation: "newt" },
@@ -155,8 +155,8 @@ describe("dictionary", () => {
           language_to: "ru",
         },
       ];
-      for (let i = 0; i < 81; i++) {
-        setLookupCache("en", "ru", `evict${i}`, entry);
+      for (let index = 0; index < 81; index++) {
+        setLookupCache("en", "ru", `evict${index}`, entry);
       }
       expect(offlineCache.setDictionaryLookupCache).toHaveBeenCalledTimes(81);
     });
