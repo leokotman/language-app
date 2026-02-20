@@ -20,8 +20,8 @@ export function lookupCacheKey(
   to: string,
   query: string,
 ): string {
-  const q = query.trim().toLowerCase();
-  return `${from}|${to}|${q}`;
+  const normalizedQuery = query.trim().toLowerCase();
+  return `${from}|${to}|${normalizedQuery}`;
 }
 
 /** Get cached lookup results (memory first, then IndexedDB). Use when offline or to show prior lookups. */
@@ -114,12 +114,12 @@ function isAcceptableTranslation(
   translation: string,
   targetLang: string,
 ): boolean {
-  const t = translation.trim();
-  if (!t.length) return false;
-  if (t.includes("\uFFFD")) return false;
-  if (/\u00E3|\u00C3/.test(t)) return false;
+  const trimmed = translation.trim();
+  if (!trimmed.length) return false;
+  if (trimmed.includes("\uFFFD")) return false;
+  if (/\u00E3|\u00C3/.test(trimmed)) return false;
   if (targetLang === "sr") {
-    const letters = t.replace(/\P{L}/gu, "");
+    const letters = trimmed.replace(/\P{L}/gu, "");
     if (!letters.length) return true;
     const cyrillicCount = (letters.match(CYRILLIC_RANGE) ?? []).length;
     if (cyrillicCount / letters.length > 0.2) return false;

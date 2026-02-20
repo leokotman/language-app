@@ -28,11 +28,11 @@ export function useAudioRecorder() {
         : "audio/webm";
       const recorder = new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
       };
       recorder.onstop = () => {
-        stream.getTracks().forEach((t) => t.stop());
+        stream.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
         mediaRecorderRef.current = null;
         if (chunksRef.current.length > 0) {

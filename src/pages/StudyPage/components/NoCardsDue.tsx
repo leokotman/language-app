@@ -33,7 +33,7 @@ export function NoCardsDue({
           <Select
             value={selectedPairKey}
             label="Language pair"
-            onChange={(e) => onPairChange(e.target.value)}
+            onChange={(event) => onPairChange(event.target.value)}
           >
             {pairOptions.map((opt) => (
               <MenuItem key={opt.key} value={opt.key}>

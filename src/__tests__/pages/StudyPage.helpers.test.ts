@@ -102,6 +102,46 @@ describe("StudyPage.helpers", () => {
       expect(options).toHaveLength(4);
       expect(options).toContain("привет");
     });
+
+    it("uses only same-direction cards so options are in one language (e.g. sr->ru only Russian)", () => {
+      const cardSrRu = {
+        ...makeCard("1", "veče", "вечер"),
+        vocabulary: {
+          ...makeCard("1", "veče", "вечер").vocabulary!,
+          language_from: "sr",
+          language_to: "ru",
+        },
+      };
+      const cardRuSr = {
+        ...makeCard("2", "вечер", "veče"),
+        vocabulary: {
+          ...makeCard("2", "вечер", "veče").vocabulary!,
+          language_from: "ru",
+          language_to: "sr",
+        },
+      };
+      const makeSrRuCard = (id: string, word: string, translation: string) => ({
+        ...makeCard(id, word, translation),
+        vocabulary: {
+          ...makeCard(id, word, translation).vocabulary!,
+          language_from: "sr" as const,
+          language_to: "ru" as const,
+        },
+      });
+      const cards = [
+        cardSrRu,
+        cardRuSr,
+        makeSrRuCard("3", "zdravo", "привет"),
+        makeSrRuCard("4", "plakanje", "пока"),
+        makeSrRuCard("5", "reč", "слово"),
+      ];
+      const options = buildMultipleChoiceOptions(cards, cards[0]);
+      expect(options).toContain("вечер");
+      expect(options).toHaveLength(4);
+      options.forEach((opt) => {
+        expect(opt).not.toMatch(/[a-zčćđšž]/i);
+      });
+    });
   });
 
   describe("buildReverseMultipleChoiceOptions", () => {
@@ -117,6 +157,44 @@ describe("StudyPage.helpers", () => {
       expect(options).toHaveLength(4);
       expect(options).toContain("hello");
     });
+
+    it("uses only same-direction cards so options are in one language (e.g. sr->ru only Serbian)", () => {
+      const cardSrRu = {
+        ...makeCard("1", "veče", "вечер"),
+        vocabulary: {
+          ...makeCard("1", "veče", "вечер").vocabulary!,
+          language_from: "sr",
+          language_to: "ru",
+        },
+      };
+      const makeSrRuCard = (id: string, word: string, translation: string) => ({
+        ...makeCard(id, word, translation),
+        vocabulary: {
+          ...makeCard(id, word, translation).vocabulary!,
+          language_from: "sr" as const,
+          language_to: "ru" as const,
+        },
+      });
+      const cards = [
+        cardSrRu,
+        {
+          ...makeCard("2", "вечер", "veče"),
+          vocabulary: {
+            ...makeCard("2", "a", "b").vocabulary!,
+            language_from: "ru",
+            language_to: "sr",
+          },
+        },
+        makeSrRuCard("3", "zdravo", "привет"),
+        makeSrRuCard("4", "plakanje", "пока"),
+        makeSrRuCard("5", "reč", "слово"),
+      ];
+      const options = buildReverseMultipleChoiceOptions(cards, cards[0]);
+      expect(options).toContain("veče");
+      options.forEach((opt) => {
+        expect(opt).not.toMatch(/[а-яё]/i);
+      });
+    });
   });
 
   describe("assignExerciseTypes", () => {
@@ -131,8 +209,8 @@ describe("StudyPage.helpers", () => {
       const enabled: Array<"flashcard" | "typing"> = ["flashcard", "typing"];
       const result = assignExerciseTypes(10, enabled);
       expect(result).toHaveLength(10);
-      result.forEach((t) => {
-        expect(enabled).toContain(t);
+      result.forEach((exerciseType) => {
+        expect(enabled).toContain(exerciseType);
       });
     });
   });

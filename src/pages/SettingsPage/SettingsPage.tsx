@@ -75,7 +75,7 @@ export function SettingsPage() {
 
   // Keep select value in sync with available options (e.g. user already has en-ru, so options only show en-sr)
   const selectValue = availableBidirectionalPairs.some(
-    (p) => p.key === selectedPairKey,
+    (pair) => pair.key === selectedPairKey,
   )
     ? selectedPairKey
     : (availableBidirectionalPairs[0]?.key ?? "");

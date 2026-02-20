@@ -287,7 +287,7 @@ describe("vocabulary API", () => {
       );
       const result = await listDueToday("user-1", { pairKey: "en-ru" });
       expect(result.data).toHaveLength(2);
-      expect(result.data?.map((r) => r.id)).toEqual(["uv-1", "uv-2"]);
+      expect(result.data?.map((row) => row.id)).toEqual(["uv-1", "uv-2"]);
       expect(result.error).toBeNull();
     });
 

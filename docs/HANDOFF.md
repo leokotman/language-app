@@ -61,7 +61,17 @@ Recent work (from git, latest first):
 
 ---
 
-## 4. Suggestions for next steps
+## 4. User feedback (Feb 2025) — to address
+
+- **Home page:** Still uses mock data (PLACEHOLDER_WORDS); needs a proper Home (e.g. quick stats, due today, links).
+- **Progress page:** Placeholder only; should include stats by languages/words/exercises, **score by language pair (2 dimensions: A→B vs B→A)**, and dates for notifications.
+- **Study setup:** Exercise-type checkboxes need **Select all / Deselect all** for convenience.
+- **Multiple-choice language bug:** When a pair is bidirectional (e.g. ru-sr), `listDueToday` returns **both directions** in one session. Options are then built from all cards, so e.g. sr→ru shows Serbian words mixed with Russian in the same 4 options. **Fix:** options must be in a single language — for word→translation use only cards with same `language_from`/`language_to` and only `translation`; for translation→word use only `word` from same-direction cards.
+- **Scoring & exercises (agreed focus):** Per-word/phrase scoring: +5 correct, −10 incorrect; word is "learnt" when e.g. score ≥50 and practised on ≥5 different dates. By default show only **not learnt** words; optional "Train ALL words" before session. After 3 months without practice: deduct 20 points (floor at 40). Notifications: suggest pair and words studied long ago or with low score (needs stored dates + scores). Requires schema: store score and per-direction stats — see §6.
+
+---
+
+## 5. Suggestions for next steps
 
 _Not yet implemented; pick from here (and from §6 Priority) for the next feature._
 
@@ -80,10 +90,12 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 ---
 
-## 5. Priority now
+## 6. Priority now (exercises & scoring first)
 
-1. Default language pair and "study language" in Settings/Study.
-2. Validation (trim/max length) in add/edit word.
-3. “I’ve run the migration” button.
-4. **Phase 4 speech (next):** STT comparison for speaking (browser SpeechRecognition or free-tier API) — see `docs/SPEECH_PLAN.md`. Recording + self-rate done (lang-015).
-5. Categories or notes on vocabulary (optional).
+1. **fix:** Multiple-choice / reverse multiple-choice — options in one language only (filter by same direction as current card). _Next task: lang-018._
+2. **feat:** Study setup — Select all / Deselect all for exercise types.
+3. **feat:** Scoring system — DB (score, dates, learnt, per direction), +5/−10, learnt rule, "Train ALL", 3‑month decay.
+4. **feat:** Progress page — stats, score by pair (2D), store dates for notifications.
+5. **feat:** Notifications — suggest pair and words (old / low score).
+6. **feat:** Home page — real data instead of mock.
+7. Default language pair; validation; migration button; Phase 4 STT; categories (optional).

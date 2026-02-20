@@ -59,7 +59,8 @@ export function StudyPage() {
     const list: { key: string; label: string }[] = [];
     keySet.forEach((key) => {
       const label =
-        BIDIRECTIONAL_PAIRS.find((p) => p.key === key)?.label ?? `${key} ↔`;
+        BIDIRECTIONAL_PAIRS.find((pair) => pair.key === key)?.label ??
+        `${key} ↔`;
       list.push({ key, label });
     });
     const hasVirtualPair = keySet.has("en-ru") && keySet.has("en-sr");
@@ -75,7 +76,7 @@ export function StudyPage() {
   const [selectedPairKey, setSelectedPairKey] = useState<string>(
     pairOptions[0]?.key ?? "",
   );
-  const selectedPair = pairOptions.find((p) => p.key === selectedPairKey);
+  const selectedPair = pairOptions.find((pair) => pair.key === selectedPairKey);
   const dueTodayFilters = useMemo(() => {
     if (!selectedPair) return undefined;
     const pairKey = selectedPair.key as "en-ru" | "en-sr" | "ru-sr";
@@ -129,7 +130,9 @@ export function StudyPage() {
   const handleToggleExerciseType = useCallback(
     (type: ExerciseType, checked: boolean) => {
       setEnabledExerciseTypes((prev) =>
-        checked ? [...prev, type] : prev.filter((t) => t !== type),
+        checked
+          ? [...prev, type]
+          : prev.filter((exerciseType) => exerciseType !== type),
       );
     },
     [],

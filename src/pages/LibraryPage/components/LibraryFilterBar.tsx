@@ -30,9 +30,9 @@ export function LibraryFilterBar({
         size="small"
         placeholder="Search word or translation…"
         value={search}
-        onChange={(e) =>
+        onChange={(event) =>
           onSearchChange(
-            clampAndStripControlChars(e.target.value, MAX_SEARCH_LENGTH),
+            clampAndStripControlChars(event.target.value, MAX_SEARCH_LENGTH),
           )
         }
         InputProps={{
@@ -50,7 +50,7 @@ export function LibraryFilterBar({
           labelId="library-lang-filter"
           value={languageFilter}
           label="Language pair"
-          onChange={(e) => onLanguageFilterChange(e.target.value)}
+          onChange={(event) => onLanguageFilterChange(event.target.value)}
         >
           <MenuItem value="">All</MenuItem>
           {filterOptions.map((option) => (

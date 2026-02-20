@@ -181,9 +181,9 @@ export async function getVocabularyById(id: string): Promise<{
 
 /** End of today in UTC (23:59:59.999) as ISO string for "due today" queries. */
 function endOfTodayUtc(): string {
-  const d = new Date();
-  d.setUTCHours(23, 59, 59, 999);
-  return d.toISOString();
+  const date = new Date();
+  date.setUTCHours(23, 59, 59, 999);
+  return date.toISOString();
 }
 
 export type DueTodayFilters = {
