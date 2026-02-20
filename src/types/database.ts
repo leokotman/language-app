@@ -110,6 +110,39 @@ export interface Database {
         };
         Relationships: [];
       };
+      vocabulary_score: {
+        Row: {
+          user_id: string;
+          vocabulary_id: string;
+          score: number;
+          last_exercise_at: string;
+          practised_dates_count: number;
+          learnt: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          vocabulary_id: string;
+          score?: number;
+          last_exercise_at?: string;
+          practised_dates_count?: number;
+          learnt?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          vocabulary_id?: string;
+          score?: number;
+          last_exercise_at?: string;
+          practised_dates_count?: number;
+          learnt?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       user_vocabulary: {
         Row: {
           id: string;
@@ -189,3 +222,9 @@ export type UserLanguageInsert =
   Database["public"]["Tables"]["user_languages"]["Insert"];
 export type UserLanguageRowUpdate =
   Database["public"]["Tables"]["user_languages"]["Update"];
+export type VocabularyScoreRow =
+  Database["public"]["Tables"]["vocabulary_score"]["Row"];
+export type VocabularyScoreInsert =
+  Database["public"]["Tables"]["vocabulary_score"]["Insert"];
+export type VocabularyScoreUpdate =
+  Database["public"]["Tables"]["vocabulary_score"]["Update"];

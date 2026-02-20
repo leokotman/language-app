@@ -38,6 +38,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
+- feat (lang-019): Scoring — branch `feat/lang-019-scoring-research`. **Steps 1–4 done:** Research (docs/SCORING_DESIGN.md); migration 009 (vocabulary_score table + RLS); Formula C in `src/lib/scoring.ts` (computeScore, isLearnt, retrievability); API `upsertVocabularyScore`; study session updates score after each rating (fire-and-forget). Next: Progress page (stats, score by pair), notifications.
 - fix (lang-018): Multiple-choice / reverse multiple-choice — options in one language only (sameDirectionCards; filter by language_from/language_to). chore: avoid single-letter variables across codebase; docs: HANDOFF priority, general-clean-code variable names.
 - feat (lang-018 branch): Study setup — **Select all** / **Deselect all** for exercise-type checkboxes (StudySetup buttons, handlers in StudyPage; tests).
 - chore (lang-017): Unit test coverage — reached 70% on all metrics (statements, branches, functions, lines); coverage thresholds enabled in vite.config.ts; added LibraryPage component tests (AddWordForm, EditWordDialog, ImportExportBar, LibraryFilterBar, LibraryList), StudyPage smoke tests (SignInAlert, NoCardsDue), DictionaryPage/LibraryPage smoke tests; docs/TEST_COVERAGE.md updated.
@@ -96,9 +97,11 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 **Completed this branch:** (1) Multiple-choice options same language only (lang-018). (2) Study setup Select all / Deselect all.
 
+**Current branch (lang-019):** Scoring — schema, Formula C, API, study integration done. Next: Progress page, notifications (see `docs/SCORING_DESIGN.md`).
+
 **Next (order TBD):**
 
-- **Scoring system (design first)**  
+- **Scoring system (design first)** — Research done; see `docs/SCORING_DESIGN.md`.  
   **Schema:** Separate table (e.g. `word_score` or `vocabulary_score`) linked to **language pair with direction**: ru→en and en→ru are distinct (link by pair id or pair key e.g. `ru-en` / `en-ru`). One row per (user, vocabulary, direction); fields: score, last_exercise_at, practised_dates_count, learnt, etc.  
   **Rules:** Do **not** hardcode +5/−10. **Revise using research:** human psychology, learning/forgetting pace, **spaced repetition** (review intervals: e.g. several hours, 1 day, 3 days, 1 week — find classic studies and derive points and "learnt" threshold). Then: correct/incorrect points, "learnt" definition, optional "Train ALL words", decay after long inactivity. **Action:** Document research and proposed constants in a design doc before implementing.  
   **Integration:** Study session updates this table per direction; "due" / "not learnt" filter uses it; Progress and notifications read from it.

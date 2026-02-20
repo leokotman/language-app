@@ -10,6 +10,8 @@ import { useAuthStore } from "@/stores/authStore";
 import { useUserLanguages } from "@/hooks/useUserLanguages";
 import { useDueToday, useUpdateUserVocabulary } from "@/hooks/useVocabulary";
 import { scheduleRating, StudyRating } from "@/lib/fsrs";
+import { computeScore, isLearnt } from "@/lib/scoring";
+import { upsertVocabularyScore } from "@/api/vocabulary";
 import { getBidirectionalKey } from "@/types";
 import { BIDIRECTIONAL_PAIRS, VIRTUAL_PAIR_RU_SR } from "@/types";
 import type {
@@ -191,6 +193,18 @@ export function StudyPage() {
                 prev ? { ...prev, currentIndex: nextIndex } : null,
               );
             }
+            const merged = { ...card, ...updates };
+            const score = computeScore(merged);
+            const learnt = isLearnt(merged);
+            const last_exercise_at =
+              merged.last_review ?? new Date().toISOString();
+            upsertVocabularyScore(card.user_id, card.vocabulary_id, {
+              score,
+              last_exercise_at,
+              learnt,
+            }).catch(() => {
+              /* fire-and-forget; progress/notifications will reflect when next synced */
+            });
           },
         },
       );

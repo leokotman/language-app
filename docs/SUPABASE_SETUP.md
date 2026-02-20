@@ -125,7 +125,7 @@ To change the “Confirm your signup” email so it clearly comes from your app:
 
 ## 8. Create the core data tables (vocabulary, languages, user library)
 
-**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → _(optional)_ **005** (step 9b) → _(optional)_ **008** (step 9c) → **004** (step 10) → **006** (step 10b) → **007** (step 10c). Do not run 004 before 003 or 005.
+**Migration order:** Run migrations in this order: **001** (step 6) → **002** (this step) → **003** (step 9) → _(optional)_ **005** (step 9b) → _(optional)_ **008** (step 9c) → **004** (step 10) → **006** (step 10b) → **007** (step 10c) → **009** (step 10d). Do not run 004 before 003 or 005.
 
 For language selection and vocabulary (Phase 1, Week 3):
 
@@ -217,6 +217,18 @@ To speed up the app’s vocabulary and library queries that appear in **Reports 
 This adds composite indexes for: listing vocabulary by language pair + source (and ordering by word), listing all app vocabulary for offline prefetch, and listing the user’s library by `created_at` desc.
 
 **Note:** Many “long” queries in Query performance are **Supabase/PostgREST internals** (e.g. `pg_timezone_names`, dashboard schema queries, backups, `set_config` per request). Those cannot be optimized from your project; only the app’s own queries (vocabulary, user_vocabulary) are addressed by 006 and 007.
+
+---
+
+## 10d. Vocabulary score (scoring system)
+
+For the scoring system (progress, notifications): one row per (user, vocabulary) with score, last_exercise_at, practised_dates_count, learnt. Run after 002 (and preferably after 007):
+
+1. In the Supabase dashboard, go to **SQL Editor**.
+2. Open **`docs/supabase-migrations/009_vocabulary_score.sql`** and copy its contents.
+3. Paste and click **Run**.
+
+This creates **vocabulary_score** with RLS. The app updates it after each card rating in a study session (Formula C: 0–50 learning, 50–100 learnt). See `docs/SCORING_DESIGN.md`.
 
 ---
 
