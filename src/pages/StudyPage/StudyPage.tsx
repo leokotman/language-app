@@ -17,7 +17,10 @@ import type {
   StudySessionState,
   ExerciseType,
 } from "./StudyPage.models";
-import { EXERCISE_TYPE_SUBTITLES } from "./StudyPage.constants";
+import {
+  EXERCISE_TYPE_OPTIONS,
+  EXERCISE_TYPE_SUBTITLES,
+} from "./StudyPage.constants";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import {
   isAnswerCorrect,
@@ -137,6 +140,14 @@ export function StudyPage() {
     },
     [],
   );
+
+  const handleSelectAllExerciseTypes = useCallback(() => {
+    setEnabledExerciseTypes(EXERCISE_TYPE_OPTIONS.map((option) => option.type));
+  }, []);
+
+  const handleDeselectAllExerciseTypes = useCallback(() => {
+    setEnabledExerciseTypes([]);
+  }, []);
 
   const handleStartSession = useCallback(() => {
     if (!dueTodayCards.length || enabledExerciseTypes.length === 0) return;
@@ -300,6 +311,8 @@ export function StudyPage() {
         dueCount={dueTodayCards.length}
         enabledExerciseTypes={enabledExerciseTypes}
         onToggleExerciseType={handleToggleExerciseType}
+        onSelectAllExerciseTypes={handleSelectAllExerciseTypes}
+        onDeselectAllExerciseTypes={handleDeselectAllExerciseTypes}
         canStart={!!canStart}
         onStartSession={handleStartSession}
       />

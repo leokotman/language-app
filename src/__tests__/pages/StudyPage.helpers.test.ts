@@ -315,6 +315,91 @@ describe("StudyPage.helpers", () => {
       });
       expect(speak).not.toHaveBeenCalled();
     });
+
+    it("uses exact bcp47 voice match when voice.lang equals bcp47", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const enVoice = {
+        default: true,
+        lang: "en",
+        localService: true,
+        name: "English",
+        voiceURI: "en",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [enVoice],
+        },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("hello", "en")).toEqual({ spoke: true });
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.voice).toBe(enVoice);
+    });
+
+    it("uses fallback voice when lang prefix matches but no exact or primary match", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const srVoice = {
+        default: false,
+        lang: "sr",
+        localService: true,
+        name: "Serbian",
+        voiceURI: "sr",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [srVoice],
+        },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("zdravo", "sr")).toEqual({ spoke: true });
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.voice).toBe(srVoice);
+    });
+
+    it("uses langCode as bcp47 when not in LANG_TO_BCP47 map", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const deVoice = {
+        default: true,
+        lang: "de",
+        localService: true,
+        name: "German",
+        voiceURI: "de",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [deVoice],
+        },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("hallo", "de")).toEqual({ spoke: true });
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.lang).toBe("de");
+      expect(utterance.voice).toBe(deVoice);
+    });
   });
 
   describe("hasVoiceForLang", () => {
@@ -363,6 +448,36 @@ describe("StudyPage.helpers", () => {
         value: originalWindow,
         writable: true,
       });
+    });
+
+    it("revokes object URL on onended when playback completes", async () => {
+      const revokeSpy = vi
+        .spyOn(URL, "revokeObjectURL")
+        .mockImplementation(() => {});
+      const mockPlay = vi.fn().mockResolvedValue(undefined);
+      class MockAudio {
+        play = mockPlay;
+        onended: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        constructor() {
+          setTimeout(() => {
+            if (this.onended) this.onended();
+          }, 0);
+        }
+      }
+      const originalAudio = globalThis.window.Audio;
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: MockAudio,
+        writable: true,
+      });
+      playRecordingBlob(new Blob());
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(revokeSpy).toHaveBeenCalled();
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: originalAudio,
+        writable: true,
+      });
+      revokeSpy.mockRestore();
     });
 
     it("revokes object URL when audio.play() rejects", async () => {
