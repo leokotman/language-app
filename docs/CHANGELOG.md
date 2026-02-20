@@ -6,6 +6,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
+- Fix/lang 018 multiple choice same language (#24)
+
+
+### Changed
+
 - add TTS voices limitations and guidance (TTS_VOICES.md)
 
 ### Changed
