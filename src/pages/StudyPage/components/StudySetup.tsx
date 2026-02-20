@@ -25,6 +25,8 @@ type StudySetupProps = {
   dueCount: number;
   enabledExerciseTypes: ExerciseType[];
   onToggleExerciseType: (type: ExerciseType, checked: boolean) => void;
+  onSelectAllExerciseTypes: () => void;
+  onDeselectAllExerciseTypes: () => void;
   canStart: boolean;
   onStartSession: () => void;
 };
@@ -37,6 +39,8 @@ function StudySetupInner({
   dueCount,
   enabledExerciseTypes,
   onToggleExerciseType,
+  onSelectAllExerciseTypes,
+  onDeselectAllExerciseTypes,
   canStart,
   onStartSession,
 }: StudySetupProps) {
@@ -52,7 +56,7 @@ function StudySetupInner({
           <Select
             value={selectedPairKey}
             label="Language pair"
-            onChange={(e) => onPairChange(e.target.value)}
+            onChange={(event) => onPairChange(event.target.value)}
           >
             {pairOptions.map((opt) => (
               <MenuItem key={opt.key} value={opt.key}>
@@ -79,13 +83,35 @@ function StudySetupInner({
             <strong>{dueCount}</strong> card{dueCount !== 1 ? "s" : ""} due
             today
           </Typography>
-          <Typography
-            variant="subtitle2"
-            color="text.secondary"
-            sx={{ mt: 2, mb: 0.5 }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              mt: 2,
+              mb: 0.5,
+            }}
           >
-            Exercise types
-          </Typography>
+            <Typography variant="subtitle2" color="text.secondary">
+              Exercise types
+            </Typography>
+            <Button
+              size="small"
+              variant="text"
+              onClick={onSelectAllExerciseTypes}
+              data-testid="study-select-all-exercise-types"
+            >
+              Select all
+            </Button>
+            <Button
+              size="small"
+              variant="text"
+              onClick={onDeselectAllExerciseTypes}
+              data-testid="study-deselect-all-exercise-types"
+            >
+              Deselect all
+            </Button>
+          </Box>
           <FormGroup row>
             {EXERCISE_TYPE_OPTIONS.map((opt) => (
               <FormControlLabel

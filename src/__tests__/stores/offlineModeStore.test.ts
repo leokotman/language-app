@@ -94,4 +94,20 @@ describe("offlineModeStore", () => {
       writable: true,
     });
   });
+
+  it("initializes offlineMode to false when window is undefined (e.g. SSR)", async () => {
+    const originalWindow = globalThis.window;
+    vi.resetModules();
+    Object.defineProperty(globalThis, "window", {
+      value: undefined,
+      writable: true,
+    });
+    const { useOfflineModeStore: store } =
+      await import("@/stores/offlineModeStore");
+    expect(store.getState().offlineMode).toBe(false);
+    Object.defineProperty(globalThis, "window", {
+      value: originalWindow,
+      writable: true,
+    });
+  });
 });

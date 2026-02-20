@@ -7,5 +7,6 @@ alwaysApply: false
 # General clean code
 
 - **Magic numbers**: Give named constants to repeated or meaningful numbers (e.g. debounce ms, max lengths, limits). Keep them in the component’s `*.constants.ts` or a shared constants module.
+- **Variable names**: Avoid single-letter names (e.g. `c`, `i`, `t`, `v`). Use descriptive names: `card`, `index`, `translation`, `voice`. Exception: very short callbacks where the type is obvious can use a short name if used sparingly.
 - **File size**: Prefer smaller files. If a component or module grows large, extract types, constants, helpers, or subcomponents as per the other rules.
 - **Const over let**: Prefer `const`; use `let` only when reassignment is needed.

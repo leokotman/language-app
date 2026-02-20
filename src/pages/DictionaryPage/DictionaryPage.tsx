@@ -51,7 +51,7 @@ export function DictionaryPage() {
       search,
       delayMs: STORE_FILTER_DEBOUNCE_MS,
     });
-    const t = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       dictPerfLog("effect: searchForFilter updated (timeout fired)", {
         from: search,
       });
@@ -59,7 +59,7 @@ export function DictionaryPage() {
     }, STORE_FILTER_DEBOUNCE_MS);
     return () => {
       dictPerfLog("effect: cleanup (timeout cleared)", {});
-      clearTimeout(t);
+      clearTimeout(timeoutId);
     };
   }, [search]);
 

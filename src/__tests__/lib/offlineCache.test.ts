@@ -126,8 +126,8 @@ describe("offlineCache", () => {
       ]);
       const result = await getAppVocabulary();
       expect(result).toHaveLength(2);
-      expect(result.find((r) => r.id === "v1")?.word).toBe("new");
-      expect(result.find((r) => r.id === "v2")).toBeDefined();
+      expect(result.find((row) => row.id === "v1")?.word).toBe("new");
+      expect(result.find((row) => row.id === "v2")).toBeDefined();
     });
   });
 
@@ -183,8 +183,8 @@ describe("offlineCache", () => {
 
     it("evicts oldest lookup keys when over limit", async () => {
       const entry = lookupEntry();
-      for (let i = 0; i < 82; i++) {
-        await setDictionaryLookupCache(`key-${i}`, [entry]);
+      for (let index = 0; index < 82; index++) {
+        await setDictionaryLookupCache(`key-${index}`, [entry]);
       }
       const first = await getDictionaryLookupCache("key-0");
       const last = await getDictionaryLookupCache("key-81");

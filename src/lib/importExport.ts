@@ -20,8 +20,8 @@ function escapeCsvField(value: string): string {
 /** Export rows to CSV string (header + rows). */
 export function exportToCsv(rows: LibraryExportRow[]): string {
   const header = "word,translation,language_from,language_to";
-  const lines = rows.map((r) =>
-    [r.word, r.translation, r.language_from, r.language_to]
+  const lines = rows.map((row) =>
+    [row.word, row.translation, row.language_from, row.language_to]
       .map(escapeCsvField)
       .join(","),
   );
@@ -123,17 +123,17 @@ function parseCsvText(text: string): ParseResult {
   const fromIdx = colIndex("language_from");
   const toIdx = colIndex("language_to");
 
-  for (let i = 0; i < dataLines.length; i++) {
-    const line = dataLines[i];
+  for (let lineIndex = 0; lineIndex < dataLines.length; lineIndex++) {
+    const line = dataLines[lineIndex];
     const parts: string[] = [];
     let current = "";
     let inQuotes = false;
-    for (let j = 0; j < line.length; j++) {
-      const character = line[j];
+    for (let charIndex = 0; charIndex < line.length; charIndex++) {
+      const character = line[charIndex];
       if (character === '"') {
-        if (inQuotes && line[j + 1] === '"') {
+        if (inQuotes && line[charIndex + 1] === '"') {
           current += '"';
-          j++;
+          charIndex++;
         } else {
           inQuotes = !inQuotes;
         }
@@ -177,8 +177,8 @@ function parseJsonText(text: string): ParseResult {
   if (!Array.isArray(data)) {
     return { rows: [], errors: ["JSON must be an array of objects"] };
   }
-  for (let i = 0; i < data.length; i++) {
-    const result = validateRow(data[i], i);
+  for (let index = 0; index < data.length; index++) {
+    const result = validateRow(data[index], index);
     if (result.ok) rows.push(result.row);
     else errors.push(result.error);
   }

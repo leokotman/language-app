@@ -62,9 +62,9 @@ export function AddWordForm({
         label="Word"
         placeholder={placeholders.word}
         value={word}
-        onChange={(e) =>
+        onChange={(event) =>
           onWordChange(
-            clampAndStripControlChars(e.target.value, MAX_WORD_LENGTH),
+            clampAndStripControlChars(event.target.value, MAX_WORD_LENGTH),
           )
         }
         sx={{ minWidth: 160 }}
@@ -74,9 +74,12 @@ export function AddWordForm({
         label="Translation"
         placeholder={placeholders.translation}
         value={translation}
-        onChange={(e) =>
+        onChange={(event) =>
           onTranslationChange(
-            clampAndStripControlChars(e.target.value, MAX_TRANSLATION_LENGTH),
+            clampAndStripControlChars(
+              event.target.value,
+              MAX_TRANSLATION_LENGTH,
+            ),
           )
         }
         sx={{ minWidth: 160 }}
@@ -87,7 +90,7 @@ export function AddWordForm({
           labelId="add-lang-pair"
           value={pairKey}
           label="Language pair"
-          onChange={(e) => onPairKeyChange(e.target.value)}
+          onChange={(event) => onPairKeyChange(event.target.value)}
         >
           {pairOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>
@@ -102,7 +105,7 @@ export function AddWordForm({
           labelId="add-direction"
           value={direction}
           label="Direction"
-          onChange={(e) => onDirectionChange(e.target.value)}
+          onChange={(event) => onDirectionChange(event.target.value)}
         >
           {directionOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>

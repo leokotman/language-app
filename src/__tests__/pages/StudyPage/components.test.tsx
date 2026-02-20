@@ -374,6 +374,8 @@ describe("StudySetup", () => {
     dueCount: 5,
     enabledExerciseTypes: ["flashcard" as ExerciseType],
     onToggleExerciseType: vi.fn(),
+    onSelectAllExerciseTypes: vi.fn(),
+    onDeselectAllExerciseTypes: vi.fn(),
     canStart: true,
     onStartSession: vi.fn(),
   };
@@ -405,5 +407,17 @@ describe("StudySetup", () => {
     expect(
       container.querySelector(".MuiCircularProgress-root"),
     ).toBeInTheDocument();
+  });
+
+  it("calls onSelectAllExerciseTypes when Select all clicked", () => {
+    render(<StudySetup {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("study-select-all-exercise-types"));
+    expect(defaultProps.onSelectAllExerciseTypes).toHaveBeenCalled();
+  });
+
+  it("calls onDeselectAllExerciseTypes when Deselect all clicked", () => {
+    render(<StudySetup {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("study-deselect-all-exercise-types"));
+    expect(defaultProps.onDeselectAllExerciseTypes).toHaveBeenCalled();
   });
 });

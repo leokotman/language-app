@@ -38,6 +38,8 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
+- fix (lang-018): Multiple-choice / reverse multiple-choice — options in one language only (sameDirectionCards; filter by language_from/language_to). chore: avoid single-letter variables across codebase; docs: HANDOFF priority, general-clean-code variable names.
+- feat (lang-018 branch): Study setup — **Select all** / **Deselect all** for exercise-type checkboxes (StudySetup buttons, handlers in StudyPage; tests).
 - chore (lang-017): Unit test coverage — reached 70% on all metrics (statements, branches, functions, lines); coverage thresholds enabled in vite.config.ts; added LibraryPage component tests (AddWordForm, EditWordDialog, ImportExportBar, LibraryFilterBar, LibraryList), StudyPage smoke tests (SignInAlert, NoCardsDue), DictionaryPage/LibraryPage smoke tests; docs/TEST_COVERAGE.md updated.
 - chore (refactor): Study page — split into layout components (SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete), card block components (FlashcardBlock, ReverseFlashcardBlock, TypingBlock, MultipleChoiceBlock, ReverseMultipleChoiceBlock, ListeningBlock, SpeakingBlock, AnswerFeedbackBlock, RatingButtons), condition constants (EXERCISE_TYPE_SUBTITLES), memoized handlers; helpers and types in StudyPage.helpers / StudyPage.models; components index.
 - lang-015: Phase 4 speech (recording only). New exercise type **speaking**: see/hear word → Record → Stop → Play back → self-rate (Again/Hard/Good/Easy). useAudioRecorder hook (getUserMedia + MediaRecorder), playRecordingBlob helper; StudyPage speaking UI and E2E handling (Record/Stop in loop).
@@ -61,7 +63,17 @@ Recent work (from git, latest first):
 
 ---
 
-## 4. Suggestions for next steps
+## 4. User feedback (Feb 2025) — to address
+
+- **Home page:** Still uses mock data (PLACEHOLDER_WORDS); needs a proper Home (e.g. quick stats, due today, links).
+- **Progress page:** Placeholder only; should include stats by languages/words/exercises, **score by language pair (2 dimensions: A→B vs B→A)**, and dates for notifications.
+- **Study setup:** ~~Exercise-type checkboxes need Select all / Deselect all~~ → **Done:** Select all / Deselect all buttons added.
+- **Multiple-choice language bug:** ~~Options mixed when bidirectional pair~~ → **Done:** options filtered by same direction (same `language_from`/`language_to`).
+- **Scoring & exercises (to be designed):** Scoring in a **separate table** linked to language pair; **direction matters** (ru→en and en→ru are separate, e.g. by pair id or pair key). **Scoring rules to be revised:** not fixed +5/−50 etc — base on **human psychology, pace of learning and forgetting**; use **spaced repetition / forgetting-curve research** (e.g. review intervals: several hours, 1 day, 3 days, 1 week, etc.). **Action:** find and summarise research, then define points/intervals/“learnt” and decay. Then: default to “not learnt” only; optional “Train ALL words”; notifications from dates + scores. See §6.
+
+---
+
+## 5. Suggestions for next steps
 
 _Not yet implemented; pick from here (and from §6 Priority) for the next feature._
 
@@ -80,10 +92,21 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 ---
 
-## 5. Priority now
+## 6. Priority and future steps (described)
 
-1. Default language pair and "study language" in Settings/Study.
-2. Validation (trim/max length) in add/edit word.
-3. “I’ve run the migration” button.
-4. **Phase 4 speech (next):** STT comparison for speaking (browser SpeechRecognition or free-tier API) — see `docs/SPEECH_PLAN.md`. Recording + self-rate done (lang-015).
-5. Categories or notes on vocabulary (optional).
+**Completed this branch:** (1) Multiple-choice options same language only (lang-018). (2) Study setup Select all / Deselect all.
+
+**Next (order TBD):**
+
+- **Scoring system (design first)**  
+  **Schema:** Separate table (e.g. `word_score` or `vocabulary_score`) linked to **language pair with direction**: ru→en and en→ru are distinct (link by pair id or pair key e.g. `ru-en` / `en-ru`). One row per (user, vocabulary, direction); fields: score, last_exercise_at, practised_dates_count, learnt, etc.  
+  **Rules:** Do **not** hardcode +5/−10. **Revise using research:** human psychology, learning/forgetting pace, **spaced repetition** (review intervals: e.g. several hours, 1 day, 3 days, 1 week — find classic studies and derive points and "learnt" threshold). Then: correct/incorrect points, "learnt" definition, optional "Train ALL words", decay after long inactivity. **Action:** Document research and proposed constants in a design doc before implementing.  
+  **Integration:** Study session updates this table per direction; "due" / "not learnt" filter uses it; Progress and notifications read from it.
+
+- **Progress page** — Stats by languages, words, exercises; **score by pair in 2 dimensions** (A→B and B→A). Use scoring table + dates; "last studied", "learnt", "needs review".
+
+- **Notifications** — Use scoring table + dates: suggest pair and words (long ago / low score). Depends on scoring table; in-app or push later.
+
+- **Home page** — Replace mock with real summary: due today, link to Study; Progress teaser; links to Library/Dictionary.
+
+- **Lower priority** — Default language pair; validation; migration button; Phase 4 STT; categories (optional).

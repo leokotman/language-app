@@ -102,6 +102,46 @@ describe("StudyPage.helpers", () => {
       expect(options).toHaveLength(4);
       expect(options).toContain("привет");
     });
+
+    it("uses only same-direction cards so options are in one language (e.g. sr->ru only Russian)", () => {
+      const cardSrRu = {
+        ...makeCard("1", "veče", "вечер"),
+        vocabulary: {
+          ...makeCard("1", "veče", "вечер").vocabulary!,
+          language_from: "sr",
+          language_to: "ru",
+        },
+      };
+      const cardRuSr = {
+        ...makeCard("2", "вечер", "veče"),
+        vocabulary: {
+          ...makeCard("2", "вечер", "veče").vocabulary!,
+          language_from: "ru",
+          language_to: "sr",
+        },
+      };
+      const makeSrRuCard = (id: string, word: string, translation: string) => ({
+        ...makeCard(id, word, translation),
+        vocabulary: {
+          ...makeCard(id, word, translation).vocabulary!,
+          language_from: "sr" as const,
+          language_to: "ru" as const,
+        },
+      });
+      const cards = [
+        cardSrRu,
+        cardRuSr,
+        makeSrRuCard("3", "zdravo", "привет"),
+        makeSrRuCard("4", "plakanje", "пока"),
+        makeSrRuCard("5", "reč", "слово"),
+      ];
+      const options = buildMultipleChoiceOptions(cards, cards[0]);
+      expect(options).toContain("вечер");
+      expect(options).toHaveLength(4);
+      options.forEach((opt) => {
+        expect(opt).not.toMatch(/[a-zčćđšž]/i);
+      });
+    });
   });
 
   describe("buildReverseMultipleChoiceOptions", () => {
@@ -117,6 +157,44 @@ describe("StudyPage.helpers", () => {
       expect(options).toHaveLength(4);
       expect(options).toContain("hello");
     });
+
+    it("uses only same-direction cards so options are in one language (e.g. sr->ru only Serbian)", () => {
+      const cardSrRu = {
+        ...makeCard("1", "veče", "вечер"),
+        vocabulary: {
+          ...makeCard("1", "veče", "вечер").vocabulary!,
+          language_from: "sr",
+          language_to: "ru",
+        },
+      };
+      const makeSrRuCard = (id: string, word: string, translation: string) => ({
+        ...makeCard(id, word, translation),
+        vocabulary: {
+          ...makeCard(id, word, translation).vocabulary!,
+          language_from: "sr" as const,
+          language_to: "ru" as const,
+        },
+      });
+      const cards = [
+        cardSrRu,
+        {
+          ...makeCard("2", "вечер", "veče"),
+          vocabulary: {
+            ...makeCard("2", "a", "b").vocabulary!,
+            language_from: "ru",
+            language_to: "sr",
+          },
+        },
+        makeSrRuCard("3", "zdravo", "привет"),
+        makeSrRuCard("4", "plakanje", "пока"),
+        makeSrRuCard("5", "reč", "слово"),
+      ];
+      const options = buildReverseMultipleChoiceOptions(cards, cards[0]);
+      expect(options).toContain("veče");
+      options.forEach((opt) => {
+        expect(opt).not.toMatch(/[а-яё]/i);
+      });
+    });
   });
 
   describe("assignExerciseTypes", () => {
@@ -131,8 +209,8 @@ describe("StudyPage.helpers", () => {
       const enabled: Array<"flashcard" | "typing"> = ["flashcard", "typing"];
       const result = assignExerciseTypes(10, enabled);
       expect(result).toHaveLength(10);
-      result.forEach((t) => {
-        expect(enabled).toContain(t);
+      result.forEach((exerciseType) => {
+        expect(enabled).toContain(exerciseType);
       });
     });
   });
@@ -237,6 +315,91 @@ describe("StudyPage.helpers", () => {
       });
       expect(speak).not.toHaveBeenCalled();
     });
+
+    it("uses exact bcp47 voice match when voice.lang equals bcp47", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const enVoice = {
+        default: true,
+        lang: "en",
+        localService: true,
+        name: "English",
+        voiceURI: "en",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [enVoice],
+        },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("hello", "en")).toEqual({ spoke: true });
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.voice).toBe(enVoice);
+    });
+
+    it("uses fallback voice when lang prefix matches but no exact or primary match", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const srVoice = {
+        default: false,
+        lang: "sr",
+        localService: true,
+        name: "Serbian",
+        voiceURI: "sr",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [srVoice],
+        },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("zdravo", "sr")).toEqual({ spoke: true });
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.voice).toBe(srVoice);
+    });
+
+    it("uses langCode as bcp47 when not in LANG_TO_BCP47 map", () => {
+      const speak = vi.fn();
+      const cancel = vi.fn();
+      const deVoice = {
+        default: true,
+        lang: "de",
+        localService: true,
+        name: "German",
+        voiceURI: "de",
+      } as SpeechSynthesisVoice;
+      Object.defineProperty(window, "speechSynthesis", {
+        value: {
+          speak,
+          cancel,
+          getVoices: () => [deVoice],
+        },
+        writable: true,
+      });
+      Object.defineProperty(window, "SpeechSynthesisUtterance", {
+        value: class {},
+        writable: true,
+      });
+      expect(speakWord("hallo", "de")).toEqual({ spoke: true });
+      expect(speak).toHaveBeenCalled();
+      const utterance = speak.mock.calls[0][0];
+      expect(utterance.lang).toBe("de");
+      expect(utterance.voice).toBe(deVoice);
+    });
   });
 
   describe("hasVoiceForLang", () => {
@@ -285,6 +448,36 @@ describe("StudyPage.helpers", () => {
         value: originalWindow,
         writable: true,
       });
+    });
+
+    it("revokes object URL on onended when playback completes", async () => {
+      const revokeSpy = vi
+        .spyOn(URL, "revokeObjectURL")
+        .mockImplementation(() => {});
+      const mockPlay = vi.fn().mockResolvedValue(undefined);
+      class MockAudio {
+        play = mockPlay;
+        onended: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        constructor() {
+          setTimeout(() => {
+            if (this.onended) this.onended();
+          }, 0);
+        }
+      }
+      const originalAudio = globalThis.window.Audio;
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: MockAudio,
+        writable: true,
+      });
+      playRecordingBlob(new Blob());
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(revokeSpy).toHaveBeenCalled();
+      Object.defineProperty(globalThis.window, "Audio", {
+        value: originalAudio,
+        writable: true,
+      });
+      revokeSpy.mockRestore();
     });
 
     it("revokes object URL when audio.play() rejects", async () => {

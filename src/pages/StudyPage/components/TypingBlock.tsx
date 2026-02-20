@@ -25,7 +25,7 @@ function TypingBlockInner({
         fullWidth
         label="Translation"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         onKeyDown={onKeyDown}
         autoFocus
         sx={{ mb: 1 }}

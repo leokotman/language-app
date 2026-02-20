@@ -103,7 +103,7 @@ describe("LibraryPage.helpers", () => {
     });
     it("adds virtual pair option when hasVirtualPair is true", () => {
       const options = buildBidirectionalFilterOptions(["en-ru", "en-sr"], true);
-      expect(options.some((o) => o.value === "ru-sr")).toBe(true);
+      expect(options.some((option) => option.value === "ru-sr")).toBe(true);
     });
   });
 
@@ -116,13 +116,19 @@ describe("LibraryPage.helpers", () => {
       const getLabel = (from: string, to: string) => `${from}→${to}`;
       const options = buildDirectionOptionsForPair("en-ru", getLabel);
       expect(options).toHaveLength(2);
-      expect(options.map((o) => o.value).sort()).toEqual(["en-ru", "ru-en"]);
+      expect(options.map((option) => option.value).sort()).toEqual([
+        "en-ru",
+        "ru-en",
+      ]);
     });
     it("returns virtual pair directions for ru-sr", () => {
       const getLabel = () => "";
       const options = buildDirectionOptionsForPair("ru-sr", getLabel);
       expect(options).toHaveLength(2);
-      expect(options.map((o) => o.value).sort()).toEqual(["ru-sr", "sr-ru"]);
+      expect(options.map((option) => option.value).sort()).toEqual([
+        "ru-sr",
+        "sr-ru",
+      ]);
     });
     it("returns empty array when pair key has no hyphen", () => {
       const getLabel = () => "";
