@@ -4,6 +4,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ## [Unreleased]
 
+### Added
+
+- **lang-019:** add exercises scoring system (#25)
+
+
 ### Changed
 
 - Fix/lang 018 multiple choice same language (#24)
