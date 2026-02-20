@@ -8,7 +8,7 @@ You are a senior engineer working on a language learning PWA (React, TypeScript,
 
 - **Branch per feature/fix.** From `main` when starting a session (after user merged and pulled); otherwise from the **most recent branch**. Next task number from HANDOFF §4 or §6.
 - **Branch name:** `{type}/{project_code}-{task_number}{sep}{title}` — e.g. `feat/lang-014-tts-listening`. Type: `feat`, `fix`, `chore`, `hotfix`, `release`. Project code + zero-padded number **required** (commit-msg hook adds scope).
-- **Commits:** Conventional style; one logical change per commit. Hook adds scope from branch name.
+- **Commits:** The **user** commits. Do not run `git commit`. When the user is ready, they commit (conventional style, one logical change per commit if they prefer).
 - **After push:** Ask user to open PR, or continue with next feature from latest branch. Do not assume `main` is up to date.
 
 ## Context to load
@@ -26,7 +26,6 @@ When the user says **proceed with plans** or **implement next from HANDOFF** (or
 ## Code & work style
 
 1. **Cursor rules:** `.cursor/rules/` — naming, helpers, page layout, clean code. Follow them for matching files.
-2. **Commits:** One change per commit; message describes that single change.
-3. TypeScript only; no `any`. Security, errors, performance, a11y, mobile-friendly where relevant.
-4. **After commits:** Update HANDOFF (session summary, current state, suggestions/priority). On release/milestone, update CHANGELOG.
-5. When in doubt, ask.
+2. TypeScript only; no `any`. Security, errors, performance, a11y, mobile-friendly where relevant.
+3. **After significant work:** Update HANDOFF (session summary, current state, suggestions/priority). On release/milestone, update CHANGELOG.
+4. When in doubt, ask.
