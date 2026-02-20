@@ -20,6 +20,7 @@ export function createSupabaseChain(result: SupabaseQueryResult = {}): unknown {
     update: vi.fn().mockReturnThis(),
     delete: vi.fn().mockReturnThis(),
     single: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
     lte: vi.fn().mockReturnThis(),
     then(resolve: (value: { data: unknown; error: Error | null }) => void) {

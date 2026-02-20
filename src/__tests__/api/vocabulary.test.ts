@@ -34,6 +34,7 @@ import {
   addToUserLibrary,
   updateUserVocabulary,
   removeFromUserLibrary,
+  upsertVocabularyScore,
   addWordToLibrary,
 } from "@/api/vocabulary";
 import { supabase } from "@/lib/supabase";
@@ -336,6 +337,102 @@ describe("vocabulary API", () => {
       const result = await listDueToday("user-1", { pairKey: "en" as "en-ru" });
       expect(result.data).toHaveLength(2);
       expect(result.error).toBeNull();
+    });
+  });
+
+  describe("upsertVocabularyScore", () => {
+    const mockScoreRow = {
+      user_id: "user-1",
+      vocabulary_id: "v-1",
+      score: 55,
+      last_exercise_at: "2026-02-20T12:00:00.000Z",
+      practised_dates_count: 1,
+      learnt: true,
+      created_at: "2026-02-20T12:00:00.000Z",
+      updated_at: "2026-02-20T12:00:00.000Z",
+    };
+
+    it("inserts new row and returns data when no existing score", async () => {
+      vi.mocked(supabase.from)
+        .mockReturnValueOnce(
+          createSupabaseChain({ data: null, error: null }) as never,
+        )
+        .mockReturnValueOnce(
+          createSupabaseChain({ data: mockScoreRow, error: null }) as never,
+        );
+      const result = await upsertVocabularyScore("user-1", "v-1", {
+        score: 55,
+        last_exercise_at: "2026-02-20T12:00:00.000Z",
+        learnt: true,
+      });
+      expect(result.data).toEqual(mockScoreRow);
+      expect(result.error).toBeNull();
+      expect(supabase.from).toHaveBeenCalledWith("vocabulary_score");
+    });
+
+    it("updates existing row and increments practised_dates_count when date changes", async () => {
+      vi.mocked(supabase.from)
+        .mockReturnValueOnce(
+          createSupabaseChain({
+            data: {
+              last_exercise_at: "2026-02-18T10:00:00.000Z",
+              practised_dates_count: 2,
+            },
+            error: null,
+          }) as never,
+        )
+        .mockReturnValueOnce(
+          createSupabaseChain({
+            data: { ...mockScoreRow, practised_dates_count: 3 },
+            error: null,
+          }) as never,
+        );
+      const result = await upsertVocabularyScore("user-1", "v-1", {
+        score: 60,
+        last_exercise_at: "2026-02-20T14:00:00.000Z",
+        learnt: true,
+      });
+      expect(result.data?.practised_dates_count).toBe(3);
+      expect(result.error).toBeNull();
+    });
+
+    it("updates existing row without incrementing practised_dates_count when same date", async () => {
+      vi.mocked(supabase.from)
+        .mockReturnValueOnce(
+          createSupabaseChain({
+            data: {
+              last_exercise_at: "2026-02-20T08:00:00.000Z",
+              practised_dates_count: 1,
+            },
+            error: null,
+          }) as never,
+        )
+        .mockReturnValueOnce(
+          createSupabaseChain({
+            data: { ...mockScoreRow, practised_dates_count: 1 },
+            error: null,
+          }) as never,
+        );
+      const result = await upsertVocabularyScore("user-1", "v-1", {
+        score: 62,
+        last_exercise_at: "2026-02-20T16:00:00.000Z",
+        learnt: true,
+      });
+      expect(result.error).toBeNull();
+    });
+
+    it("returns error when fetch fails", async () => {
+      const fetchErr = new Error("Fetch failed");
+      vi.mocked(supabase.from).mockReturnValueOnce(
+        createSupabaseChain({ data: null, error: fetchErr }) as never,
+      );
+      const result = await upsertVocabularyScore("user-1", "v-1", {
+        score: 50,
+        last_exercise_at: "2026-02-20T12:00:00.000Z",
+        learnt: false,
+      });
+      expect(result.data).toBeNull();
+      expect(result.error).toBe(fetchErr);
     });
   });
 

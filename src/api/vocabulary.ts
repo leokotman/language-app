@@ -14,6 +14,9 @@ import type {
   UserVocabularyRow,
   UserVocabularyInsert,
   UserVocabularyUpdate,
+  VocabularyScoreRow,
+  VocabularyScoreInsert,
+  VocabularyScoreUpdate,
 } from "@/types/database";
 
 /** List all app-library vocabulary (source='app'). Used for offline cache prefetch. */
@@ -320,6 +323,57 @@ export async function removeFromUserLibrary(
     .delete()
     .eq("id", id);
   return { error: error as Error | null };
+}
+
+/** Upsert vocabulary_score for (user_id, vocabulary_id). Increments practised_dates_count when last_exercise_at date changes. */
+export async function upsertVocabularyScore(
+  userId: string,
+  vocabularyId: string,
+  payload: {
+    score: number;
+    last_exercise_at: string;
+    learnt: boolean;
+  },
+): Promise<{ data: VocabularyScoreRow | null; error: Error | null }> {
+  const { data: existing, error: fetchErr } = await supabase
+    .from("vocabulary_score")
+    .select("last_exercise_at, practised_dates_count")
+    .eq("user_id", userId)
+    .eq("vocabulary_id", vocabularyId)
+    .maybeSingle();
+
+  if (fetchErr) return { data: null, error: fetchErr as Error };
+
+  const newDate = payload.last_exercise_at.slice(0, 10);
+  const existingDate = existing?.last_exercise_at?.slice(0, 10);
+  const practisedDelta =
+    existing == null ? 1 : newDate !== existingDate ? 1 : 0;
+  const practised_dates_count =
+    (existing?.practised_dates_count ?? 0) + practisedDelta;
+
+  const row: VocabularyScoreInsert & VocabularyScoreUpdate = {
+    user_id: userId,
+    vocabulary_id: vocabularyId,
+    score: Math.max(0, Math.min(100, Math.round(payload.score))),
+    last_exercise_at: payload.last_exercise_at,
+    practised_dates_count,
+    learnt: payload.learnt,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from("vocabulary_score")
+    .upsert(row, {
+      onConflict: "user_id,vocabulary_id",
+      ignoreDuplicates: false,
+    })
+    .select()
+    .single();
+
+  return {
+    data: data as VocabularyScoreRow | null,
+    error: error as Error | null,
+  };
 }
 
 /** Create a new user word and add it to the user's library (vocabulary + user_vocabulary). */
