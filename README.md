@@ -1,91 +1,204 @@
 # Language Learning App
 
-A language learning PWA (React, TypeScript, Vite, MUI). Vocabulary, spaced repetition, and pronunciation practice. Practice exercises adapt to your needs
+> A modern, Progressive Web Application for vocabulary learning with spaced repetition, offline support, and multiple exercise types.
 
-## Setup
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2.0-61dafb.svg)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.2.4-646cff.svg)](https://vitejs.dev/)
+[![Material-UI](https://img.shields.io/badge/MUI-7.3.7-007fff.svg)](https://mui.com/)
+[![Test Coverage](https://img.shields.io/badge/Coverage-70%25-green.svg)](./docs/TEST_COVERAGE.md)
 
-1. Install dependencies: `npm install`
-2. Copy env file: `cp .env.example .env` and fill in your Supabase URL and anon key (when ready).
-3. Run dev server: `npm run dev`
-4. Run unit tests: `npm run test` or `npm run test:run`
-5. Run E2E tests: `npm run test:e2e` (starts dev server automatically; loads `.env` so `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` are used when set). Without those in `.env`, only unauthenticated tests run; with them, all tests including authenticated flows run.
+A feature-rich vocabulary learning platform that leverages scientifically-proven spaced repetition algorithms (FSRS) to optimize language acquisition. Built with modern web technologies for a seamless learning experience across all devices.
 
-## Tech
-
-React 18+, TypeScript, Vite, MUI, React Router, Supabase, TanStack Query, Zustand, vite-plugin-pwa, Vitest, Playwright.
+🔗 **Repository**: https://github.com/leokotman/language-app
 
 ---
 
-# React + TypeScript + Vite (template notes)
+## ✨ Features
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### 🎯 Core Learning Features
+- **🧠 Spaced Repetition System** - Implements ts-fsrs algorithm for optimal review scheduling
+- **📖 Multi-Exercise Types** - 8 different exercise modes:
+  - ✍️ Flashcards (forward & reverse)
+  - ⌨️ Typing exercises
+  - 🎯 Multiple choice (forward & reverse)
+  - 🎧 Listening comprehension
+  - 🎤 Speaking practice with audio recording
+- **📊 Intelligent Scoring** - Performance tracking and adaptive difficulty
+- **🌍 Multi-Language Support** - Learn multiple language pairs simultaneously
 
-Currently, two official plugins are available:
+### 💾 Data Management
+- **📚 Personal Library** - CRUD operations for vocabulary management
+- **🔍 Dictionary Lookup** - Integrated dictionary with offline caching
+- **📥 Import/Export** - Backup and restore your vocabulary data
+- **☁️ Cloud Sync** - Real-time synchronization with Supabase backend
+- **📴 Offline Mode** - Full PWA support with offline caching and sync
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🎨 User Experience
+- **🌓 Dark/Light Theme** - Customizable theme with persistent preferences
+- **📱 Responsive Design** - Optimized for mobile, tablet, and desktop
+- **🔒 Secure Authentication** - Email/password auth with password recovery
+- **⚡ Performance Optimized** - Lazy loading, code splitting, and caching strategies
 
-## React Compiler
+### 🛠️ Developer Experience
+- **✅ High Test Coverage** - 70%+ unit test coverage with Vitest
+- **🧪 E2E Testing** - Playwright tests for critical user flows
+- **📝 Type Safety** - Full TypeScript implementation
+- **🔍 Code Quality** - ESLint, Prettier, and strict commit conventions
+- **📖 Comprehensive Documentation** - Extensive docs for setup and architecture
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 📋 Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Before you begin, ensure you have the following installed:
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+| Tool | Version | Purpose |
+|------|---------|---------|
+| **Node.js** | ≥18.0.0 | JavaScript runtime |
+| **npm** | ≥9.0.0 | Package manager |
+| **Supabase Account** | - | Backend & database |
+| **Git** | Latest | Version control |
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Optional Tools
+- **Docker** (for local Supabase setup)
+- **VS Code** with recommended extensions (ESLint, Prettier, TypeScript)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+---
+
+## 🚀 Installation
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/leokotman/language-app.git
+cd language-app
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2️⃣ Install Dependencies
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm install
 ```
+
+### 3️⃣ Environment Configuration
+
+Create a `.env` file in the root directory:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 4️⃣ Database Setup
+
+Run migrations in your Supabase project (in order):
+
+```bash
+# Navigate to Supabase SQL Editor and run:
+docs/supabase-migrations/001_profiles.sql
+...
+docs/supabase-migrations/009_vocabulary_score.sql
+```
+
+📖 **Detailed Setup Guide**: See [docs/SUPABASE_SETUP.md](./docs/SUPABASE_SETUP.md)
+
+### 5️⃣ Start Development Server
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+---
+
+## 💻 Usage
+
+This section describes core workflows and how to use the app:
+
+### Learning Workflows
+- Create or import vocabulary lists (CSV, JSON)
+- Start a study session — the FSRS algorithm will schedule reviews
+- Choose exercise types: flashcards, typing, multiple choice, listening, or speaking
+- Track progress via the dashboard and review history
+
+### Import / Export
+- Export your library to JSON/CSV from the Library page
+- Import files via the Library import dialog; map fields to languages and tags
+
+### Offline & Sync
+- Use the app offline; changes queue and sync when connectivity returns
+- Supabase handles conflict resolution using last-write-wins with timestamps
+
+---
+
+## 🧭 Project Structure
+
+A high level overview:
+
+```
+/src
+  /components   # Reusable UI components
+  /features     # Domain features (study, library, auth, profile)
+  /lib          # Utilities, API clients (Supabase), hooks
+  /routes       # Route definitions and lazy-loaded pages
+  /styles       # Theme and global styles
+  main.tsx
+  app.tsx
+```
+
+Other folders:
+- /docs — project documentation, migrations, architecture notes
+- /scripts — helper scripts for local dev and migrations
+- /playwright — E2E tests
+
+---
+
+## 🧪 Testing
+
+- Unit tests: `npm run test` (Vitest)
+- E2E tests: `npm run test:e2e` (Playwright)
+- Run coverage: `npm run test:coverage`
+
+---
+
+## 🛠 Development Notes
+
+- Linting: `npm run lint`
+- Formatting: `npm run format`
+- Commit conventions: Conventional Commits enforced via commitlint and husky
+- Local Supabase: Use Docker or `supabase` CLI for a local dev DB
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feat/my-feature`
+3. Make changes and run tests
+4. Open a PR describing the change and link any relevant issues
+
+Please run linters and tests before opening a PR. For major changes, open an issue first to discuss the design.
+
+---
+
+## 📜 License
+
+MIT License — see [LICENSE](./LICENSE) for details.
+
+---
+
+## ✉️ Contact
+
+Maintainer: Leon Kotman — https://github.com/leokotman
+
+*This README was added by an automated assistant. Please review and adjust any project-specific details before merging.*
