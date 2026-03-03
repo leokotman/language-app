@@ -13,7 +13,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 - **Library:** List, search, filter, add/edit/delete with confirm; requires 002.
 - **Dictionary:** One tab — lookup (MyMemory en↔ru, en↔sr), browse app library, add to my library; offline from cache when synced.
 - **Offline:** Navbar toggle; IndexedDB cache; OfflinePrefetch; sync on “Offline” ON.
-- **Migrations:** Run 001 → 002 → 003 → (optional 005, 008) → 004 → 006 → 007 (see `SUPABASE_SETUP.md`).
+- **Migrations:** Run 001 → 002 → 003 → (optional 005, 008) → 004 → 006 → 007 → 009 (see `SUPABASE_SETUP.md`).
 - **E2E:** Playwright; run `npx playwright install` then `npm run test:e2e`. Specs: home, library, study (redirect + full session flow: add word → start session → do card → rate → session complete).
 
 ---
@@ -23,7 +23,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 - `src/components/common/` — ConfirmDialog, etc.
 - `src/components/features/` — auth (ProtectedRoute), offline (OfflinePrefetch).
 - `src/components/layout/` — Layout, Navbar.
-- `src/pages/` — HomePage, LibraryPage (subcomponents: AddWordForm, ImportExportBar, LibraryFilterBar, LibraryList, EditWordDialog; `LibraryPage.helpers`, `LibraryPage.models`), DictionaryPage (subcomponents: DictionaryLookupBar, DictionaryResultsList; `DictionaryPage.constants`, `DictionaryPage.models`), SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage, StudyPage (subcomponents in `StudyPage/components/`: SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete, card blocks, RatingButtons; `StudyPage.constants`, `StudyPage.helpers`, `StudyPage.models`).
+- `src/pages/` — HomePage, LibraryPage (subcomponents: AddWordForm, ImportExportBar, LibraryFilterBar, LibraryList, EditWordDialog; `LibraryPage.helpers`, `LibraryPage.models`), DictionaryPage (subcomponents: DictionaryLookupBar, DictionaryResultsList; `DictionaryPage.constants`, `DictionaryPage.models`), SettingsPage, LoginPage, SignupPage, ForgotPasswordPage, ProgressPage (ProgressPage.models, ProgressPage.constants, ProgressPage.helpers; stats by pair, score by direction A→B/B→A), StudyPage (subcomponents in `StudyPage/components/`: SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete, card blocks, RatingButtons; `StudyPage.constants`, `StudyPage.helpers`, `StudyPage.models`).
 - `src/api/` — languages, userLanguages, vocabulary, profiles.
 - `src/hooks/` — useAuth, useLanguages, useUserLanguages, useVocabulary, useAudioRecorder.
 - `src/lib/` — supabase, errors, sanitize, dictionary, offlineCache, offlineSync, offlineDebug, importExport, fsrs.
@@ -38,7 +38,8 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
-- feat (lang-019): Scoring — branch `feat/lang-019-scoring-research`. **Steps 1–4 done:** Research (docs/SCORING_DESIGN.md); migration 009 (vocabulary_score table + RLS); Formula C in `src/lib/scoring.ts` (computeScore, isLearnt, retrievability); API `upsertVocabularyScore`; study session updates score after each rating (fire-and-forget). Next: Progress page (stats, score by pair), notifications.
+- feat (lang-020): Progress page — branch `feat/lang-020-progress-page`. **Done:** API `listVocabularyScores` (vocabulary_score joined with vocabulary); hook `useVocabularyScores`; Progress page: stats by language pair, score by direction (A→B and B→A), word count, average score, learnt count, last studied; “due today” alert; sign-in/loading/error/empty states. Tests: listVocabularyScores, useVocabularyScores, aggregateProgressByPair, ProgressPage UI. Next: notifications (see SCORING_DESIGN step 6).
+- feat (lang-019): Scoring — **Steps 1–4 done:** Research (docs/SCORING_DESIGN.md); migration 009 (vocabulary_score table + RLS); Formula C in `src/lib/scoring.ts`; API `upsertVocabularyScore`; study session updates score after each rating. Progress page (step 5) done in lang-020.
 - fix (lang-018): Multiple-choice / reverse multiple-choice — options in one language only (sameDirectionCards; filter by language_from/language_to). chore: avoid single-letter variables across codebase; docs: HANDOFF priority, general-clean-code variable names.
 - feat (lang-018 branch): Study setup — **Select all** / **Deselect all** for exercise-type checkboxes (StudySetup buttons, handlers in StudyPage; tests).
 - chore (lang-017): Unit test coverage — reached 70% on all metrics (statements, branches, functions, lines); coverage thresholds enabled in vite.config.ts; added LibraryPage component tests (AddWordForm, EditWordDialog, ImportExportBar, LibraryFilterBar, LibraryList), StudyPage smoke tests (SignInAlert, NoCardsDue), DictionaryPage/LibraryPage smoke tests; docs/TEST_COVERAGE.md updated.
@@ -67,7 +68,7 @@ Recent work (from git, latest first):
 ## 4. User feedback (Feb 2025) — to address
 
 - **Home page:** Still uses mock data (PLACEHOLDER_WORDS); needs a proper Home (e.g. quick stats, due today, links).
-- **Progress page:** Placeholder only; should include stats by languages/words/exercises, **score by language pair (2 dimensions: A→B vs B→A)**, and dates for notifications.
+- **Progress page:** ~~Placeholder only; score by pair (2 dimensions: A→B vs B→A)~~ → **Done (lang-020):** Stats by pair, score per direction (A→B, B→A), word count, average score, learnt count, last studied; due-today alert. Notifications (dates) still to do.
 - **Study setup:** ~~Exercise-type checkboxes need Select all / Deselect all~~ → **Done:** Select all / Deselect all buttons added.
 - **Multiple-choice language bug:** ~~Options mixed when bidirectional pair~~ → **Done:** options filtered by same direction (same `language_from`/`language_to`).
 - **Scoring & exercises (to be designed):** Scoring in a **separate table** linked to language pair; **direction matters** (ru→en and en→ru are separate, e.g. by pair id or pair key). **Scoring rules to be revised:** not fixed +5/−50 etc — base on **human psychology, pace of learning and forgetting**; use **spaced repetition / forgetting-curve research** (e.g. review intervals: several hours, 1 day, 3 days, 1 week, etc.). **Action:** find and summarise research, then define points/intervals/“learnt” and decay. Then: default to “not learnt” only; optional “Train ALL words”; notifications from dates + scores. See §6.
@@ -97,7 +98,7 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 **Completed this branch:** (1) Multiple-choice options same language only (lang-018). (2) Study setup Select all / Deselect all.
 
-**Current branch (lang-019):** Scoring — schema, Formula C, API, study integration done. Next: Progress page, notifications (see `docs/SCORING_DESIGN.md`).
+**Current branch (lang-020):** Progress page — stats by pair, score by direction, due-today alert. Next: notifications (see `docs/SCORING_DESIGN.md` step 6).
 
 **Next (order TBD):**
 

@@ -325,6 +325,29 @@ export async function removeFromUserLibrary(
   return { error: error as Error | null };
 }
 
+/** Row shape: vocabulary_score joined with vocabulary (language_from, language_to) for aggregation. */
+export type VocabularyScoreWithVocabulary = VocabularyScoreRow & {
+  vocabulary: VocabularyRow | null;
+};
+
+/**
+ * List all vocabulary_score rows for a user, with vocabulary joined (for language_from, language_to).
+ * Used by Progress page to aggregate stats by pair and direction (A→B vs B→A).
+ */
+export async function listVocabularyScores(userId: string): Promise<{
+  data: VocabularyScoreWithVocabulary[];
+  error: Error | null;
+}> {
+  const { data, error } = await supabase
+    .from("vocabulary_score")
+    .select("*, vocabulary:vocabulary_id(*)")
+    .eq("user_id", userId);
+
+  if (error) return { data: [], error: error as Error };
+  const rows = (data ?? []) as VocabularyScoreWithVocabulary[];
+  return { data: rows, error: null };
+}
+
 /** Upsert vocabulary_score for (user_id, vocabulary_id). Increments practised_dates_count when last_exercise_at date changes. */
 export async function upsertVocabularyScore(
   userId: string,

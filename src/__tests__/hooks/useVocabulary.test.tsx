@@ -7,6 +7,8 @@ import {
   useVocabularyList,
   dueTodayQueryKey,
   useDueToday,
+  vocabularyScoresQueryKey,
+  useVocabularyScores,
   userVocabularyListQueryKey,
   useUserVocabularyList,
   useAddToUserLibrary,
@@ -22,6 +24,7 @@ import * as vocabularyApi from "@/api/vocabulary";
 vi.mock("@/api/vocabulary", () => ({
   listVocabulary: vi.fn(),
   listDueToday: vi.fn(),
+  listVocabularyScores: vi.fn(),
   listUserVocabulary: vi.fn(),
   addWordToLibrary: vi.fn(),
   createVocabulary: vi.fn(),
@@ -167,6 +170,70 @@ describe("dueTodayQueryKey", () => {
         pairKey: "en-ru",
       }),
     ).toEqual(["due-today", "u1", "en", "ru", "en-ru"]);
+  });
+});
+
+describe("vocabularyScoresQueryKey", () => {
+  it("returns key with userId", () => {
+    expect(vocabularyScoresQueryKey("u1")).toEqual(["vocabulary-scores", "u1"]);
+  });
+});
+
+describe("useVocabularyScores", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(vocabularyApi.listVocabularyScores).mockResolvedValue({
+      data: [],
+      error: null,
+    });
+  });
+
+  it("returns score rows when userId is set", async () => {
+    const scoreRows = [
+      {
+        user_id: "user-1",
+        vocabulary_id: "v-1",
+        score: 60,
+        last_exercise_at: "",
+        practised_dates_count: 0,
+        learnt: false,
+        created_at: "",
+        updated_at: "",
+        vocabulary: null,
+      },
+    ];
+    vi.mocked(vocabularyApi.listVocabularyScores).mockResolvedValue({
+      data: scoreRows,
+      error: null,
+    });
+    const { result } = renderHook(() => useVocabularyScores("user-1"), {
+      wrapper,
+    });
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(result.current.data).toEqual(scoreRows);
+    expect(vocabularyApi.listVocabularyScores).toHaveBeenCalledWith("user-1");
+  });
+
+  it("does not run when userId is undefined", () => {
+    renderHook(() => useVocabularyScores(undefined), { wrapper });
+    expect(vocabularyApi.listVocabularyScores).not.toHaveBeenCalled();
+  });
+
+  it("throws when listVocabularyScores returns error", async () => {
+    const apiError = new Error("scores failed");
+    vi.mocked(vocabularyApi.listVocabularyScores).mockResolvedValue({
+      data: [],
+      error: apiError,
+    });
+    const { result } = renderHook(() => useVocabularyScores("user-1"), {
+      wrapper,
+    });
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+    expect(result.current.error).toBe(apiError);
   });
 });
 
