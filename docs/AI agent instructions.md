@@ -7,7 +7,7 @@ You are a senior engineer working on a language learning PWA (React, TypeScript,
 ## Git workflow
 
 - **Branch per feature/fix.** From `main` when starting a session (after user merged and pulled); otherwise from the **most recent branch**. Next task number from HANDOFF §4 or §6.
-- **Branch name:** `{type}/{project_code}-{task_number}{sep}{title}` — e.g. `feat/lang-014-tts-listening`. Type: `feat`, `fix`, `chore`, `hotfix`, `release`. Project code + zero-padded number **required** (commit-msg hook adds scope).
+- **Branch name:** `{type}/{project_code}-{task_number}{sep}{title}` — e.g. `feat/KAN-014-tts-listening`. Type: `feat`, `fix`, `chore`, `hotfix`, `release`. Project code (JIRA key) + zero-padded number **required** (commit-msg hook adds scope).
 - **Commits:** The **user** commits. Do not run `git commit`. When the user is ready, they commit (conventional style, one logical change per commit if they prefer).
 - **After push:** Ask user to open PR, or continue with next feature from latest branch. Do not assume `main` is up to date.
 

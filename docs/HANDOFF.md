@@ -2,7 +2,7 @@
 
 Update after each session: **Current state**, **Session summary**, **Suggestions / Priority**. Full history: `git log --oneline -40` or `docs/CHANGELOG.md`.
 
-**Session start:** Branch from `main` (e.g. `feat/lang-014-…`). Next task number from §3 or §5. Load this file and `docs/AI agent instructions.md`.
+**Session start:** Branch from `main` (e.g. `feat/KAN-014-…`). Next task number from §3 or §5. Load this file and `docs/AI agent instructions.md`.
 
 ---
 
@@ -40,25 +40,25 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 Recent work (from git, latest first):
 
 - feat (KAN-42): Home page dashboard — removed `PLACEHOLDER_WORDS`; wired real data via `useDueToday` + `useVocabularyScores`; added Home stats helper (`buildHomeStats`) and quick actions (Study/Library/Dictionary/Progress); implemented sign-in/loading/error/empty states; added unit tests for Home page and helpers; updated app route smoke test expectations.
-- feat (lang-020): Progress page — branch `feat/lang-020-progress-page`. **Done:** API `listVocabularyScores` (vocabulary_score joined with vocabulary); hook `useVocabularyScores`; Progress page: stats by language pair, score by direction (A→B and B→A), word count, average score, learnt count, last studied; “due today” alert; sign-in/loading/error/empty states. Tests: listVocabularyScores, useVocabularyScores, aggregateProgressByPair, ProgressPage UI. Next: notifications (see SCORING_DESIGN step 6).
-- feat (lang-019): Scoring — **Steps 1–4 done:** Research (docs/SCORING_DESIGN.md); migration 009 (vocabulary_score table + RLS); Formula C in `src/lib/scoring.ts`; API `upsertVocabularyScore`; study session updates score after each rating. Progress page (step 5) done in lang-020.
-- fix (lang-018): Multiple-choice / reverse multiple-choice — options in one language only (sameDirectionCards; filter by language_from/language_to). chore: avoid single-letter variables across codebase; docs: HANDOFF priority, general-clean-code variable names.
-- feat (lang-018 branch): Study setup — **Select all** / **Deselect all** for exercise-type checkboxes (StudySetup buttons, handlers in StudyPage; tests).
-- chore (lang-017): Unit test coverage — reached 70% on all metrics (statements, branches, functions, lines); coverage thresholds enabled in vite.config.ts; added LibraryPage component tests (AddWordForm, EditWordDialog, ImportExportBar, LibraryFilterBar, LibraryList), StudyPage smoke tests (SignInAlert, NoCardsDue), DictionaryPage/LibraryPage smoke tests; docs/TEST_COVERAGE.md updated.
+- feat (KAN-20): Progress page — branch `feat/KAN-20-progress-page`. **Done:** API `listVocabularyScores` (vocabulary_score joined with vocabulary); hook `useVocabularyScores`; Progress page: stats by language pair, score by direction (A→B and B→A), word count, average score, learnt count, last studied; "due today" alert; sign-in/loading/error/empty states. Tests: listVocabularyScores, useVocabularyScores, aggregateProgressByPair, ProgressPage UI. Next: notifications (see SCORING_DESIGN step 6).
+- feat (KAN-19): Scoring — **Steps 1–4 done:** Research (docs/SCORING_DESIGN.md); migration 009 (vocabulary_score table + RLS); Formula C in `src/lib/scoring.ts`; API `upsertVocabularyScore`; study session updates score after each rating. Progress page (step 5) done in KAN-20.
+- fix (KAN-18): Multiple-choice / reverse multiple-choice — options in one language only (sameDirectionCards; filter by language_from/language_to). chore: avoid single-letter variables across codebase; docs: HANDOFF priority, general-clean-code variable names.
+- feat (KAN-18 branch): Study setup — **Select all** / **Deselect all** for exercise-type checkboxes (StudySetup buttons, handlers in StudyPage; tests).
+- chore (KAN-17): Unit test coverage — reached 70% on all metrics (statements, branches, functions, lines); coverage thresholds enabled in vite.config.ts; added LibraryPage component tests (AddWordForm, EditWordDialog, ImportExportBar, LibraryFilterBar, LibraryList), StudyPage smoke tests (SignInAlert, NoCardsDue), DictionaryPage/LibraryPage smoke tests; docs/TEST_COVERAGE.md updated.
 - chore (refactor): Study page — split into layout components (SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete), card block components (FlashcardBlock, ReverseFlashcardBlock, TypingBlock, MultipleChoiceBlock, ReverseMultipleChoiceBlock, ListeningBlock, SpeakingBlock, AnswerFeedbackBlock, RatingButtons), condition constants (EXERCISE_TYPE_SUBTITLES), memoized handlers; helpers and types in StudyPage.helpers / StudyPage.models; components index.
-- lang-015: Phase 4 speech (recording only). New exercise type **speaking**: see/hear word → Record → Stop → Play back → self-rate (Again/Hard/Good/Easy). useAudioRecorder hook (getUserMedia + MediaRecorder), playRecordingBlob helper; StudyPage speaking UI and E2E handling (Record/Stop in loop).
-- lang-014: Phase 3 — reverse multiple choice (translation→word pick) and listening (TTS). New exercise types: reverse_multiple_choice (show translation, pick word from 4 options; buildReverseMultipleChoiceOptions), listening (Play word via Web Speech API, pick translation from 4 options; speakWord helper with language_from). StudyPage: new options in EXERCISE_TYPE_OPTIONS, UI blocks and correct-answer display; E2E excludes "Play word" from option click.
-- lang-013: E2E for study session — data-testid on Study page; e2e/study.spec.ts (redirect, full session flow; resilient loop: wait for Reveal first, handle all exercise types, 60s timeout). Fix: Study page shows “Session complete” after last card (set currentIndex past end instead of setSession(null)); rating buttons not disabled for E2E; removed unused reverseMultipleChoiceOptions.
-- lang-012: Study page — added flashcard (word→translation, reveal, rate) and reverse flashcard (translation→word, reveal, rate); four exercise types: flashcard, reverse_flashcard, typing, multiple_choice; helper buildReverseMultipleChoiceOptions for future use.
-- lang-011: FSRS + study session — src/lib/fsrs.ts (ts-fsrs: row↔Card, scheduleRating); API listDueToday(userId, filters?); hooks useDueToday, useUpdateUserVocabulary invalidates due-today; Study page: language pair, due count, start session, card → reveal → Again/Hard/Good/Easy, update SRS, next or complete. Unit tests for fsrs helper.
-- Doc revisions: agent instructions (branch-from-main clarity), HANDOFF session-start note and next task (lang-011).
+- KAN-15: Phase 4 speech (recording only). New exercise type **speaking**: see/hear word → Record → Stop → Play back → self-rate (Again/Hard/Good/Easy). useAudioRecorder hook (getUserMedia + MediaRecorder), playRecordingBlob helper; StudyPage speaking UI and E2E handling (Record/Stop in loop).
+- KAN-14: Phase 3 — reverse multiple choice (translation→word pick) and listening (TTS). New exercise types: reverse_multiple_choice (show translation, pick word from 4 options; buildReverseMultipleChoiceOptions), listening (Play word via Web Speech API, pick translation from 4 options; speakWord helper with language_from). StudyPage: new options in EXERCISE_TYPE_OPTIONS, UI blocks and correct-answer display; E2E excludes "Play word" from option click.
+- KAN-13: E2E for study session — data-testid on Study page; e2e/study.spec.ts (redirect, full session flow; resilient loop: wait for Reveal first, handle all exercise types, 60s timeout). Fix: Study page shows "Session complete" after last card (set currentIndex past end instead of setSession(null)); rating buttons not disabled for E2E; removed unused reverseMultipleChoiceOptions.
+- KAN-12: Study page — added flashcard (word→translation, reveal, rate) and reverse flashcard (translation→word, reveal, rate); four exercise types: flashcard, reverse_flashcard, typing, multiple_choice; helper buildReverseMultipleChoiceOptions for future use.
+- KAN-11: FSRS + study session — src/lib/fsrs.ts (ts-fsrs: row↔Card, scheduleRating); API listDueToday(userId, filters?); hooks useDueToday, useUpdateUserVocabulary invalidates due-today; Study page: language pair, due count, start session, card → reveal → Again/Hard/Good/Easy, update SRS, next or complete. Unit tests for fsrs helper.
+- Doc revisions: agent instructions (branch-from-main clarity), HANDOFF session-start note and next task (KAN-11).
 - Confluence/Jira removed; handoff moved to repo (`docs/HANDOFF.md`), docs updated.
-- E2E (lang-009, lang-013): Playwright — home, library, study specs; unauthenticated redirect; authenticated add/edit/delete (library), full study session (study); data-testid for loading/error/empty and study states; E2E auth helper and `.env` (E2E_TEST_EMAIL, E2E_TEST_PASSWORD).
-- Performance (lang-007): query and table updates for Supabase performance.
-- Phase 3 seed (lang-008): migration 008, 128 triples.
-- Dictionary offline (lang-006): persist lookups in IndexedDB; use lookup cache when offline; debounce/perf fixes; migration 001 idempotent.
-- Offline PWA (lang-005): IndexedDB cache, OfflinePrefetch, Navbar Offline toggle, full sync; Dictionary from cache; offline debug docs.
-- Code quality (lang-004): refactor per Cursor rules.
+- E2E (KAN-09, KAN-13): Playwright — home, library, study specs; unauthenticated redirect; authenticated add/edit/delete (library), full study session (study); data-testid for loading/error/empty and study states; E2E auth helper and `.env` (E2E_TEST_EMAIL, E2E_TEST_PASSWORD).
+- Performance (KAN-07): query and table updates for Supabase performance.
+- Phase 3 seed (KAN-08): migration 008, 128 triples.
+- Dictionary offline (KAN-06): persist lookups in IndexedDB; use lookup cache when offline; debounce/perf fixes; migration 001 idempotent.
+- Offline PWA (KAN-05): IndexedDB cache, OfflinePrefetch, Navbar Offline toggle, full sync; Dictionary from cache; offline debug docs.
+- Code quality (KAN-04): refactor per Cursor rules.
 - Dictionary + App Library (lang-003): one tab; Serbian lookup; virtual pair filter; user-friendly copy.
 - Seed, App Library, import/export (lang-002): migrations 003/005, RLS/docs.
 - Earlier: auth, core data layer (002), library (list/add/edit/delete, bidirectional + virtual pairs), input sanitization, error handling.
@@ -82,7 +82,7 @@ Recent work (from git, latest first):
 _Not yet implemented; pick from here (and from §6 Priority) for the next feature._
 
 - **Chore:** Refactor LibraryPage / DictionaryPage (subcomponents, helpers) — see `docs/REFACTORING_OPPORTUNITIES.md`.
-- **Chore (done lang-017):** Unit test coverage at 70%+ on all metrics; thresholds enforced in CI. See `docs/TEST_COVERAGE.md`.
+**Chore (done KAN-17): Unit test coverage at 70%+ on all metrics; thresholds enforced in CI. See `docs/TEST_COVERAGE.md`.
 - Phase 3: FSRS algorithm, “due today” query, study session flow (start, show card, reveal, rate, update SRS).
 - Phase 3: Adaptive exercise selection (e.g. weight by difficulty).
 - Default language pair: preselect when user has one pair; “study language” in Settings or Study page.
@@ -98,7 +98,7 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 ## 6. Priority and future steps (described)
 
-**Completed this branch:** (1) Multiple-choice options same language only (lang-018). (2) Study setup Select all / Deselect all.
+**Completed this branch:** (1) Multiple-choice options same language only (KAN-18). (2) Study setup Select all / Deselect all.
 
 **Current branch (KAN-42):** Home page — real dashboard with hooks data and quick actions. Next: notifications (see `docs/SCORING_DESIGN.md` step 6).
 
