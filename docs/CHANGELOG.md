@@ -4,6 +4,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ## [Unreleased]
 
+### Changed
+
+- Feat/lang 020 progress page (#29)
+
+
 ### Added
 
 - **lang-019:** add exercises scoring system (#25)
