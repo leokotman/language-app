@@ -6,6 +6,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
+- enhance changelog automation and linkify existing entries ([2b1913f](https://github.com/leokotman/language-app/commit/2b1913f22e615e9e5c37144a5ed4b0ea83110a5a))
+
+
+### Changed
+
 - KAN-42: home page real data ([#32](https://github.com/leokotman/language-app/pull/32)) ([d1bb15b](https://github.com/leokotman/language-app/commit/d1bb15b030f76a42df8f61f25557453a23a57810))
 
 
