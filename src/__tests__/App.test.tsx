@@ -10,9 +10,22 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({
     isAuthenticated: true,
     loading: false,
-    user: { email: "test@example.com" },
+    user: { id: "user-1", email: "test@example.com" },
     session: {},
     signOut: vi.fn(),
+  }),
+}));
+
+vi.mock("@/hooks/useVocabulary", () => ({
+  useVocabularyScores: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  }),
+  useDueToday: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
   }),
 }));
 
@@ -61,10 +74,11 @@ describe("App", () => {
   it("renders home content on /", () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ["/"] });
     expect(screen.getByRole("heading", { name: "Home" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Words" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Quick actions" }),
+    ).toBeInTheDocument();
+
     const main = screen.getByRole("main");
-    expect(within(main).getAllByText("word 1").length).toBeGreaterThanOrEqual(
-      1,
-    );
+    expect(within(main).getByTestId("home-quick-action-study")).toBeInTheDocument();
   });
 });

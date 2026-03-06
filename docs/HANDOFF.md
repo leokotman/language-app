@@ -11,6 +11,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 - **Auth:** Login, signup, forgot password, protected routes, profiles (migration 001).
 - **Settings:** Language pairs (add/remove with confirmation); requires migration 002.
 - **Library:** List, search, filter, add/edit/delete with confirm; requires 002.
+- **Home:** Real dashboard (no mock data): due today count, tracked words, learnt words, average score, active language pairs, quick actions to Study/Library/Dictionary/Progress, sign-in/loading/error/empty states.
 - **Dictionary:** One tab — lookup (MyMemory en↔ru, en↔sr), browse app library, add to my library; offline from cache when synced.
 - **Offline:** Navbar toggle; IndexedDB cache; OfflinePrefetch; sync on “Offline” ON.
 - **Migrations:** Run 001 → 002 → 003 → (optional 005, 008) → 004 → 006 → 007 → 009 (see `SUPABASE_SETUP.md`).
@@ -38,6 +39,7 @@ Update after each session: **Current state**, **Session summary**, **Suggestions
 
 Recent work (from git, latest first):
 
+- feat (KAN-42): Home page dashboard — removed `PLACEHOLDER_WORDS`; wired real data via `useDueToday` + `useVocabularyScores`; added Home stats helper (`buildHomeStats`) and quick actions (Study/Library/Dictionary/Progress); implemented sign-in/loading/error/empty states; added unit tests for Home page and helpers; updated app route smoke test expectations.
 - feat (lang-020): Progress page — branch `feat/lang-020-progress-page`. **Done:** API `listVocabularyScores` (vocabulary_score joined with vocabulary); hook `useVocabularyScores`; Progress page: stats by language pair, score by direction (A→B and B→A), word count, average score, learnt count, last studied; “due today” alert; sign-in/loading/error/empty states. Tests: listVocabularyScores, useVocabularyScores, aggregateProgressByPair, ProgressPage UI. Next: notifications (see SCORING_DESIGN step 6).
 - feat (lang-019): Scoring — **Steps 1–4 done:** Research (docs/SCORING_DESIGN.md); migration 009 (vocabulary_score table + RLS); Formula C in `src/lib/scoring.ts`; API `upsertVocabularyScore`; study session updates score after each rating. Progress page (step 5) done in lang-020.
 - fix (lang-018): Multiple-choice / reverse multiple-choice — options in one language only (sameDirectionCards; filter by language_from/language_to). chore: avoid single-letter variables across codebase; docs: HANDOFF priority, general-clean-code variable names.
@@ -67,7 +69,7 @@ Recent work (from git, latest first):
 
 ## 4. User feedback (Feb 2025) — to address
 
-- **Home page:** Still uses mock data (PLACEHOLDER_WORDS); needs a proper Home (e.g. quick stats, due today, links).
+- **Home page:** ~~Still uses mock data (PLACEHOLDER_WORDS); needs a proper Home (e.g. quick stats, due today, links).~~ → **Done (KAN-42):** real dashboard with due today, summary stats, quick actions (Study/Library/Dictionary/Progress), and sign-in/loading/error/empty states.
 - **Progress page:** ~~Placeholder only; score by pair (2 dimensions: A→B vs B→A)~~ → **Done (lang-020):** Stats by pair, score per direction (A→B, B→A), word count, average score, learnt count, last studied; due-today alert. Notifications (dates) still to do.
 - **Study setup:** ~~Exercise-type checkboxes need Select all / Deselect all~~ → **Done:** Select all / Deselect all buttons added.
 - **Multiple-choice language bug:** ~~Options mixed when bidirectional pair~~ → **Done:** options filtered by same direction (same `language_from`/`language_to`).
@@ -98,7 +100,7 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 **Completed this branch:** (1) Multiple-choice options same language only (lang-018). (2) Study setup Select all / Deselect all.
 
-**Current branch (lang-020):** Progress page — stats by pair, score by direction, due-today alert. Next: notifications (see `docs/SCORING_DESIGN.md` step 6).
+**Current branch (KAN-42):** Home page — real dashboard with hooks data and quick actions. Next: notifications (see `docs/SCORING_DESIGN.md` step 6).
 
 **Next (order TBD):**
 
@@ -111,7 +113,7 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 - **Notifications** — Use scoring table + dates: suggest pair and words (long ago / low score). Depends on scoring table; in-app or push later.
 
-- **Home page** — Replace mock with real summary: due today, link to Study; Progress teaser; links to Library/Dictionary.
+- **Home page** — ~~Replace mock with real summary: due today, link to Study; Progress teaser; links to Library/Dictionary.~~ **Done (KAN-42).**
 
 - **Phase 6 – AI API integration and usage** — **Provider:** Google Gemini API, free tier ([pricing](https://ai.google.dev/gemini-api/docs/pricing)); API keys only in server-side proxy (e.g. Vercel Edge / serverless), never in client. **Security:** Rate limits (e.g. per existing sketch), input sanitization, response validation; cache responses (e.g. 24h) to reduce calls; see `docs/archive/ai-chat-code-2026-02-05T16-40-30-617Z-ai-security.ts`. **How AI customizes exercise:** (1) **Chat intent → session:** User says e.g. “train pronunciation for my vocabulary” → app loads user’s vocabulary (selected pair or all) → run study session with **exercise types = listening + speaking** on that set; optionally Gemini suggests which words to prioritise for pronunciation (order/subset). (2) **Session params:** “I have 10 min” / “mix easy and hard” → optional Gemini call to suggest card count and exercise-type mix; start session with those params. (3) **Per-word:** On-demand mnemonic, example sentence, pronunciation tip (buttons); cached, rate-limited. **Pronunciation flow:** User in chat: “Scan my vocabulary and train pronunciation for those words.” App resolves word set; optionally Gemini suggests order/subset; then launch pronunciation-only session (listening + speaking) for that set.
 
