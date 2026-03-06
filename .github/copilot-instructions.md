@@ -59,6 +59,15 @@
 
 ---
 
+## Code reviews
+
+**Focus on:** Correctness, readability, maintainability. Does the code do what it’s supposed to? Is it easy to understand? Is it structured well for future changes?
+**Common issues to catch:** Failing build/lint/tests; unclear naming; large functions or components; duplicated logic; side effects in components; missing error handling; unhandled edge cases.
+**Be constructive:** If you find an issue, explain why and suggest how to fix it. If you’re unsure about a change, ask the author for clarification rather than rejecting outright.
+**Focus on security:** Avoid unsafe string interpolation and other security vulnerabilities. For example, when constructing database queries or API calls, use parameterized queries or proper escaping to prevent injection attacks. When handling user input, validate and sanitize it before use. Be cautious with any code that interacts with external systems or handles sensitive data.
+
+---
+
 ## Where to look next
 
 - **Current state and handoff:** `docs/HANDOFF.md`.

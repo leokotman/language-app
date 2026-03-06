@@ -30,6 +30,7 @@ import {
   deleteVocabulary,
   getVocabularyById,
   listDueToday,
+  listVocabularyScores,
   listUserVocabulary,
   addToUserLibrary,
   updateUserVocabulary,
@@ -337,6 +338,56 @@ describe("vocabulary API", () => {
       const result = await listDueToday("user-1", { pairKey: "en" as "en-ru" });
       expect(result.data).toHaveLength(2);
       expect(result.error).toBeNull();
+    });
+  });
+
+  describe("listVocabularyScores", () => {
+    const scoreRow = {
+      user_id: "user-1",
+      vocabulary_id: "v-1",
+      score: 60,
+      last_exercise_at: "2026-02-20T12:00:00.000Z",
+      practised_dates_count: 1,
+      learnt: true,
+      created_at: "2026-02-20T12:00:00.000Z",
+      updated_at: "2026-02-20T12:00:00.000Z",
+      vocabulary: mockVocabularyRow,
+    };
+
+    it("returns score rows with vocabulary joined", async () => {
+      vi.mocked(supabase.from).mockReturnValue(
+        createSupabaseChain({ data: [scoreRow], error: null }) as never,
+      );
+      const result = await listVocabularyScores("user-1");
+      expect(result.data).toHaveLength(1);
+      expect(result.data?.[0]).toMatchObject({
+        user_id: "user-1",
+        vocabulary_id: "v-1",
+        score: 60,
+        learnt: true,
+      });
+      expect(result.data?.[0].vocabulary).toEqual(mockVocabularyRow);
+      expect(result.error).toBeNull();
+      expect(supabase.from).toHaveBeenCalledWith("vocabulary_score");
+    });
+
+    it("returns empty array and no error when no rows", async () => {
+      vi.mocked(supabase.from).mockReturnValue(
+        createSupabaseChain({ data: [], error: null }) as never,
+      );
+      const result = await listVocabularyScores("user-1");
+      expect(result.data).toEqual([]);
+      expect(result.error).toBeNull();
+    });
+
+    it("returns error when Supabase fails", async () => {
+      const err = new Error("DB error");
+      vi.mocked(supabase.from).mockReturnValue(
+        createSupabaseChain({ data: null, error: err }) as never,
+      );
+      const result = await listVocabularyScores("user-1");
+      expect(result.data).toEqual([]);
+      expect(result.error).toBe(err);
     });
   });
 

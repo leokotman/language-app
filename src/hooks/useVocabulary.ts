@@ -6,6 +6,7 @@ import {
   deleteVocabulary,
   listUserVocabulary,
   listDueToday,
+  listVocabularyScores,
   addToUserLibrary,
   updateUserVocabulary,
   removeFromUserLibrary,
@@ -114,6 +115,23 @@ export function dueTodayQueryKey(userId: string, filters?: DueTodayFilters) {
   ] as const;
 }
 
+export function vocabularyScoresQueryKey(userId: string) {
+  return ["vocabulary-scores", userId] as const;
+}
+
+export function useVocabularyScores(userId: string | undefined) {
+  return useQuery({
+    queryKey: vocabularyScoresQueryKey(userId ?? ""),
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await listVocabularyScores(userId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
 export function useDueToday(
   userId: string | undefined,
   filters?: DueTodayFilters,
@@ -168,6 +186,9 @@ export function useUpdateUserVocabulary(userId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-vocabulary", userId] });
       queryClient.invalidateQueries({ queryKey: ["due-today", userId] });
+      queryClient.invalidateQueries({
+        queryKey: vocabularyScoresQueryKey(userId),
+      });
     },
   });
 }
