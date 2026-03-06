@@ -88,6 +88,19 @@ export function DictionaryPage() {
     [userLibraryItems],
   );
 
+  const userLibraryKeys = useMemo(
+    () =>
+      new Set(
+        userLibraryItems
+          .filter((item) => item.vocabulary)
+          .map(
+            (item) =>
+              `${item.vocabulary!.word}|${item.vocabulary!.translation}|${item.vocabulary!.language_from}|${item.vocabulary!.language_to}`,
+          ),
+      ),
+    [userLibraryItems],
+  );
+
   const appVocabulary = useMemo((): VocabularyRow[] => {
     const start = typeof performance !== "undefined" ? performance.now() : 0;
     const listSourceToTarget = (appVocabularySourceToTarget.data ??
@@ -95,9 +108,7 @@ export function DictionaryPage() {
     const listTargetToSource = (appVocabularyTargetToSource.data ??
       []) as VocabularyRow[];
     const combined = [...listSourceToTarget, ...listTargetToSource];
-    combined.sort((rowA, rowB) =>
-      rowA.word.localeCompare(rowB.word, undefined, { sensitivity: "base" }),
-    );
+
     const ms =
       typeof performance !== "undefined"
         ? (performance.now() - start).toFixed(2)
@@ -285,14 +296,9 @@ export function DictionaryPage() {
   const isItemInLibrary = (item: ResultItem) => {
     if (item.source === "store")
       return userVocabularyIds.has(item.vocabularyId);
-    const dictionaryEntry = item.entry;
-    return userLibraryItems.some(
-      (userVocab) =>
-        userVocab.vocabulary?.word === dictionaryEntry.word &&
-        userVocab.vocabulary?.translation === dictionaryEntry.translation &&
-        userVocab.vocabulary?.language_from === dictionaryEntry.language_from &&
-        userVocab.vocabulary?.language_to === dictionaryEntry.language_to,
-    );
+    const entry = item.entry;
+    const key = `${entry.word}|${entry.translation}|${entry.language_from}|${entry.language_to}`;
+    return userLibraryKeys.has(key);
   };
 
   return (
