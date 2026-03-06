@@ -5,8 +5,10 @@
  *   node scripts/changelog-from-branch.mjs [baseRef]
  *   node scripts/changelog-from-branch.mjs --append [baseRef]
  *   node scripts/changelog-from-branch.mjs --range <fromRef> <toRef> [--append]
+ *   node scripts/changelog-from-branch.mjs --linkify-existing
  * Default baseRef: main. With --range: use explicit from..to (e.g. for GitHub Actions on push).
  * With --append: insert entries into docs/CHANGELOG.md under ## [Unreleased].
+ * With --linkify-existing: rewrite docs/CHANGELOG.md so every (#NN) and "Merge pull request #NN" become PR links.
  */
 
 import { execSync } from "child_process";
@@ -19,6 +21,7 @@ const repoRoot = join(__dirname, "..");
 
 const args = process.argv.slice(2);
 const append = args.includes("--append");
+const linkifyExisting = args.includes("--linkify-existing");
 const rangeIdx = args.indexOf("--range");
 let baseRef = "main";
 let headRef = "HEAD";
@@ -44,12 +47,35 @@ const TYPE_TO_SECTION = {
   ci: "Changed",
 };
 
-function getCommits(base, head) {
-  const out = execSync(`git log ${base}..${head} --format=%s`, {
+function getRepoBaseUrl() {
+  if (process.env.GITHUB_REPOSITORY) {
+    return `https://github.com/${process.env.GITHUB_REPOSITORY}`;
+  }
+  const out = execSync("git remote get-url origin", {
     cwd: repoRoot,
     encoding: "utf-8",
   });
-  return out.trim().split("\n").filter(Boolean).reverse();
+  const url = out.trim();
+  const match = url.match(/github\.com[:/]([^/]+\/[^/.]+)(?:\.git)?$/);
+  return match ? `https://github.com/${match[1]}` : null;
+}
+
+function getCommits(base, head) {
+  const out = execSync(
+    `git log ${base}..${head} --format=%H%x09%s`,
+    { cwd: repoRoot, encoding: "utf-8" },
+  );
+  return out
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const tab = line.indexOf("\t");
+      const sha = tab === -1 ? line : line.slice(0, tab);
+      const subject = tab === -1 ? "" : line.slice(tab + 1);
+      return { sha, shortSha: sha.slice(0, 7), subject };
+    })
+    .reverse();
 }
 
 function parseSubject(subject) {
@@ -60,14 +86,26 @@ function parseSubject(subject) {
   return { type, scope, description };
 }
 
-function formatEntries(commits) {
+function linkifyDescription(description, repoBaseUrl) {
+  if (!repoBaseUrl) return description;
+  return description.replace(
+    /\(#(\d+)\)/g,
+    (_, n) => `([#${n}](${repoBaseUrl}/pull/${n}))`,
+  );
+}
+
+function formatEntries(commits, repoBaseUrl) {
   const bySection = {};
-  for (const subject of commits) {
+  for (const { sha, shortSha, subject } of commits) {
     const { type, scope, description } = parseSubject(subject);
     const section = TYPE_TO_SECTION[type] || "Changed";
     if (!bySection[section]) bySection[section] = [];
     const scopePrefix = scope ? `**${scope}:** ` : "";
-    bySection[section].push(`- ${scopePrefix}${description}`);
+    const linkified = linkifyDescription(description, repoBaseUrl);
+    const commitLink = repoBaseUrl
+      ? ` ([${shortSha}](${repoBaseUrl}/commit/${sha}))`
+      : "";
+    bySection[section].push(`- ${scopePrefix}${linkified}${commitLink}`);
   }
   const order = ["Added", "Fixed", "Changed"];
   const lines = [];
@@ -84,9 +122,37 @@ function formatEntries(commits) {
   return lines.join("\n");
 }
 
+function linkifyExistingChangelog(repoBaseUrl) {
+  const changelogPath = join(repoRoot, "docs", "CHANGELOG.md");
+  let content = readFileSync(changelogPath, "utf-8");
+  // (#NN) -> ([#NN](url)) only when not already a link (avoid double-wrap)
+  content = content.replace(
+    /\(#(\d+)\)(?!\])/g,
+    (_, n) => `([#${n}](${repoBaseUrl}/pull/${n}))`,
+  );
+  // "Merge pull request #NN from" -> "Merge pull request [#NN](url) from"
+  content = content.replace(
+    /Merge pull request #(\d+) from/g,
+    (_, n) => `Merge pull request [#${n}](${repoBaseUrl}/pull/${n}) from`,
+  );
+  writeFileSync(changelogPath, content);
+  console.log("Linkified existing PR references in docs/CHANGELOG.md.");
+}
+
 function main() {
+  if (linkifyExisting) {
+    const repoBaseUrl = getRepoBaseUrl();
+    if (!repoBaseUrl) {
+      console.error("Could not determine repo URL (git remote or GITHUB_REPOSITORY).");
+      process.exit(1);
+    }
+    linkifyExistingChangelog(repoBaseUrl);
+    return;
+  }
+
   const commits = getCommits(baseRef, headRef);
-  const markdown = formatEntries(commits);
+  const repoBaseUrl = getRepoBaseUrl();
+  const markdown = formatEntries(commits, repoBaseUrl);
 
   if (!append) {
     console.log(

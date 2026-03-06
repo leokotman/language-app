@@ -6,21 +6,21 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
-- KAN-42: home page real data (#32)
+- KAN-42: home page real data ([#32](https://github.com/leokotman/language-app/pull/32)) ([d1bb15b](https://github.com/leokotman/language-app/commit/d1bb15b030f76a42df8f61f25557453a23a57810))
 
 
 ### Changed
 
-- Feat/lang 020 progress page (#29)
+- Feat/lang 020 progress page ([#29](https://github.com/leokotman/language-app/pull/29))
 
 
 ### Added
 
-- **lang-019:** add exercises scoring system (#25)
+- **lang-019:** add exercises scoring system ([#25](https://github.com/leokotman/language-app/pull/25))
 
 ### Changed
 
-- Fix/lang 018 multiple choice same language (#24)
+- Fix/lang 018 multiple choice same language ([#24](https://github.com/leokotman/language-app/pull/24))
 
 ### Changed
 
@@ -28,11 +28,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
-- Chore/lang 017 increase coverage (#23)
+- Chore/lang 017 increase coverage ([#23](https://github.com/leokotman/language-app/pull/23))
 
 ### Changed
 
-- Chore/lang 016 coverage improvements (#22)
+- Chore/lang 016 coverage improvements ([#22](https://github.com/leokotman/language-app/pull/22))
 
 ### Changed
 
@@ -44,7 +44,7 @@ All notable changes to the Language App are documented here. The format is based
 - **lang-016:** test: add unit tests for importExport, LibraryPage.helpers, StudyPage.helpers, ConfirmDialog
 - **lang-016:** refactor: split LibraryPage and DictionaryPage into subcomponents
 - **lang-016:** add coverage target %, custom reporter, and unit tests for errors, auth, theme, ProtectedRoute
-- Merge pull request #21 from leokotman/chore/lang-016-coverage-refactor
+- Merge pull request [#21](https://github.com/leokotman/language-app/pull/21) from leokotman/chore/lang-016-coverage-refactor
 
 ### Changed
 
@@ -53,7 +53,7 @@ All notable changes to the Language App are documented here. The format is based
 - **study:** add StudyPage layout components (SignInAlert, StudyLoading, NoCardsDue, StudySetup, SessionComplete)
 - **study:** add StudyPage card block components and index
 - **study:** refactor StudyPage to use subcomponents, condition constants, and memoized handlers
-- Merge pull request #20 from leokotman/chore/refactor-study-page
+- Merge pull request [#20](https://github.com/leokotman/language-app/pull/20) from leokotman/chore/refactor-study-page
 
 ### Added
 
@@ -63,7 +63,7 @@ All notable changes to the Language App are documented here. The format is based
 ### Changed
 
 - **lang-015:** add SPEECH_PLAN doc, reference in AI instructions; fix package.json indent
-- Merge pull request #19 from leokotman/feat/lang-015-speaking-recording
+- Merge pull request [#19](https://github.com/leokotman/language-app/pull/19) from leokotman/feat/lang-015-speaking-recording
 
 ### Added
 
@@ -72,12 +72,12 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
-- Merge pull request #18 from leokotman/feat/lang-014-reverse-multiple-choice-tts
+- Merge pull request [#18](https://github.com/leokotman/language-app/pull/18) from leokotman/feat/lang-014-reverse-multiple-choice-tts
 
 ### Changed
 
 - **lang-014:** slim and consolidate docs and cursor instructions
-- Merge pull request #17 from leokotman/chore/lang-014-docs-slim-and-consolidate
+- Merge pull request [#17](https://github.com/leokotman/language-app/pull/17) from leokotman/chore/lang-014-docs-slim-and-consolidate
 
 ### Added
 
@@ -93,7 +93,7 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
-- Merge pull request #16 from leokotman/feat/lang-013-e2e-study-session
+- Merge pull request [#16](https://github.com/leokotman/language-app/pull/16) from leokotman/feat/lang-013-e2e-study-session
 
 ### Fixed
 
