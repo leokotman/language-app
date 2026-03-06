@@ -2,7 +2,13 @@
 
 Update after each session: **Current state**, **Session summary**, **Suggestions / Priority**. Full history: `git log --oneline -40` or `docs/CHANGELOG.md`.
 
-**Session start:** Branch from `main` (e.g. `feat/KAN-014-…`). Next task number from §3 or §5. Load this file and `docs/AI agent instructions.md`.
+**Session start:** 
+1. Check §3 or §5 for next task or feature.
+2. **Create JIRA ticket first** (if not already created) → get ticket number (e.g., KAN-42).
+3. Create branch from `main` with that number: `feat/KAN-42-description` (e.g. `feat/KAN-42-home-page-redesign`).
+4. Link PR to ticket when pushing (automatic if using KAN-XX in branch name).
+
+Load: this file (`docs/HANDOFF.md`) and `docs/AI agent instructions.md`.
 
 ---
 
@@ -100,7 +106,12 @@ _Not yet implemented; pick from here (and from §6 Priority) for the next featur
 
 **Completed this branch:** (1) Multiple-choice options same language only (KAN-18). (2) Study setup Select all / Deselect all.
 
-**Current branch (KAN-42):** Home page — real dashboard with hooks data and quick actions. Next: notifications (see `docs/SCORING_DESIGN.md` step 6).
+**Current branch (KAN-21):** Home page — real dashboard with hooks data and quick actions (completed in KAN-42; renaming branch to match correct JIRA ticket). Next: notifications (see `docs/SCORING_DESIGN.md` step 6).
+
+**Branch numbering:** Each branch MUST correspond to a JIRA ticket number. Before starting a feature:
+- Create or identify the JIRA ticket (format: KAN-XXX)
+- Name the branch with that exact number: `feat/KAN-XXX-description`
+- This ensures PR-to-ticket linking and maintains traceability
 
 **Next (order TBD):**
 
