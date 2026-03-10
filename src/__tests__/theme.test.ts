@@ -11,17 +11,17 @@ import {
 
 describe("theme", () => {
   it("has primary color", () => {
-    expect(theme.palette.primary.main).toBe("#1976d2");
+    expect(theme.palette.primary.main).toBe("#2B6EF2");
   });
 
   it("has typography font family", () => {
-    expect(theme.typography.fontFamily).toContain("Roboto");
+    expect(theme.typography.fontFamily).toContain("Manrope");
   });
 
   it("getTheme(dark) returns dark palette", () => {
     const dark = getTheme("dark");
     expect(dark.palette.mode).toBe("dark");
-    expect(dark.palette.background.default).toBe("#121212");
+    expect(dark.palette.background.default).toBe("#0D1428");
   });
 });
 
