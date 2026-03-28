@@ -1,5 +1,5 @@
 ---
-description: General clean code: constants, magic numbers, file size
+description: General clean code: constants, magic numbers, file size, TypeScript
 globs: "**/*.{ts,tsx}"
 alwaysApply: false
 ---
@@ -10,3 +10,7 @@ alwaysApply: false
 - **Variable names**: Avoid single-letter names (e.g. `c`, `i`, `t`, `v`). Use descriptive names: `card`, `index`, `translation`, `voice`. Exception: very short callbacks where the type is obvious can use a short name if used sparingly.
 - **File size**: Prefer smaller files. If a component or module grows large, extract types, constants, helpers, or subcomponents as per the other rules.
 - **Const over let**: Prefer `const`; use `let` only when reassignment is needed.
+
+## TypeScript
+
+- **No `any`**: Do not use explicit `any` or leave types in a position where TypeScript would infer implicit `any`. Prefer concrete types, generics, or `unknown` (with narrowing) instead of widening to `any`.
