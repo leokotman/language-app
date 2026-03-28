@@ -6,6 +6,11 @@ All notable changes to the Language App are documented here. The format is based
 
 ### Changed
 
+- update cursor rules ([9c72a3a](https://github.com/leokotman/language-app/commit/9c72a3a81e56a5a7ed569a7dc0a9edd34596f786))
+
+
+### Changed
+
 - enhance changelog automation and linkify existing entries ([2b1913f](https://github.com/leokotman/language-app/commit/2b1913f22e615e9e5c37144a5ed4b0ea83110a5a))
 
 
