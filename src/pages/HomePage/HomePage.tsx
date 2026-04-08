@@ -13,6 +13,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDueToday, useVocabularyScores } from "@/hooks/useVocabulary";
 import { HOME_QUICK_ACTIONS } from "./HomePage.constants";
 import { buildHomeStats } from "./HomePage.helpers";
+import {
+  dashboardCardContentSx,
+  dashboardCardLabelSx,
+  dashboardCardSx,
+  dashboardCardValueSx,
+  quickActionButtonSx,
+  quickActionCardContentSx,
+  quickActionCardSx,
+  quickActionDescriptionSx,
+  quickActionTitleSx,
+} from "./HomePage.styles";
 
 function DashboardCard({
   title,
@@ -22,12 +33,12 @@ function DashboardCard({
   value: string | number;
 }) {
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography variant="body2" color="text.secondary">
+    <Card variant="outlined" sx={dashboardCardSx}>
+      <CardContent sx={dashboardCardContentSx}>
+        <Typography variant="body2" sx={dashboardCardLabelSx}>
           {title}
         </Typography>
-        <Typography variant="h5" sx={{ mt: 0.5 }}>
+        <Typography variant="h5" sx={dashboardCardValueSx}>
           {value}
         </Typography>
       </CardContent>
@@ -151,10 +162,15 @@ export function HomePage() {
       <Grid container spacing={2} sx={{ mt: 0.5 }}>
         {HOME_QUICK_ACTIONS.map((action) => (
           <Grid key={action.to} size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card variant="outlined" sx={{ height: "100%" }}>
-              <CardContent>
-                <Typography variant="subtitle1">{action.label}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <Card
+              variant="outlined"
+              sx={quickActionCardSx}
+            >
+              <CardContent sx={quickActionCardContentSx}>
+                <Typography variant="subtitle1" sx={quickActionTitleSx}>
+                  {action.label}
+                </Typography>
+                <Typography variant="body2" sx={quickActionDescriptionSx}>
                   {action.description}
                 </Typography>
                 <Button
@@ -162,7 +178,7 @@ export function HomePage() {
                   to={action.to}
                   variant="contained"
                   size="small"
-                  sx={{ mt: 2 }}
+                  sx={quickActionButtonSx}
                   data-testid={action.testId}
                 >
                   Open {action.label}
